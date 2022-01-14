@@ -3,7 +3,90 @@ title: "Sargasso_Subisidy_Code"
 output: html_document
 ---
 
-Sargasso Plant Communities 
+#libraries
 ```{r}
-#Hello darkness my old friend 
+library(knitr)
+library(tidyverse)
+library(tidyr)
+library(ggplot2)
+library(ggfortify)
+library(lme4)
+library(car)
+library(nlme)
+library(ggpubr)
+library(multcompView)
+library(boot)
+library(Hotelling)
+library(mvnTest)
+library(vegan)
+library(factoextra)
+library(FactoMineR)
+library(agricolae)
+library(glmm)
+library(HH)
+library(ggpubr)
+library(rstatix)
 ```
+
+#Sargasso Plant Communities 
+
+```{r}
+#import and name data
+plants <-read.csv("Saragsso Communities.csv",header=T)
+View(plants)
+
+#compare biomass (exlude municipal dump since we did not collect biomass there)
+plants1<-subset(plants, !Site== "Dump")
+
+plantbiomass<-ggplot(plants1, aes(x=Site, y=Biomass_g, fill= Treatment )) + geom_bar(stat="identity",position=position_dodge()) + theme_bw() + xlab("Site") + ylab("biomass (g)") + ggtitle("") 
+plantbiomass
+
+#compare communities differences using NMDS
+#use only the data we are interested in
+##plants first
+data <- (plants[,c(9:26)])
+view(data)
+is.factor(data$Treatment)
+data$Treatment<-as.factor(data$Treatment)
+
+
+#use metaMDS to create NMDS procedure
+#make matrix using only the count data relevant for plants
+matrix = as.matrix(data)
+view(matrix)
+nmds = metaMDS(matrix, distance = "bray") 
+plot(nmds)
+#a standard NMDS plot lacks any information so lets extract the coordinates and make it more informative
+data.scores = as.data.frame(scores(nmds))
+#now lets add descriptive columns back into the data frame 
+data.scores$Site = plants$Site
+data.scores$Treatment = plants$Treatment
+
+view(data.scores)
+
+plot <- ggplot(data.scores, aes(x = NMDS1, y = NMDS2)) + 
+    geom_point(size = 1, aes( shape = Site, colour = Treatment))+ 
+    theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
+    axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
+    legend.text = element_text(size = 12, face ="bold", colour ="black"), 
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
+    axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
+    legend.title = element_text(size = 14, colour = "black", face = "bold"), 
+    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+    legend.key=element_blank()) + 
+    labs(x = "NMDS1", colour = "Treatment", y = "NMDS2", shape = "Type")  + 
+    scale_colour_manual(values = c("#009E73", "#E69F00")) 
+
+plot
+
+#lets compare chemicals
+
+chems<-read.csv("Soil Chemicals.csv", header = T)
+view(chems)
+
+chemplot<-ggplot(chems, aes(x=Site, y=Nitrate, fill = Dune)) + geom_bar(stat="identity",position=position_dodge()) + theme_bw() + xlab("Site") + ylab("Nitrate") + ggtitle(" ") 
+chemplot
+
+
+```
+
