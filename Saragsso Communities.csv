@@ -1,0 +1,27 @@
+﻿Date,Site,Dune,Treatment,Transect ,Quadrat,Position_m,Biomass_g,Star_grass,Thin_grass,Thick_grass,Wheat_grass,Dead_grass,Sea_rocket,Purselane,Goats_foot,Bay_cedar,Sea_lavander ,Water_lily,Sand,Other_plant,Dead_matter,Waxy,Squash,Sargasso,Spikey_grass,Bearing,notes,Trap_position (m),Ants,Flies,Wasps ,Spiders,Centipede,Beetles,Nats,Grasshopers,Moquitos,Lizard,Unknown_arthropod
+11/6/21,Valentin,Sargasso ,Sargasso,1,1,19,375,68,0,0,0,31,0,0,0,0,0,0,1,0,0,0,0,0,0,NA,"Parallele to water, 1.5m from edge of dune, 15m from water",5,127,2,0,0,2,4,14,1,0,0,0
+11/6/21,Valentin,Sargasso ,Sargasso,1,2,5,55,6,46,0,0,10,0,0,0,0,0,0,38,0,0,0,0,0,0,NA,,10,101,9,1,3,2,10,0,0,0,0,0
+11/6/21,Valentin,Sargasso ,Sargasso,1,3,6,890,2,0,0,0,0,0,92,0,0,0,0,6,0,0,0,0,0,0,NA,,22,35,0,0,0,1,0,129,1,1,0,3
+11/6/21,Valentin,Sargasso ,Sargasso,1,4,4,185,27,0,0,0,73,0,0,0,0,0,0,0,0,0,0,0,0,0,NA,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/6/21,Valentin,Sargasso ,Sargasso,1,5,23,280,73,0,0,0,27,0,0,0,0,0,0,0,0,0,0,0,0,0,NA,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/6/21,Valentin,Natural,Control,2,1,13,525,0,0,20,0,0,33,23,0,0,0,0,24,0,0,0,0,0,0,NA,"Parallele to water, 2.5m frome edge, 15m from water",6,24,1,0,2,0,4,7,0,0,0,0
+11/6/21,Valentin,Natural,Control,2,2,15,215,0,3,0,24,13,43,3,0,0,0,0,14,0,0,0,0,0,0,NA,,9,161,,2,5,0,1,20,0,1,0,0
+11/6/21,Valentin,Natural,Control,2,3,7,215,0,21,0,31,24,8,0,0,14,0,0,2,0,0,0,0,0,0,NA,,21,35,1,0,2,0,8,10,0,0,0,0
+11/6/21,Valentin,Natural,Control,2,4,10,345,0,0,0,0,3,34,0,0,0,42,5,16,0,0,0,0,0,0,NA,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/6/21,Valentin,Natural,Control,2,5,22,625,0,0,0,4,5,26,0,0,0,65,0,0,0,0,0,0,0,0,NA,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/7/21,Moon_Palace,Front_beach_dune,Sargasso,1,1,11,170,3,13,0,30,48,0,0,0,0,0,0,0,6,0,0,0,0,0,118,Dune may be over old sargasso ,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/7/21,Moon_Palace,Front_beach_dune,Sargasso,1,2,15,180,8,11,0,0,0,0,0,2,0,0,0,0,1,65,13,0,0,0,118,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/7/21,Moon_Palace,Front_beach_dune,Sargasso,1,3,18,50,25,0,0,1,0,0,0,0,0,0,0,21,5,48,0,0,0,0,118,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/7/21,Moon_Palace,Front_beach_dune,Sargasso,1,4,9,90,16,14,0,3,0,0,0,0,0,0,0,0,0,67,0,0,0,0,118,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/7/21,Moon_Palace,Front_beach_dune,Sargasso,1,5,10,85,21,0,0,13,66,0,0,0,0,0,0,0,0,0,0,0,0,0,118,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/7/21,Moon_Palace,Interior_piles,Control,2,6,14,305,86,0,0,0,14,0,0,0,0,0,0,0,0,0,0,0,0,0,18,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/7/21,Moon_Palace,Interior_piles,Control,3,7,NA,125,50,0,0,0,42,0,0,0,0,0,0,7,1,0,0,0,0,0,214,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/7/21,Moon_Palace,Interior_piles,Control,4,8,NA,110,38,0,0,0,48,0,0,0,0,0,0,7,3,0,0,0,0,3,57,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/7/21,Moon_Palace,Interior_piles,Control,5,9,9,180,1,51,0,0,48,0,0,0,0,0,0,0,0,0,0,0,0,0,134,Pile is sargasso sand and building material,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/8/21,Moon_Palace,Interior_piles,Control,,1,NA,185,0,19,0,26,49,0,0,0,0,0,0,0,0,0,6,0,0,0,NA,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/8/02,Dump,New_dune,NA,1,1,15,NA,0,0,0,0,0,0,0,53,0,0,0,11,0,2,0,9,25,,NA,Thin Grass looks like a diff morph,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/8/02,Dump,New_dune,NA,1,2,12,NA,0,0,0,0,0,0,0,0,0,0,0,11,0,17,0,55,17,0,NA,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/8/02,Dump,New_dune,NA,1,3,9,NA,0,0,0,0,0,0,0,15,0,0,0,23,0,17,0,37,7,0,NA,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/8/02,Dump,Old_dune,NA,2,1,15,NA,61,0,0,0,39,0,0,0,0,0,,0,0,0,0,0,0,0,NA,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/8/02,Dump,Old_dune,NA,2,2,12,NA,1,0,0,0,0,0,0,50,0,0,0,8,2,39,0,0,0,0,NA,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
+11/8/02,Dump,Old_dune,NA,2,3,9,NA,56,0,0,0,32,0,0,12,0,0,0,0,0,0,0,0,0,0,NA,,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA
