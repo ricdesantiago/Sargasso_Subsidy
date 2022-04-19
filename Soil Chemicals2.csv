@@ -1,0 +1,17 @@
+﻿Date,Site,Type,Trt,Sample_no.,Nitrite,Nitrate,mean_N,sd_N,se_N
+11/7/21,Beach Dune,Control,Beach Dune Control,1,0,0,3,4.472136,2
+11/7/21,Beach Dune,Control,Beach Dune Control,2,0,0,3,4.472136,2
+11/7/21,Beach Dune,Control,Beach Dune Control,3,0,0,3,4.472136,2
+11/7/21,Beach Dune,Control,Beach Dune Control,4,0,5,3,4.472136,2
+11/7/21,Beach Dune,Control,Beach Dune Control,5,0,10,3,4.472136,2
+11/7/21,Beach Dune,Sargasso ,Beach Dune Sargasso,6,0,70,44,29.874738,13.360389
+11/7/21,Beach Dune,Sargasso ,Beach Dune Sargasso,7,0,25,44,29.874738,13.360389
+11/7/21,Beach Dune,Sargasso ,Beach Dune Sargasso,8,0,10,44,29.874738,13.360389
+11/7/21,Beach Dune,Sargasso ,Beach Dune Sargasso,9,0,80,44,29.874738,13.360389
+11/7/21,Beach Dune,Sargasso ,Beach Dune Sargasso,10,0,35,44,29.874738,13.360389
+11/8/02,Jungle ,Control,Jungle Control,1,0,35,23.16667,10.251016,5.918427
+11/8/02,Jungle ,Control,Jungle Control,2,0,17.5,23.16667,10.251016,5.918427
+11/8/02,Jungle ,Control,Jungle Control,3,0,17,23.16667,10.251016,5.918427
+11/8/02,Jungle ,Sargasso ,Jungle Sargasso,1,1,90,80,26.457513,15.275252
+11/8/02,Jungle ,Sargasso ,Jungle Sargasso,2,0,50,80,26.457513,15.275252
+11/8/02,Jungle ,Sargasso ,Jungle Sargasso,3,1,100,80,26.457513,15.275252

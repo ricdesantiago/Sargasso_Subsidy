@@ -34,6 +34,9 @@ library(rstatix)
 #import and name data
 plants <-read.csv("Saragsso Communities.csv",header=T)
 View(plants)
+is.factor(data$Treatment)
+plants$Treatment<-is.factor(plants$Treatment)
+
 
 #compare biomass (exlude municipal dump since we did not collect biomass there)
 plants1<-subset(plants, !Site== "Dump")
@@ -79,14 +82,95 @@ plot <- ggplot(data.scores, aes(x = NMDS1, y = NMDS2)) +
 
 plot
 
+
+####for the proposal
+
+#compare communities differences using NMDS
+#use only the data we are interested in
+##plants first
+plants2 <-read.csv("Saragsso Communities2.csv",header=T)
+view(plants2)
+data2 <- (plants2[,c(4:19,21)])
+view(data2)
+is.factor(plants2$Type)
+plants2$Type<-as.factor(plants2$Type)
+
+
+#use metaMDS to create NMDS procedure
+#make matrix using only the count data relevant for plants
+matrix = as.matrix(data2)
+view(matrix)
+nmds = metaMDS(matrix, distance = "bray") 
+plot(nmds)
+#a standard NMDS plot lacks any information so lets extract the coordinates and make it more informative
+data.scores = as.data.frame(scores(nmds))
+#now lets add descriptive columns back into the data frame 
+data.scores$Site = plants2$Site
+data.scores$Type = plants2$Type
+
+view(data.scores)
+
+plot2 <- ggplot(data.scores, aes(x = NMDS1, y = NMDS2)) + 
+    geom_point(size = 3, aes( shape = Site, colour = Type))+ 
+    theme(axis.text.y = element_text(colour = "black", size = 20, face = "bold"), 
+    axis.text.x = element_text(colour = "black", face = "bold", size = 20), 
+    legend.text = element_text(size = 20, face ="bold", colour ="black"), 
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 20), 
+    axis.title.x = element_text(face = "bold", size = 20, colour = "black"), 
+    legend.title = element_text(size = 20, colour = "black", face = "bold"), 
+    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+    legend.key=element_blank()) + 
+    labs(x = "NMDS1", colour = "Type", y = "NMDS2", shape = "Site")  + 
+    scale_colour_manual(values = c("#009E73", "#E69F00")) 
+
+plot2
 #lets compare chemicals
 
-chems<-read.csv("Soil Chemicals.csv", header = T)
-view(chems)
+chems2<-read.csv("Soil Chemicals2.csv", header = T)
+view(chems2)
 
-chemplot<-ggplot(chems, aes(x=Site, y=Nitrate, fill = Dune)) + geom_bar(stat="identity",position=position_dodge()) + theme_bw() + xlab("Site") + ylab("Nitrate") + ggtitle(" ") 
-chemplot
+chems3<- chems2 %>%
+    group_by(Trt) %>%
+    summarize (mean_N = mean(Nitrate), sd_N = sd(Nitrate), count = n(), se_N = (sd_N/(sqrt(count))))
+view(chems3)
+
+chemplot3<-ggplot(chems2, aes(x=Site, y=mean_N, fill = Type)) + geom_bar(stat="identity",position=position_dodge()) + theme_bw() + xlab("Site") + ylab("Nitrate (ppm)") + ggtitle(" ") +
+    theme(axis.text = element_text(size = 20), axis.title = element_text (size = 20), legend.text = element_text(size = 20), legend.title = element_text(size = 20)) +
+    geom_errorbar(aes(ymin = mean_N - se_N, ymax = mean_N + se_N),size=.2, width = .2,  position=position_dodge(0.9))
+chemplot3
 
 
+
+
+
+
+chems3<-read.csv("Soil Chemicals2.csv", header = T)
+view(chems2)
+
+chemplot3<-ggplot(chems2, aes(x=Site, y=Nitrate, fill = Type)) + geom_boxplot() + theme_bw() + xlab("Site") + ylab("Nitrate (ppm)") + ggtitle(" ") 
+chemplot3
+
+
+
+
+
+#lets compare N
+
+CN<-read.csv("Sargasso CN.csv", header = T)
+view(CN)
+
+CNplot<-ggplot(CN, aes(x=site, y=c.n, fill = treatment)) + geom_bar(stat="identity",position=position_dodge()) + theme_bw() + xlab("Site") + ylab("Carbon: 1 Nitrogen") + ggtitle(" ") +
+    theme(axis.text = element_text(size = 20), axis.title = element_text (size = 20), legend.text = element_text(size = 20), legend.title = element_text(size = 20)) 
+CNplot
+
+
+
+#lets re run the old one
+old<-read.csv("Soil Chemicals.csv", header = T)
+view(old)
+
+oldplot<-ggplot(old, aes(x=Site, y=Nitrate, fill = Dune)) + geom_bar(stat="identity",position=position_dodge()) + theme_bw() + xlab("Site") + ylab("nitrate") + ggtitle(" ") +
+    theme(axis.text = element_text(size = 20), axis.title = element_text (size = 20), legend.text = element_text(size = 20), legend.title = element_text(size = 20)) 
+oldplot
 ```
 
