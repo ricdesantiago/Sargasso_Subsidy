@@ -172,5 +172,7 @@ view(old)
 oldplot<-ggplot(old, aes(x=Site, y=Nitrate, fill = Dune)) + geom_bar(stat="identity",position=position_dodge()) + theme_bw() + xlab("Site") + ylab("nitrate") + ggtitle(" ") +
     theme(axis.text = element_text(size = 20), axis.title = element_text (size = 20), legend.text = element_text(size = 20), legend.title = element_text(size = 20)) 
 oldplot
+
+gitcreds_set()
 ```
 
