@@ -28,8 +28,13 @@ library(ggpubr)
 library(rstatix)
 ```
 
-#Sargasso Plant Communities 
+#Piles
+```{r}
+piles <-read.csv("Saragssum_piles.csv",header=T)
 
+```
+
+#Sargasso Plant Communities 
 ```{r}
 #import and name data
 plants <-read.csv("Saragsso Communities.csv",header=T)
@@ -151,10 +156,12 @@ chemplot3<-ggplot(chems2, aes(x=Site, y=Nitrate, fill = Type)) + geom_boxplot() 
 chemplot3
 
 
+```
 
+#Carbon and Nitrogen
+```{r}
 
-
-#lets compare N
+#lets compare C:N
 
 CN<-read.csv("Sargasso CN.csv", header = T)
 view(CN)
@@ -162,6 +169,25 @@ view(CN)
 CNplot<-ggplot(CN, aes(x=site, y=c.n, fill = treatment)) + geom_bar(stat="identity",position=position_dodge()) + theme_bw() + xlab("Site") + ylab("Carbon: 1 Nitrogen") + ggtitle(" ") +
     theme(axis.text = element_text(size = 20), axis.title = element_text (size = 20), legend.text = element_text(size = 20), legend.title = element_text(size = 20)) 
 CNplot
+
+
+
+
+
+
+CN2<-read.csv("Sargasso CN 3.csv", header = T)
+view(CN2)
+
+CNSDS<- CN2 %>%
+     group_by(treatment) %>%
+    summarize (mean_CN = mean(CN), sd_CN = sd(CN), count = n(), se_CN = (sd_CN/(sqrt(count))))
+view(CNSDS)
+
+CNplot2<-ggplot(CN2, aes(x=site, y=mean_CN, fill = Treatment)) + geom_bar(stat="identity",position=position_dodge()) + theme_bw() + xlab("Site") + ylab("Carbon:Nitrogen") + ggtitle(" ") +
+    theme(axis.text = element_text(size = 20), axis.title = element_text (size = 20), legend.text = element_text(size = 20), legend.title = element_text(size = 20)) +
+    geom_errorbar(aes(ymin = mean_CN - se_CN, ymax = mean_CN + se_CN),size=.2, width = .2,  position=position_dodge(0.9))
+CNplot2
+
 
 
 
