@@ -30,8 +30,12 @@ library(rstatix)
 
 #Piles
 ```{r}
-piles <-read.csv("Saragssum_piles.csv",header=T)
+piles <-read.csv("Sargassum_piles.csv",header=T)
+piles2<-subset(piles, Treatment== "Sargassum")
+View(piles2)
 
+pilesgraph<-ggplot(piles2, aes(x=Location, y=Cone_Vol, fill = Month)) + geom_boxplot()
+pilesgraph
 ```
 
 #Sargasso Plant Communities 
