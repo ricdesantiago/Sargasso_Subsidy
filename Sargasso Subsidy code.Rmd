@@ -26,6 +26,7 @@ library(glmm)
 library(HH)
 library(ggpubr)
 library(rstatix)
+library(vegan)
 ```
 
 #Piles
@@ -40,56 +41,30 @@ pilesgraph
 
 #Sargasso Plant Communities 
 ```{r}
-#import and name data
-plants <-read.csv("Saragsso Communities.csv",header=T)
+#import dataset
+plants<-read.csv("plantcommunity.csv", header = TRUE)
 View(plants)
-is.factor(data$Treatment)
-plants$Treatment<-is.factor(plants$Treatment)
 
-
-#compare biomass (exlude municipal dump since we did not collect biomass there)
-plants1<-subset(plants, !Site== "Dump")
-
-plantbiomass<-ggplot(plants1, aes(x=Site, y=Biomass_g, fill= Treatment )) + geom_bar(stat="identity",position=position_dodge()) + theme_bw() + xlab("Site") + ylab("biomass (g)") + ggtitle("") 
-plantbiomass
+#subset out only the "random" and "interior"  since those are comparable (3 quads each pile interior)
+noladder<-subset(plants, !Survey == "Ladder" )
+interiorsurvey<-subset(noladder, !Survey == "HiLo")
+view(interiorsurvey)
 
 #compare communities differences using NMDS
 #use only the data we are interested in
 ##plants first
-data <- (plants[,c(9:26)])
-view(data)
-is.factor(data$Treatment)
-data$Treatment<-as.factor(data$Treatment)
+nm <- (interiorsurvey[,c(8:60)])
+View(nm)
+is.factor(interiorsurvey$Treatment)
+interiorsurvey$Treatment<-as.factor(interiorsurvey$Treatment)
 
-
-#use metaMDS to create NMDS procedure
-#make matrix using only the count data relevant for plants
-matrix = as.matrix(data)
+matrix = as.matrix(nm)
 view(matrix)
-nmds = metaMDS(matrix, distance = "bray") 
+nmds = metaMDS(matrix, distance = "bray")
 plot(nmds)
-#a standard NMDS plot lacks any information so lets extract the coordinates and make it more informative
-data.scores = as.data.frame(scores(nmds))
-#now lets add descriptive columns back into the data frame 
-data.scores$Site = plants$Site
-data.scores$Treatment = plants$Treatment
 
-view(data.scores)
-
-plot <- ggplot(data.scores, aes(x = NMDS1, y = NMDS2)) + 
-    geom_point(size = 1, aes( shape = Site, colour = Treatment))+ 
-    theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
-    axis.text.x = element_text(colour = "black", face = "bold", size = 12), 
-    legend.text = element_text(size = 12, face ="bold", colour ="black"), 
-    legend.position = "right", axis.title.y = element_text(face = "bold", size = 14), 
-    axis.title.x = element_text(face = "bold", size = 14, colour = "black"), 
-    legend.title = element_text(size = 14, colour = "black", face = "bold"), 
-    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
-    legend.key=element_blank()) + 
-    labs(x = "NMDS1", colour = "Treatment", y = "NMDS2", shape = "Type")  + 
-    scale_colour_manual(values = c("#009E73", "#E69F00")) 
-
-plot
+  # Plot the nMDS ordination
+plot(species_env_fit, add = TRUE, col = "red")  # Add species traits to the plot
 
 
 ####for the proposal
@@ -109,10 +84,10 @@ plants2$Type<-as.factor(plants2$Type)
 #make matrix using only the count data relevant for plants
 matrix = as.matrix(data2)
 view(matrix)
-nmds = metaMDS(matrix, distance = "bray") 
-plot(nmds)
+nmds1 = metaMDS(matrix, distance = "bray") 
+plot(nmds1)
 #a standard NMDS plot lacks any information so lets extract the coordinates and make it more informative
-data.scores = as.data.frame(scores(nmds))
+data.scores = as.data.frame(scores(nmds1))
 #now lets add descriptive columns back into the data frame 
 data.scores$Site = plants2$Site
 data.scores$Type = plants2$Type
@@ -205,4 +180,28 @@ oldplot
 
 gitcreds_set()
 ```
+
+# Plant Community Structure
+```{r}
+#import dataset
+plants<-read.csv("plantcommunity.csv", header = TRUE)
+View(plants)
+
+#subset out only the "random" and "interior"  since those are comparable (3 quads each pile interior)
+noladder<-subset(plants, !Survey == "Ladder" )
+nohilo<-subset(noladder, !Survey == "HiLo")
+
+#subset out the sites
+duneinterior<-subset(nohilo, Site == "Dunes")
+jungleinterioir<-subset(nohilo, Site == "Jungle")
+
+
+```
+
+
+
+
+
+
+
 
