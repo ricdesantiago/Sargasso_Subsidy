@@ -1,0 +1,609 @@
+---
+title: "Sargasso_Subisidy_Code"
+output:
+  word_document: default
+  html_document: default
+editor_options: 
+  chunk_output_type: console
+---
+
+#libraries
+
+```{r}
+library(knitr)
+library(tidyverse)
+library(tidyr)
+library(ggplot2)
+library(ggfortify)
+library(lme4)
+library(car)
+library(nlme)
+library(ggpubr)
+library(multcompView)
+library(boot)
+library(Hotelling)
+library(mvnTest)
+library(vegan)
+library(factoextra)
+library(FactoMineR)
+library(agricolae)
+library(glmm)
+library(HH)
+library(ggpubr)
+library(rstatix)
+library(vegan)
+library(effsize)
+library(effsize)
+
+
+```
+
+#Plant Communities \## Pile metrics
+
+```{r}
+piles <-read.csv("Sargassum_piles.csv",header=T)
+piles2<-subset(piles, Treatment== "Sargassum")
+
+# Create the scatter plot with jittered points and add a trendline
+ggplot(piles2, aes(x = Month, y = Cone_Vol, color = Location)) +
+  geom_boxplot() +
+  geom_smooth(method = "lm", se = FALSE)
+  
+
+# Calculate the means by month and location
+mean_data <- piles2 %>%
+  group_by(Month, Location) %>%
+  summarize(mean_cone_vol = mean(Cone_Vol))
+
+# Create the scatter plot with mean points connected by a line
+scatterplot <- ggplot(data = piles2, aes(x = Month, y = Cone_Vol, color = Location)) +
+  geom_point(size = 2, shape = 21, aes(fill = Location)) +
+  geom_line(data = mean_data, aes(x = Month, y = mean_cone_vol, group = Location), color = "gray")
+
+# Customize the plot appearance
+vol_x_time<- scatterplot + 
+  labs(x = "Month", y = "Pile Volume") +
+  scale_color_manual(values = c("orange2", "darkgreen")) +
+  scale_fill_manual(values = c("orange2", "darkgreen")) +
+  theme_minimal()
+vol_x_time
+
+
+
+# Calculate the means pf percents by month and location
+percent_mean_data <- piles2 %>%
+  group_by(Month, Location) %>%
+  summarize(mean_cone_percent = mean(Percent))
+
+percent_x_time <- ggplot(data = piles2, aes(x = Month, y = Percent, color = Location)) +
+  geom_point(size = 2, shape = 21, aes(fill = Location)) +
+  geom_line(data = percent_mean_data, aes(x = Month, y = mean_cone_percent, group = Location), color = "gray")
+
+percent_x_time
+
+# Customize the plot appearance
+perc_x_time<- percent_x_time + 
+  labs(x = "Month", y = "% Volume") +
+  scale_color_manual(values = c("orange2", "darkgreen")) +
+  scale_fill_manual(values = c("orange2", "darkgreen")) +
+  theme_minimal()
+perc_x_time
+
+```
+
+## Interior survey
+
+```{r}
+#upload and subset data for interior surveys 
+#import dataset
+plants<-read.csv("plantcommunity.csv", header = TRUE)
+
+#subset out only the "random" and "interior"  since those are comparable (3 quads each pile interior)
+noladder<-subset(plants, !Survey == "Ladder" )
+interiorsurvey<-subset(noladder, !Survey == "HiLo")
+is.factor(interiorsurvey$Treatment)
+interiorsurvey$Treatment<-as.factor(interiorsurvey$Treatment)
+is.factor(interiorsurvey$Block)
+interiorsurvey$Block<-as.factor(interiorsurvey$Block)
+interiorsurvey$Trip<-as.factor(interiorsurvey$Trip)
+
+```
+
+###nMDS Plot
+
+```{r}
+#upload and subset data for interior surveys 
+#import dataset
+plants<-read.csv("plantcommunity_NMDS.csv", header = TRUE)
+
+#subset out only the "random" and "interior"  since those are comparable (3 quads each pile interior)
+noladder<-subset(plants, !Survey == "Ladder" )
+interiorsurvey<-subset(noladder, !Survey == "HiLo")
+is.factor(interiorsurvey$Treatment)
+interiorsurvey$Treatment<-as.factor(interiorsurvey$Treatment)
+is.factor(interiorsurvey$Block)
+interiorsurvey$Block<-as.factor(interiorsurvey$Block)
+#compare communities differences using NMDS
+#use only the data we are interested in
+##plants first
+nm <- (interiorsurvey[,c(8:60)])
+#make matrix
+matrix = as.matrix(nm)
+nmds_result = metaMDS(matrix, distance = "bray")
+plot(nmds_result)
+nmds_result
+
+# Create a new data frame with NMDS coordinates, grouping, and additional descriptor information
+nmds_data <- data.frame(nmds_result$points, Site = interiorsurvey$Site, Treatment = interiorsurvey$Treatment)
+
+
+plot1 <- ggplot(nmds_data, aes(x = MDS1, y = MDS2)) + 
+    geom_point(size = 3, aes( shape = Site, colour = Treatment))+ 
+    theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
+    axis.text.x = element_text(colour = "black", face = "bold", size = 20), 
+    legend.text = element_text(size = 12, face ="bold", colour ="black"), 
+    legend.position = "right", axis.title.y = element_text(face = "bold", size = 20), 
+    axis.title.x = element_text(face = "bold", size = 12, colour = "black"), 
+    legend.title = element_text(size = 12, colour = "black", face = "bold"), 
+    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
+    legend.key=element_blank()) + 
+    labs(x = "nmds_result", colour = "Treatment", y = "NMDS2", shape = "Site")  + 
+    scale_colour_manual(values = c("#009E73", "#E69F00")) 
+
+plot1
+
+
+#plot2
+co=c("red","black") 
+shape=c(18,17,16) 
+plot(nmds_result$points, col=interiorsurvey$Treatment, pch = interiorsurvey$Site, cex = 0.5, main = "Percent cover per treatment per site", xlab = "axis 1", ylab = "axis 2") 
+  Site <- c("Jungle","Dunes") 
+  legend('bottomright', Site, pch = c(), cex = 0.5, bty = "y" ) 
+  Treatment <- c("Sargassum", "Control") 
+  legend('bottomleft', Treatment, col=c("red","black"), pch = c(16), cex = 0.5, bty = "y" )
+
+```
+
+###diversity index
+
+```{r}
+
+
+survey <- (interiorsurvey[,c(1,3,4,5,6,8:60)])
+survey$Block<-as.factor(survey$Block)
+survey$Quadrat<-as.factor(survey$Quadrat)
+survey$Trip<-as.factor(survey$Trip)
+
+```
+
+###dune index
+
+```{r}
+
+survey <- (interiorsurvey[,c(1,3,4,5,6,8:60)])
+survey$Block<-as.factor(survey$Block)
+survey$Quadrat<-as.factor(survey$Quadrat)
+survey$Trip<-as.factor(survey$Trip)
+
+Dunes_survey_data<-subset(survey, Site == "Dunes")
+#merge litter and dead since litter was supposed to be categorized as dead
+
+Dunes_survey_data$Dead_Lit <- paste(Dunes_survey_data$Dead + Dunes_survey_data$Litter)
+
+# Remove the original columns if needed
+Dunes_survey_data <- Dunes_survey_data[, !(names(Dunes_survey_data) %in% c("Dead", "Litter"))]
+
+
+# Get the column names from the 6th column onwards
+Dunes_species_columns <- names(Dunes_survey_data)[6:ncol(Dunes_survey_data)]
+
+# Filter out columns with only zeros
+Dunes_non_zero_columns <- Dunes_species_columns[!apply(Dunes_survey_data[Dunes_species_columns], 2, function(x) all(x == 0))]
+
+# Create a new data frame with the non-zero columns
+Dunes_filtered_df <- Dunes_survey_data[c('Trip', 'Site', 'Block', 'Treatment', 'Quadrat', Dunes_non_zero_columns)]
+view(Dunes_filtered_df)
+
+
+# Convert the columns to numeric if they are not already
+Dunes_filtered_df[, Dunes_non_zero_columns] <- lapply(Dunes_filtered_df[, Dunes_non_zero_columns], as.numeric)
+
+# Convert numbers to percent cover for each row independently
+for (row in 1:nrow(Dunes_filtered_df)) {
+  row_sum <- sum(Dunes_filtered_df[row, Dunes_non_zero_columns])
+  if (row_sum != 0) {
+    Dunes_filtered_df[row, Dunes_non_zero_columns] <- (Dunes_filtered_df[row, Dunes_non_zero_columns] / row_sum) * 100
+  }
+}
+
+# Calculate Bray-Curtis dissimilarity matrix
+Dunes_bray_curtis_dist <- vegdist(Dunes_filtered_df[, Dunes_non_zero_columns], method = "bray")
+
+# Calculate beta diversity (average dissimilarity) using Bray-Curtis
+Dunes_beta_diversity <- mean(Dunes_bray_curtis_dist)
+
+# View the calculated beta diversity
+Dunes_beta_diversity
+
+# Assuming your dissimilarity matrix is named 'bray_curtis_dist' and you have the corresponding factors in 'Trip', and 'Treatment'
+
+# Perform PERMANOVA to compare beta diversity
+Dunes_permanova_result <- adonis2(Dunes_bray_curtis_dist ~ Treatment/Trip, data = Dunes_filtered_df)
+
+
+# View the PERMANOVA results
+Dunes_permanova_result
+```
+
+###jungles index
+
+```{r}
+survey <- (interiorsurvey[,c(1,3,4,5,6,8:60)])
+survey$Block<-as.factor(survey$Block)
+survey$Quadrat<-as.factor(survey$Quadrat)
+survey$Trip<-as.factor(survey$Trip)
+Jungle_survey_data <- subset(survey, Site == "Jungle")
+
+#merge litter and dead since litter was supposed ot be categorized as dead
+Jungle_survey_data$Dead_Lit <- paste(Jungle_survey_data$Dead + Jungle_survey_data$Litter)
+# Remove the original columns if needed
+Jungle_survey_data <- Jungle_survey_data[, !(names(Jungle_survey_data) %in% c("Dead", "Litter"))]
+# Get the column names from the 6th column onwards
+Jungle_species_columns <- names(Jungle_survey_data)[6:ncol(Jungle_survey_data)]
+view(Jungle_species_columns)
+# Filter out columns with only zeros
+Jungle_non_zero_columns <- Jungle_species_columns[!apply(Jungle_survey_data[Jungle_species_columns], 2, function(x) all(x == 0))]
+# Create a new data frame with the non-zero columns
+Jungle_filtered_df <- Jungle_survey_data[c('Trip', 'Site', 'Block', 'Treatment', 'Quadrat', Jungle_non_zero_columns)]
+view(Jungle_filtered_df)
+# Convert the columns to numeric if they are not already
+Jungle_filtered_df[, Jungle_non_zero_columns] <- lapply(Jungle_filtered_df[, Jungle_non_zero_columns], as.numeric)
+# Convert numbers to percent cover for each row independently
+for (row in 1:nrow(Jungle_filtered_df)) {
+  row_sum <- sum(Jungle_filtered_df[row, Jungle_non_zero_columns])
+  if (row_sum != 0) {
+    Jungle_filtered_df[row, Jungle_non_zero_columns] <- (Jungle_filtered_df[row, Jungle_non_zero_columns] / row_sum) * 100
+  }
+}
+# Calculate Bray-Curtis dissimilarity matrix
+Jungle_bray_curtis_dist <- vegdist(Jungle_filtered_df[, Jungle_non_zero_columns], method = "bray")
+# Calculate beta diversity (average dissimilarity) using Bray-Curtis
+Jungle_beta_diversity <- mean(Jungle_bray_curtis_dist)
+# View the calculated beta diversity
+Jungle_beta_diversity
+# Assuming your dissimilarity matrix is named 'bray_curtis_dist' and you have the corresponding factors in 'Trip', and 'Treatment'
+# Perform PERMANOVA to compare beta diversity
+Jungle_permanova_result <- adonis2(Jungle_bray_curtis_dist ~ Treatment/Trip, data = Jungle_filtered_df)
+# View the PERMANOVA results
+Jungle_permanova_result
+#all significant but we should focus on seeing if there is a treatment effect within each site rather than by between
+
+```
+
+# Plant Community Structure
+
+```{r}
+#import dataset
+plants<-read.csv("plantcommunity.csv", header = TRUE)
+
+#subset out only the "random" and "interior"  since those are comparable (3 quads each pile interior)
+noladder<-subset(plants, !Survey == "Ladder" )
+nohilo<-subset(noladder, !Survey == "HiLo")
+
+#subset out the sites
+duneinterior<-subset(nohilo, Site == "Dunes")
+jungleinterioir<-subset(nohilo, Site == "Jungle")
+
+
+```
+
+#Arthropod data exploration
+##pitfalls
+
+```{r}
+Pitfalls <-read.csv("Pitfalls.csv",header=T)
+#subset out the X treatments since it was just to try out
+pitfalls<-subset(Pitfalls, !Placement == "X" )
+
+
+# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors
+pitfalls_data_long <- gather(pitfalls, key = "Order", value = "Count", 9:26, -c(1:8))
+is.factor(pitfalls_data_long$Trip)
+pitfalls_data_long$Trip<-as.factor(pitfalls_data_long$Trip)
+
+#subset dunes 
+pitfall_dunes<- subset(pitfalls_data_long, Site == "Dune")
+
+ggplot(pitfall_dunes) +
+ aes(x = Order, fill = Treatment, weight = Count) +
+ geom_bar(position = "dodge") +
+ scale_fill_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(Trip), scales = "free", nrow = 4L) +
+    labs(title = "Pitfall Arthropod Counts at Beach")
+
+#subset jungle
+pitfall_jungle<- subset(pitfalls_data_long, Site == "Jungle")
+
+ggplot(pitfall_jungle) +
+ aes(x = Order, fill = Treatment, weight = Count) +
+ geom_bar(position = "dodge") +
+ scale_fill_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(Trip), scales = "free", nrow = 4L) +
+    labs(title = "Pitfall Arthropod Counts at Jungle")
+
+
+```
+
+##stickies 
+
+```{r}
+
+stickies <-read.csv("stickies.csv",header=T)
+#remove total column
+
+stickies <- subset(stickies1, select = -Total)
+
+
+# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors
+stickies_data_long <- gather(stickies, key = "Order", value = "Count", 9:28, -c(1:8))
+is.factor(stickies_data_long$Trip)
+stickies_data_long$Trip<-as.factor(stickies_data_long$Trip)
+stickies_data_long$Block<-as.factor(stickies_data_long$Block)
+
+#subset dunes 
+stickies_dunes<- subset(stickies_data_long, Site == "Dune")
+
+ggplot(stickies_dunes) +
+ aes(x = Order, fill = Treatment, weight = Count) +
+ geom_bar(position = "dodge") +
+ scale_fill_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(Trip), scales = "free", nrow = 4L) +
+    labs(title = "Aerial Arthropod Counts at Beach")
+
+#subset jungle
+stickies_jungle<- subset(stickies_data_long, Site == "Jungle")
+
+ggplot(stickies_jungle) +
+ aes(x = Order, fill = Treatment, weight = Count) +
+ geom_bar(position = "dodge") +
+ scale_fill_hue(direction = 1) +
+ theme_minimal() +
+ facet_wrap(vars(Trip), scales = "free", nrow = 4L) +
+    labs(title = "Aerial Arthropod Counts at Jungle")
+
+#explore Jungle Data
+#total counts bar graph
+
+stickies_jungle %>%
+ filter(Order %in% c("Orthoptera", "Hemiptera", "Arachnid", "Diptera", "Hymenoptera", 
+"Lepidoptera", "Empicoris", "Odonata")) %>%
+ ggplot() +
+  aes(x = Order, fill = Treatment, weight = Count) +
+  geom_bar(position = "dodge") +
+  scale_fill_hue(direction = 1) +
+  theme_minimal() +
+  facet_wrap(vars(Trip), scales = "free", nrow = 4L) +
+    labs(title = "Main contributors to flying arthropods counts in Jungle")
+
+#the three main contributors to variability 
+stickies_jungle %>%
+ filter(Order %in% c("Hemiptera", "Diptera", "Hymenoptera")) %>%
+ ggplot() +
+  aes(x = Order, fill = Treatment, weight = Count) +
+  geom_bar(position = "dodge") +
+  scale_fill_hue(direction = 1) +
+  theme_minimal() +
+  facet_wrap(vars(Trip), scales = "free", nrow = 4L) 
+
+#now as a box plot 
+
+stickies_jungle %>%
+ filter(Order %in% c("Hemiptera", "Diptera", "Hymenoptera")) %>%
+ ggplot() +
+  aes(x = Order, y = Count, fill = Treatment) +
+  geom_boxplot() +
+  scale_fill_hue(direction = 1) +
+  theme_minimal() +
+  facet_wrap(vars(Trip), scales = "free", nrow = 4L)
+#explore Dune Data
+#total counts bar graph with free scales after removing arthropods that are crawlers, don’t add much to the graphs, or pollinators.
+stickies_dunes %>%
+ filter(Order %in% c("Amphipods", "Coleoptera", "Hemiptera", "Diptera", "Hymenoptera"
+)) %>%
+ ggplot() +
+  aes(x = Order, fill = Treatment, weight = Count) +
+  geom_bar(position = "dodge") +
+  scale_fill_hue(direction = 1) +
+  theme_minimal() +
+  facet_wrap(vars(Trip), scales = "free", nrow = 4L)
+
+# the pattern looks more pronounced and maybe reads easiest with fixed scales
+
+stickies_dunes %>%
+ filter(Order %in% c("Amphipods", "Coleoptera", "Hemiptera", "Diptera", "Hymenoptera"
+)) %>%
+ ggplot() +
+  aes(x = Order, fill = Treatment, weight = Count) +
+  geom_bar(position = "dodge") +
+  scale_fill_hue(direction = 1) +
+  theme_minimal() +
+  facet_wrap(vars(Trip), nrow = 4L) +
+    labs(title = "Main contributors to flying arthropods counts on Dunes")
+#the fly pattern is so interesting! No doubt of a subsidy effect there. 
+
+#now as a boxplot
+stickies_dunes %>%
+ filter(Order %in% c("Amphipods", "Coleoptera", "Hemiptera", "Diptera", "Hymenoptera"
+)) %>%
+ ggplot() +
+  aes(x = Order, y = Count, fill = Treatment) +
+  geom_boxplot() +
+  scale_fill_hue(direction = 1) +
+  theme_minimal() +
+  facet_wrap(vars(Trip), nrow = 4L) +
+    labs(title = "Main contributors to flying arthropods counts on Dunes")
+
+#pods only… as expected, we see a surge on initial day and nothing much after
+
+stickies_dunes %>%
+ filter(Order %in% "Amphipods") %>%
+ ggplot() +
+  aes(x = Order, y = Count, fill = Treatment) +
+  geom_boxplot() +
+  scale_fill_hue(direction = 1) +
+  theme_minimal() +
+  facet_wrap(vars(Trip), scales = "free", nrow = 4L)
+
+
+
+```
+
+
+###ticky trap figures
+```{r}
+#load data
+stickies1 <-read.csv("stickies.csv",header=T)
+#remove total column so computations dont add that to our models
+stickies2 <- subset(stickies1, select = -Total)
+#remove No.per trap for same reason
+stickies3<- subset(stickies2, select = -No._per_trap)
+
+
+
+# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors to visualize important players
+stickies_data_long <- gather(stickies, key = "Order", value = "Count", 9:28, -c(1:8,30))
+stickies_data_long$Trip<-as.factor(stickies_data_long$Trip)
+stickies_data_long$Block<-as.factor(stickies_data_long$Block)
+stickies_data_long$No._per_trap<-as.numeric(stickies_data_long$No._per_trap)
+
+stickies_data_long %>%
+ filter(Order %in% c("Amphipods", "Diptera", "Hymenoptera")) %>%
+ ggplot() +
+  aes(x = Trip, y = Count, colour = Site, shape = Order) +
+  geom_point(size = 1.5) +
+  scale_color_hue(direction = 1) +
+  theme_minimal()
+
+#subset out only amphipods, diptera, and hymenoptera
+
+stickies_sub<-subset(stickies_data_long, Order == c("Amphipods", "Diptera", "Hymenoptera"))
+
+# Create the scatter plot with jittered points and add a trendline
+ggplot(stickies_sub, aes(x = Trip, y = No._per_trap, color = Site, fill = Order)) +
+  geom_boxplot() +
+  geom_smooth(method = "lm", se = TRUE)
+
+
+
+
+
+
+```
+
+### sticky trap analysis
+```{r}
+#load data from stickies1.csv, i curated that data sheet to only include the 3 orders we are interested in, added side 1 to side 2 of each trap, and simple averaged averaged "hi" and "lo" for each block/treatment. I decided to do this in excel in the interest of time.
+
+stickiesmod1 <-read.csv("stickies1.csv",header=T)
+
+############################################dunes############################################
+#subset out the dunes
+eff_sub_dune<-subset(stickiesmod1, Site == "Dune")
+
+#subset trip 1
+eff_sub_dune_1<-subset(eff_sub_dune, Trip == "1")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+dune_df_sargassum <- eff_sub_dune_1[eff_sub_dune_1$Treatment == "Sargassum", ]
+dune_df_control <- eff_sub_dune_1[eff_sub_dune_1$Treatment == "Control", ]
+
+### effect sizes for trip 1
+cohen.d(dune_df_sargassum$Amphipods,dune_df_control$Amphipods)
+cohen.d(dune_df_sargassum$Diptera,dune_df_control$Diptera)
+cohen.d(dune_df_sargassum$Hymenoptera,dune_df_control$Hymenoptera)
+
+#subset trip 2
+eff_sub_dune_2<-subset(eff_sub_dune, Trip == "2")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+dune_df_sargassum2 <- eff_sub_dune_2[eff_sub_dune_2$Treatment == "Sargassum", ]
+dune_df_control2 <- eff_sub_dune_2[eff_sub_dune_2$Treatment == "Control", ]
+
+### effect sizes for trip 2
+cohen.d(dune_df_sargassum2$Amphipods,dune_df_control2$Amphipods)
+cohen.d(dune_df_sargassum2$Diptera,dune_df_control2$Diptera)
+cohen.d(dune_df_sargassum2$Hymenoptera,dune_df_control2$Hymenoptera)
+
+#subset trip 3
+eff_sub_dune_3<-subset(eff_sub_dune, Trip == "3")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+dune_df_sargassum3 <- eff_sub_dune_3[eff_sub_dune_3$Treatment == "Sargassum", ]
+dune_df_control3 <- eff_sub_dune_3[eff_sub_dune_3$Treatment == "Control", ]
+
+### effect sizes for trip 3
+cohen.d(dune_df_sargassum3$Amphipods,dune_df_control3$Amphipods)
+cohen.d(dune_df_sargassum3$Diptera,dune_df_control3$Diptera)
+cohen.d(dune_df_sargassum3$Hymenoptera,dune_df_control3$Hymenoptera)
+
+
+############################################jungle############################################
+#subset out the dunes
+eff_sub_jungle<-subset(stickiesmod1, Site == "Jungle")
+
+#subset trip 1
+eff_sub_jungle_1<-subset(eff_sub_jungle, Trip == "1")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+jungle_df_sargassum <- eff_sub_jungle_1[eff_sub_jungle_1$Treatment == "Sargassum", ]
+jungle_df_control <- eff_sub_jungle_1[eff_sub_jungle_1$Treatment == "Control", ]
+
+### effect sizes for trip 1
+cohen.d(jungle_df_sargassum$Amphipods,jungle_df_control$Amphipods)
+cohen.d(jungle_df_sargassum$Diptera,jungle_df_control$Diptera)
+cohen.d(jungle_df_sargassum$Hymenoptera,jungle_df_control$Hymenoptera)
+
+#subset trip 2
+eff_sub_jungle_2<-subset(eff_sub_jungle, Trip == "2")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+jungle_df_sargassum2 <- eff_sub_jungle_2[eff_sub_jungle_2$Treatment == "Sargassum", ]
+jungle_df_control2 <- eff_sub_jungle_2[eff_sub_jungle_2$Treatment == "Control", ]
+
+### effect sizes for trip 2
+cohen.d(jungle_df_sargassum2$Amphipods,jungle_df_control2$Amphipods)
+cohen.d(jungle_df_sargassum2$Diptera,jungle_df_control2$Diptera)
+cohen.d(jungle_df_sargassum2$Hymenoptera,jungle_df_control2$Hymenoptera)
+
+#subset trip 3
+eff_sub_jungle_3<-subset(eff_sub_jungle, Trip == "3")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+jungle_df_sargassum3 <- eff_sub_jungle_3[eff_sub_jungle_3$Treatment == "Sargassum", ]
+jungle_df_control3 <- eff_sub_jungle_3[eff_sub_jungle_3$Treatment == "Control", ]
+
+### effect sizes for trip 3
+cohen.d(jungle_df_sargassum3$Amphipods,jungle_df_control3$Amphipods)
+cohen.d(jungle_df_sargassum3$Diptera,jungle_df_control3$Diptera)
+cohen.d(jungle_df_sargassum3$Hymenoptera,jungle_df_control3$Hymenoptera)
+
+
+
+#####Effect sizes#####
+#I manually input the effect sizes, lower and upper limits to a file called stickies_effsize.csv
+stickieseffsize <-read.csv("sticky_effsize.csv",header=T)
+
+```
+
+
+
+
+
+
+
+
+
+
