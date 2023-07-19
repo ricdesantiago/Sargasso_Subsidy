@@ -16,6 +16,7 @@ library(tidyr)
 library(ggplot2)
 library(ggfortify)
 library(lme4)
+library(lmerTest)
 library(car)
 library(nlme)
 library(ggpubr)
@@ -33,12 +34,17 @@ library(ggpubr)
 library(rstatix)
 library(vegan)
 library(effsize)
-library(effsize)
+library(broom)
+library(performance)
+library(DHARMa)
+library(glmmTMB)
+library(emmeans)
 
 
 ```
 
-#Plant Communities \## Pile metrics
+#Plant Communities 
+## Pile metrics
 
 ```{r}
 piles <-read.csv("Sargassum_piles.csv",header=T)
@@ -62,7 +68,7 @@ scatterplot <- ggplot(data = piles2, aes(x = Month, y = Cone_Vol, color = Locati
 
 # Customize the plot appearance
 vol_x_time<- scatterplot + 
-  labs(x = "Month", y = "Pile Volume") +
+  labs(x = "Month", y = "Pile volume") +
   scale_color_manual(values = c("orange2", "darkgreen")) +
   scale_fill_manual(values = c("orange2", "darkgreen")) +
   theme_minimal()
@@ -75,19 +81,58 @@ percent_mean_data <- piles2 %>%
   group_by(Month, Location) %>%
   summarize(mean_cone_percent = mean(Percent))
 
-percent_x_time <- ggplot(data = piles2, aes(x = Month, y = Percent, color = Location)) +
-  geom_point(size = 2, shape = 21, aes(fill = Location)) +
-  geom_line(data = percent_mean_data, aes(x = Month, y = mean_cone_percent, group = Location), color = "gray")
+percent_x_time <- ggplot(data = piles2, aes(x = Month, y = Percent, fill = Location)) +
+  geom_point(size = 2, shape = 21, colour = "black") +
+   labs(x = "", y = "Pile volume (%)")  +
+  geom_line(data = percent_mean_data, aes(x = Month, y = mean_cone_percent, group = Location), color = "gray") +
+  scale_x_discrete(
+    limits = c("2022 July", "2022 November", "2023 March"),
+    labels = c("2022 July" = "Aug. 22", "2022 November" = "Nov. 22", "2023 March" = "Mar. 23")) + 
+  scale_fill_discrete(name = "Site", labels = c("Beach", "Forest"))+
+   theme_bw() 
 
 percent_x_time
 
-# Customize the plot appearance
-perc_x_time<- percent_x_time + 
-  labs(x = "Month", y = "% Volume") +
-  scale_color_manual(values = c("orange2", "darkgreen")) +
-  scale_fill_manual(values = c("orange2", "darkgreen")) +
-  theme_minimal()
-perc_x_time
+
+pile_vol_anova<-lm(Cone_Vol ~ Location, data = piles2)
+summary(pile_vol_anova)
+
+# Fit the mixed-effects model with interaction term
+pile_vol_anova <- lmer(Cone_Vol ~ Location * Month + (1 | Block), data = piles2)
+
+# View the model summary
+summary(pile_vol_anova)
+
+# Perform ANOVA to test overall significance
+anova(pile_vol_anova)
+
+# Conduct post-hoc pairwise comparisons for each month
+pile_vol_anova_posthoc <- emmeans(pile_vol_anova, pairwise ~ Location | Month)
+
+# View the post-hoc comparisons
+summary(pile_vol_anova_posthoc)
+
+```
+
+### pile figures
+```{r}
+
+percent_x_time <- ggplot(data = piles2, aes(x = Month, y = Percent, shape = Location)) +
+  geom_point(size = 2, fill = "black") +
+  labs(x = "", y = "Pile volume (%)") +
+  geom_line(data = percent_mean_data, aes(x = Month, y = mean_cone_percent, group = Location), color = "gray") +
+  scale_x_discrete(
+    limits = c("2022 July", "2022 November", "2023 March"),
+    labels = c("2022 July" = "Aug. 22", "2022 November" = "Nov. 22", "2023 March" = "Mar. 23")
+  ) +
+  scale_shape_manual(name = "Site", values = c(21, 22), labels = c("Beach", "Forest")) +
+  theme_bw()
+
+percent_x_time
+
+
+
+
 
 ```
 
@@ -131,7 +176,7 @@ nm <- (interiorsurvey[,c(8:60)])
 matrix = as.matrix(nm)
 nmds_result = metaMDS(matrix, distance = "bray")
 plot(nmds_result)
-nmds_result
+
 
 # Create a new data frame with NMDS coordinates, grouping, and additional descriptor information
 nmds_data <- data.frame(nmds_result$points, Site = interiorsurvey$Site, Treatment = interiorsurvey$Treatment)
@@ -162,11 +207,11 @@ plot(nmds_result$points, col=interiorsurvey$Treatment, pch = interiorsurvey$Site
   Treatment <- c("Sargassum", "Control") 
   legend('bottomleft', Treatment, col=c("red","black"), pch = c(16), cex = 0.5, bty = "y" )
 
-```
+
 
 ###diversity index
 
-```{r}
+
 
 
 survey <- (interiorsurvey[,c(1,3,4,5,6,8:60)])
@@ -174,11 +219,11 @@ survey$Block<-as.factor(survey$Block)
 survey$Quadrat<-as.factor(survey$Quadrat)
 survey$Trip<-as.factor(survey$Trip)
 
-```
+
 
 ###dune index
 
-```{r}
+
 
 survey <- (interiorsurvey[,c(1,3,4,5,6,8:60)])
 survey$Block<-as.factor(survey$Block)
@@ -233,11 +278,11 @@ Dunes_permanova_result <- adonis2(Dunes_bray_curtis_dist ~ Treatment/Trip, data 
 
 # View the PERMANOVA results
 Dunes_permanova_result
-```
+
 
 ###jungles index
 
-```{r}
+
 survey <- (interiorsurvey[,c(1,3,4,5,6,8:60)])
 survey$Block<-as.factor(survey$Block)
 survey$Quadrat<-as.factor(survey$Quadrat)
@@ -297,53 +342,16 @@ jungleinterioir<-subset(nohilo, Site == "Jungle")
 
 ```
 
-#Arthropod data exploration
-##pitfalls
+#Arthropods
 
-```{r}
-Pitfalls <-read.csv("Pitfalls.csv",header=T)
-#subset out the X treatments since it was just to try out
-pitfalls<-subset(Pitfalls, !Placement == "X" )
-
-
-# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors
-pitfalls_data_long <- gather(pitfalls, key = "Order", value = "Count", 9:26, -c(1:8))
-is.factor(pitfalls_data_long$Trip)
-pitfalls_data_long$Trip<-as.factor(pitfalls_data_long$Trip)
-
-#subset dunes 
-pitfall_dunes<- subset(pitfalls_data_long, Site == "Dune")
-
-ggplot(pitfall_dunes) +
- aes(x = Order, fill = Treatment, weight = Count) +
- geom_bar(position = "dodge") +
- scale_fill_hue(direction = 1) +
- theme_minimal() +
- facet_wrap(vars(Trip), scales = "free", nrow = 4L) +
-    labs(title = "Pitfall Arthropod Counts at Beach")
-
-#subset jungle
-pitfall_jungle<- subset(pitfalls_data_long, Site == "Jungle")
-
-ggplot(pitfall_jungle) +
- aes(x = Order, fill = Treatment, weight = Count) +
- geom_bar(position = "dodge") +
- scale_fill_hue(direction = 1) +
- theme_minimal() +
- facet_wrap(vars(Trip), scales = "free", nrow = 4L) +
-    labs(title = "Pitfall Arthropod Counts at Jungle")
-
-
-```
-
-##stickies 
+##sticky trapexploration
 
 ```{r}
 
 stickies <-read.csv("stickies.csv",header=T)
 #remove total column
 
-stickies <- subset(stickies1, select = -Total)
+stickies <- subset(stickies, select = -Total)
 
 
 # Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors
@@ -462,48 +470,8 @@ stickies_dunes %>%
 ```
 
 
-###ticky trap figures
-```{r}
-#load data
-stickies1 <-read.csv("stickies.csv",header=T)
-#remove total column so computations dont add that to our models
-stickies2 <- subset(stickies1, select = -Total)
-#remove No.per trap for same reason
-stickies3<- subset(stickies2, select = -No._per_trap)
-
-
-
-# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors to visualize important players
-stickies_data_long <- gather(stickies, key = "Order", value = "Count", 9:28, -c(1:8,30))
-stickies_data_long$Trip<-as.factor(stickies_data_long$Trip)
-stickies_data_long$Block<-as.factor(stickies_data_long$Block)
-stickies_data_long$No._per_trap<-as.numeric(stickies_data_long$No._per_trap)
-
-stickies_data_long %>%
- filter(Order %in% c("Amphipods", "Diptera", "Hymenoptera")) %>%
- ggplot() +
-  aes(x = Trip, y = Count, colour = Site, shape = Order) +
-  geom_point(size = 1.5) +
-  scale_color_hue(direction = 1) +
-  theme_minimal()
-
-#subset out only amphipods, diptera, and hymenoptera
-
-stickies_sub<-subset(stickies_data_long, Order == c("Amphipods", "Diptera", "Hymenoptera"))
-
-# Create the scatter plot with jittered points and add a trendline
-ggplot(stickies_sub, aes(x = Trip, y = No._per_trap, color = Site, fill = Order)) +
-  geom_boxplot() +
-  geom_smooth(method = "lm", se = TRUE)
-
-
-
-
-
-
-```
-
 ### sticky trap analysis
+
 ```{r}
 #load data from stickies1.csv, i curated that data sheet to only include the 3 orders we are interested in, added side 1 to side 2 of each trap, and simple averaged averaged "hi" and "lo" for each block/treatment. I decided to do this in excel in the interest of time.
 
@@ -592,13 +560,463 @@ cohen.d(jungle_df_sargassum3$Hymenoptera,jungle_df_control3$Hymenoptera)
 
 
 
-#####Effect sizes#####
+
+
+### make data long for analysis
+stickiesmod1 <-read.csv("stickies1.csv",header=T)
+stickies_data_long <- gather(stickiesmod1, key = "Order", value = "Count", 6:8, -c(1:5))
+stickies_data_long$Block<-as.factor(stickies_data_long$Block)
+stickies_data_long$Trip<-as.factor(stickies_data_long$Trip)
+
+#look at how counts stack up per species
+countsxorder <- ggplot(stickies_data_long,
+       aes(x = Treatment,
+           y = Count)) +
+  geom_point()
+
+countsxorder
+
+
+#create a quick model to look at the distribution 
+model1 <- lmer(Count ~ Site + Treatment + (1|Trip) + (1|Block), data = stickies_data_long)
+check_model(model1)
+
+
+#our data seem to have a right-skewed distribution,  i will add a constant (1) to use other disstributions that require >0 counts
+
+stickies_data_long$Count_transformed <- stickies_data_long$Count + 1
+
+
+stickies_glm <- glm(Count_transformed ~ Treatment + Site + Trip, 
+                family = poisson(link = "log"),
+                data = stickies_data_long)
+
+check_model(stickies_glm)
+
+res <- simulateResiduals(stickies_glm)
+plotQQunif(res)
+
+#predicted lines somewhat fit but this model violates several assumptions and has signifant deviation in residuals. going to try a different distribution.
+
+#changing to a gamma distribution.
+stickies_glm2 <- glm(Count_transformed ~ Treatment + Order + Site, 
+                  family = Gamma(link = "log"),
+                  data = stickies_data_long)
+
+
+check_model(stickies_glm2)
+
+res2 <- simulateResiduals(stickies_glm2)
+plotQQunif(res2)
+
+#this model was much better but the deviation is still significant in the KS test. attempting another distribution
+
+#keeping the gamma but adding a random inercept for Block since we dont care abut between block variability.
+
+stickies_glmer <- glmmTMB(Count ~ Site + Treatment + Trip + (1|Block),
+                        family = poisson(link = "log"),
+                        data = stickies_data_long)
+
+check_model(stickies_glmer)
+
+res2 <- simulateResiduals(stickies_glmer)
+plotQQunif(res2)
+
+summary(stickies_glmer)
+
+
+
+# Calculate log response ratio
+X_treatment <- mean(treatment_group)  # Replace 'treatment_group' with your actual treatment group data
+X_control <- mean(control_group)  # Replace 'control_group' with your actual control group data
+
+LRR <- log(X_treatment / X_control)
+
+
+
+
+```
+
+###sticky trap figures
+
+```{r}
+#load data
+stickies1 <-read.csv("stickies.csv",header=T)
+#remove total column so computations dont add that to our models
+stickies2 <- subset(stickies1, select = -Total)
+#remove No.per trap for same reason
+stickies3<- subset(stickies2, select = -No._per_trap)
+
+
+# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors to visualize important players
+stickies_data_long_full <- gather(stickies3, key = "Order", value = "Count", 9:28, -c(1:8))
+stickies_data_long_full$Trip<-as.factor(stickies_data_long_full$Trip)
+stickies_data_long_full$Block<-as.factor(stickies_data_long_full$Block)
+stickies_data_long_full$No._per_trap<-as.numeric(stickies_data_long_full$No._per_trap)
+
+stickies_data_long_full %>%
+ filter(Order %in% c("Amphipods", "Diptera", "Hymenoptera")) %>%
+ ggplot() +
+  aes(x = Trip, y = Count, colour = Site, shape = Order) +
+  geom_point(size = 1.5) +
+  scale_color_hue(direction = 1) +
+  theme_minimal()
+
+
+#####Effect sizes Graph#####
 #I manually input the effect sizes, lower and upper limits to a file called stickies_effsize.csv
 stickieseffsize <-read.csv("sticky_effsize.csv",header=T)
+
+stickieseffsize$Trip<-as.factor(stickieseffsize$Trip)
+
+
+sticky_eff_plot <- ggplot(stickieseffsize) +
+  aes(x = Trip, y = Effect_size, shape = Order) +
+  geom_point(size = 2) +
+  geom_path(aes(group = Order), color = "black") + 
+  labs(y = "Effect size", shape = "Taxa") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L)
+
+sticky_eff_plot
+
+
+sticky_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
+  
+  geom_point(size = 2) +
+  geom_path(aes(group = Order), color = "black") +
+  labs(y = "Effect size", shape = "Taxa", title = "Sticky traps") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L) +
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.4, width=0.25)
+
+sticky_eff_plot
+
+
+sticky_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
+  labs(y = "Effect size", shape = "Taxa", title = "Aerial traps") +
+  geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
+     geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
+    scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "", "2" = "", "3" = "") ) +
+  theme(
+    axis.text = element_text(size=12),
+    axis.title = element_text(size=12),
+    plot.title = element_text(size=12),
+    axis.text.x = element_text(size=12),
+    strip.text = element_text(size=12)) +
+   xlab("") 
+#geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = " gray") +
+
+sticky_eff_plot
+
+
+
+```
+
+#pitfalls
+####pitfalls exploration
+
+```{r}
+Pitfalls <-read.csv("Pitfalls1.csv",header=T)
+
+# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors
+pitfalls_data_long <- gather(Pitfalls, key = "Order", value = "Count", 5:20, -c(1:4))
+pitfalls_data_long$Trip<-as.factor(pitfalls_data_long$Trip)
+pitfalls_data_long$Block<-as.factor(pitfalls_data_long$Block)
+
+#subset dunes 
+pitfall_dunes<- subset(pitfalls_data_long, Site == "Dune")
+
+#subset jungle
+pitfall_jungle<- subset(pitfalls_data_long, Site == "Jungle")
+
+```
+
+##pitfall analysis
+```{r}
+#load data from pitfalls2.csv, i curated that data sheet to only include the 3 orders we are interested in and simple averaged averaged "hi" and "lo" for each block/treatment. I decided to do this in excel in the interest of time.
+
+pitfallsmod1 <-read.csv("pitfalls1.csv",header=T)
+
+############################################dunes############################################
+#subset out the dunes
+piteff_sub_dune<-subset(pitfallsmod1, Site == "Dune")
+
+#subset trip 1
+piteff_sub_dune_1<-subset(piteff_sub_dune, Trip == "1")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitdune_df_sargassum <- piteff_sub_dune_1[piteff_sub_dune_1$Treatment == "Sargassum", ]
+pitdune_df_control <- piteff_sub_dune_1[piteff_sub_dune_1$Treatment == "Control", ]
+
+### effect sizes for trip 1
+cohen.d(pitdune_df_sargassum$Amphipods,pitdune_df_control$Amphipods)
+cohen.d(pitdune_df_sargassum$Arachnid,pitdune_df_control$Arachnid)
+cohen.d(pitdune_df_sargassum$Hymenoptera,pitdune_df_control$Hymenoptera)
+
+#subset trip 2
+piteff_sub_dune_2<-subset(eff_sub_dune, Trip == "2")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitdune_df_sargassum2 <- piteff_sub_dune_2[piteff_sub_dune_2$Treatment == "Sargassum", ]
+pitdune_df_control2 <- piteff_sub_dune_2[piteff_sub_dune_2$Treatment == "Control", ]
+
+### effect sizes for trip 2
+cohen.d(pitdune_df_sargassum2$Amphipods,pitdune_df_control2$Amphipods)
+cohen.d(pitdune_df_sargassum2$Arachnid,pitdune_df_control2$Arachnid)
+cohen.d(pitdune_df_sargassum2$Hymenoptera,pitdune_df_control2$Hymenoptera)
+
+#subset trip 3
+piteff_sub_dune_3<-subset(piteff_sub_dune, Trip == "3")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitdune_df_sargassum3 <- piteff_sub_dune_3[piteff_sub_dune_3$Treatment == "Sargassum", ]
+pitdune_df_control3 <- piteff_sub_dune_3[piteff_sub_dune_3$Treatment == "Control", ]
+
+### effect sizes for trip 3
+cohen.d(pitdune_df_sargassum3$Amphipods,pitdune_df_control3$Amphipods)
+cohen.d(pitdune_df_sargassum3$Arachnid,pitdune_df_control3$Arachnid)
+cohen.d(pitdune_df_sargassum3$Hymenoptera,pitdune_df_control3$Hymenoptera)
+
+
+############################################jungle############################################
+#subset out the dunes
+piteff_sub_jungle<-subset(pitfallsmod1, Site == "Jungle")
+
+#subset trip 1
+piteff_sub_jungle_1<-subset(piteff_sub_jungle, Trip == "1")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitjungle_df_sargassum <- piteff_sub_jungle_1[piteff_sub_jungle_1$Treatment == "Sargassum", ]
+pitjungle_df_control <- piteff_sub_jungle_1[piteff_sub_jungle_1$Treatment == "Control", ]
+
+### effect sizes for trip 1
+cohen.d(pitjungle_df_sargassum$Amphipods,pitjungle_df_control$Amphipods)
+cohen.d(pitjungle_df_sargassum$Arachnid,pitjungle_df_control$Arachnid)
+cohen.d(pitjungle_df_sargassum$Hymenoptera,pitjungle_df_control$Hymenoptera)
+
+#subset trip 2
+piteff_sub_jungle_2<-subset(piteff_sub_jungle, Trip == "2")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitjungle_df_sargassum2 <- piteff_sub_jungle_2[piteff_sub_jungle_2$Treatment == "Sargassum", ]
+pitjungle_df_control2 <- piteff_sub_jungle_2[piteff_sub_jungle_2$Treatment == "Control", ]
+
+### effect sizes for trip 2
+cohen.d(pitjungle_df_sargassum2$Amphipods,pitjungle_df_control2$Amphipods)
+cohen.d(pitjungle_df_sargassum2$Arachnid,pitjungle_df_control2$Arachnid)
+cohen.d(pitjungle_df_sargassum2$Hymenoptera,pitjungle_df_control2$Hymenoptera)
+
+#subset trip 3
+piteff_sub_jungle_3<-subset(piteff_sub_jungle, Trip == "3")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitjungle_df_sargassum3 <- piteff_sub_jungle_3[piteff_sub_jungle_3$Treatment == "Sargassum", ]
+pitjungle_df_control3 <- piteff_sub_jungle_3[piteff_sub_jungle_3$Treatment == "Control", ]
+
+### effect sizes for trip 3
+cohen.d(pitjungle_df_sargassum3$Amphipods,pitjungle_df_control3$Amphipods)
+cohen.d(pitjungle_df_sargassum3$Arachnid,pitjungle_df_control3$Arachnid)
+cohen.d(pitjungle_df_sargassum3$Hymenoptera,pitjungle_df_control3$Hymenoptera)
+
+
+
+#####Effect sizes#####
+#I manually input the effect sizes, lower and upper limits to a file called pitfalls_effsize.csv
+pitfallseffsize <-read.csv("pitfalls_effsize.csv",header=T)
+
+pitfallseffsize$Trip<-as.factor(pitfallseffsize$Trip)
+
+
+sticky_eff_plot <- ggplot(pitfallseffsize) +
+  aes(x = Trip, y = Effect_size, shape = Order) +
+  geom_jitter(size = 1.2) +
+  labs(y = "Effect size ", shape = "Taxa") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L)
+
+sticky_eff_plot
+
+
+### make data long for analysis
+pitfallsmod1 <-read.csv("pitfalls1.csv",header=T)
+pitfalls_data_long <- gather(pitfallsmod1, key = "Order", value = "Count", 6:8, -c(1:5))
+pitfalls_data_long$Block<-as.factor(pitfalls_data_long$Block)
+pitfalls_data_long$Trip<-as.factor(pitfalls_data_long$Trip)
+
+#look at how counts stack up per species
+countsxorder <- ggplot(pitfalls_data_long,
+       aes(x = Treatment,
+           y = Count)) +
+  geom_point()
+
+countsxorder
+
+
+#create a quick model to look at the distribution 
+model1 <- lmer(Count ~ Site + Treatment + (1|Trip) + (1|Block), data = pitfalls_data_long)
+check_model(model1)
+
+
+#our data seem to have a right-skewed distribution,  i will add a constant (1) to use other disstributions that require >0 counts
+
+pitfalls_data_long$Count_transformed <- pitfalls_data_long$Count + 1
+
+
+pitfalls_glm <- glm(Count_transformed ~ Treatment + Site + Trip, 
+                family = poisson(link = "log"),
+                data = pitfalls_data_long)
+
+check_model(pitfalls_glm)
+
+res <- simulateResiduals(pitfalls_glm)
+plotQQunif(res)
+
+#predicted lines somewhat fit but this model violates several assumptions and has signifant deviation in residuals. going to try a different distribution.
+
+#changing to a gamma distribution.
+pitfalls_glm2 <- glm(Count_transformed ~ Treatment + Order + Site, 
+                  family = Gamma(link = "log"),
+                  data = pitfalls_data_long)
+
+
+check_model(pitfalls_glm2)
+
+res2 <- simulateResiduals(pitfalls_glm2)
+plotQQunif(res2)
+
+#this model was much better but the deviation is still significant in the KS test. attempting another distribution
+
+#keeping the gamma but adding a random inercept for Block since we dont care abut between block variability.
+
+pitfalls_glmer <- glmmTMB(Count ~ Site + Treatment + Trip + (1|Block),
+                        family = poisson(link = "log"),
+                        data = pitfalls_data_long)
+
+check_model(pitfalls_glmer)
+
+res2 <- simulateResiduals(pitfalls_glmer)
+plotQQunif(res2)
+
+summary(pitfalls_glmer)
+
+
+
+# Calculate log response ratio
+X_treatment <- mean(treatment_group)  # Replace 'treatment_group' with your actual treatment group data
+X_control <- mean(control_group)  # Replace 'control_group' with your actual control group data
+
+LRR <- log(X_treatment / X_control)
 
 ```
 
 
+###pitfall trap figures
+
+```{r}
+#load data
+pitfall1 <-read.csv("pitfalls.csv",header=T)
+#remove total column so computations dont add that to our models
+pitfall2 <- subset(pitfall1, select = -Total)
+#remove No.per trap for same reason
+pitfall3<- subset(pitfall2, select = -No._per_trap)
+
+
+# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors to visualize important players
+pitfall_data_long_full <- gather(pitfall1, key = "Order", value = "Count", 8:25, -c(1:7))
+pitfall_data_long_full$Trip<-as.factor(pitfall_data_long_full$Trip)
+pitfall_data_long_full$Block<-as.factor(pitfall_data_long_full$Block)
+pitfall_data_long_full$No._per_trap<-as.numeric(pitfall_data_long_full$No._per_trap)
+
+pitfall_data_long_full %>%
+ filter(Order %in% c("Amphipods", "Arachnid", "Hymenoptera")) %>%
+ ggplot() +
+  aes(x = Trip, y = Count, colour = Site, shape = Order) +
+  geom_point(size = 1.5) +
+  scale_color_hue(direction = 1) +
+  theme_minimal()
+
+
+#####Effect sizes Graph#####
+#I manually input the effect sizes, lower and upper limits to a file called pitfall_effsize.csv
+pitfalleffsize <-read.csv("pitfalls_effsize.csv",header=T)
+
+pitfalleffsize$Trip<-as.factor(pitfalleffsize$Trip)
+
+
+
+pitfall_eff_plot <- ggplot(pitfalleffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
+  geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = " gray") +
+  labs(y = "Effect size (Cohen's d)", shape = "Taxa", title = "Pitfall traps") +
+  geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
+     geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
+    scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23") ) +
+  theme(
+    axis.text = element_text(size=12),
+    axis.title = element_text(size=12),
+    plot.title = element_text(size=12),
+    axis.text.x = element_text(size=12),
+    strip.text = element_text(size=12)) +
+   xlab("") 
+
+pitfall_eff_plot
+
+
+
+
+pitfall_eff_plot <- ggplot(pitfalleffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
+  labs(y = "Effect size", shape = "Taxa", title = "Pitfall traps") +
+  geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
+  geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
+  scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
+  ) +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    plot.title = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    strip.text = element_blank(),  # Remove facet title
+    strip.background = element_blank()  # Remove facet boxes
+    # geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = "gray") +
+  ) +
+  xlab("")
+
+pitfall_eff_plot
+
+
+
+combined_arthropod_effgraphs <- grid.arrange(sticky_eff_plot, pitfall_eff_plot, ncol = 1)
+
+```
+
+#manuscript figutes
+```{r}
+
+#pile volumes
+percent_x_time <- ggplot(data = piles2, aes(x = Month, y = Percent, shape = Location)) +
+  geom_point(size = 2, fill = "black") +
+  labs(x = "", y = "Pile volume (%)") +
+  geom_line(data = percent_mean_data, aes(x = Month, y = mean_cone_percent, group = Location), color = "gray") +
+  scale_x_discrete(
+    limits = c("2022 July", "2022 November", "2023 March"),
+    labels = c("2022 July" = "Aug. 22", "2022 November" = "Nov. 22", "2023 March" = "Mar. 23")
+  ) +
+  scale_shape_manual(name = "Site", values = c(21, 22), labels = c("Beach", "Forest")) +
+  theme_bw()
+
+percent_x_time
 
 
 
@@ -606,4 +1024,57 @@ stickieseffsize <-read.csv("sticky_effsize.csv",header=T)
 
 
 
+#arhtropod comparisons
 
+#aerial traps
+
+sticky_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
+  labs(y = "Effect size", shape = "Taxa", title = "Aerial traps") +
+  geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
+     geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
+    scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "", "2" = "", "3" = "") ) +
+  theme(
+    axis.text = element_text(size=12),
+    axis.title = element_text(size=12),
+    plot.title = element_text(size=12),
+    axis.text.x = element_text(size=12),
+    strip.text = element_text(size=12)) +
+   xlab("") 
+#geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = " gray") +
+
+sticky_eff_plot
+
+
+#pitfall traps
+pitfall_eff_plot <- ggplot(pitfalleffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
+  labs(y = "Effect size", shape = "Taxa", title = "Pitfall traps") +
+  geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
+  geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
+  scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
+  ) +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    plot.title = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    strip.text = element_blank(),  # Remove facet title
+    strip.background = element_blank()  # Remove facet boxes
+    # geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = "gray") +
+  ) +
+  xlab("")
+
+pitfall_eff_plot
+
+
+#combine 
+combined_arthropod_effgraphs <- grid.arrange(sticky_eff_plot, pitfall_eff_plot, ncol = 1)
+
+```
