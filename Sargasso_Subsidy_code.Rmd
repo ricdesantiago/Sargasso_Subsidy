@@ -43,125 +43,111 @@ library(emmeans)
 
 ```
 
-#Plant Communities 
-## Pile metrics
+
+# Pile metrics
 
 ```{r}
 piles <-read.csv("Sargassum_piles.csv",header=T)
 piles2<-subset(piles, Treatment== "Sargassum")
+piles2$Trip<-as.factor(piles2$Trip)
+piles2$Block<-as.factor(piles2$Block)
 
 # Create the scatter plot with jittered points and add a trendline
-ggplot(piles2, aes(x = Month, y = Cone_Vol, color = Location)) +
+ggplot(piles2, aes(x = Trip, y = Ellipsoid_prc_D, color = Location)) +
   geom_boxplot() +
   geom_smooth(method = "lm", se = FALSE)
   
 
-# Calculate the means by month and location
-mean_data <- piles2 %>%
-  group_by(Month, Location) %>%
-  summarize(mean_cone_vol = mean(Cone_Vol))
+#Potential model:  repeated measures ANOVA (as in Spiller et al 2010)
+#Pile volume as the response, site as the main between-subjects factor, sampling date as the repeated within-subject 
+#factor, and starting volume as a random factor.
 
-# Create the scatter plot with mean points connected by a line
-scatterplot <- ggplot(data = piles2, aes(x = Month, y = Cone_Vol, color = Location)) +
-  geom_point(size = 2, shape = 21, aes(fill = Location)) +
-  geom_line(data = mean_data, aes(x = Month, y = mean_cone_vol, group = Location), color = "gray")
+# Perform the repeated measures ANOVA with original_vol as a covariate
+piles_rm_anova <- aov(ellipsoid_vol ~ Location * Trip + Error(Block / Trip) + (1|OG_ellipsoid_Vol), data = piles2)
 
-# Customize the plot appearance
-vol_x_time<- scatterplot + 
-  labs(x = "Month", y = "Pile volume") +
-  scale_color_manual(values = c("orange2", "darkgreen")) +
-  scale_fill_manual(values = c("orange2", "darkgreen")) +
-  theme_minimal()
-vol_x_time
-
-
-
-# Calculate the means pf percents by month and location
-percent_mean_data <- piles2 %>%
-  group_by(Month, Location) %>%
-  summarize(mean_cone_percent = mean(Percent))
-
-percent_x_time <- ggplot(data = piles2, aes(x = Month, y = Percent, fill = Location)) +
-  geom_point(size = 2, shape = 21, colour = "black") +
-   labs(x = "", y = "Pile volume (%)")  +
-  geom_line(data = percent_mean_data, aes(x = Month, y = mean_cone_percent, group = Location), color = "gray") +
-  scale_x_discrete(
-    limits = c("2022 July", "2022 November", "2023 March"),
-    labels = c("2022 July" = "Aug. 22", "2022 November" = "Nov. 22", "2023 March" = "Mar. 23")) + 
-  scale_fill_discrete(name = "Site", labels = c("Beach", "Forest"))+
-   theme_bw() 
-
-percent_x_time
-
-
-
-# Fit the mixed-effects model with interaction term
-pile_vol_anova <- lmer(Percent ~ Month*Location + (1 | Block), data = piles2)
-
-# View the model summary
-summary(pile_vol_anova)
-
-# Perform ANOVA to test overall significance
-anova(pile_vol_anova)
-
-# Conduct post-hoc pairwise comparisons for each month
-pile_vol_anova_posthoc <- emmeans(pile_vol_anova, pairwise ~ Month | Location)
-
-# View the post-hoc comparisons
-summary(pile_vol_anova_posthoc)
-
-#make table 
-pile_vol_anova_posthoc_summary <- summary(pile_vol_anova_posthoc)
-
-# Format the table using kableExtra
-posthoc_table <- kable(pile_vol_anova_posthoc_summary, align = "c") %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE)
-
-# Print the posthoc table
-print(posthoc_table)
-
-install.packages("kableExtra")
-library(kableExtra)
-
-
-#visual percent cover
-cover <-read.csv("visual_prc_cover.csv",header=T)
-
-  
-
-library(ggplot2)
-
-ggplot(cover) +
- aes(x = Site, y = Mean, fill = Type) +
- geom_boxplot() +
- scale_fill_hue(direction = 1) +
- labs(title = "visual percent cover") +
- theme_minimal()
+summary(piles_rm_anova)
 
 ```
 
 ### pile figures
 ```{r}
+piles <-read.csv("Sargassum_piles.csv",header=T)
+piles2<-subset(piles, Treatment== "Sargassum")
+piles2$Trip<-as.factor(piles2$Trip)
+piles2$Block<-as.factor(piles2$Block)
+# Calculate the means by month and location
 
-percent_x_time <- ggplot(data = piles2, aes(x = Month, y = Percent, shape = Location)) +
-  geom_point(size = 2, fill = "black") +
+mean_data <- piles2 %>%
+  group_by(Trip, Location) %>%
+  summarize(mean_ellipsoid_vol = mean(Ellipsoid_prc_D))
+
+
+# Create the scatter plot with mean points connected by a line
+vol_scatterplot <- ggplot(data = piles2, aes(x = Trip, y = Ellipsoid_prc_D, fill = Location)) +
+  geom_point(size = 2, shape = 21, aes(fill = Location)) +
+  geom_line(data = mean_data, aes(x = Trip, y = mean_ellipsoid_vol, group = Location), color = "gray")
+
+# Customize the plot appearance
+vol_x_time<- vol_scatterplot + 
   labs(x = "", y = "Pile volume (%)") +
-  geom_line(data = percent_mean_data, aes(x = Month, y = mean_cone_percent, group = Location), color = "gray") +
-  scale_x_discrete(
-    limits = c("2022 July", "2022 November", "2023 March"),
-    labels = c("2022 July" = "Aug. 22", "2022 November" = "Nov. 22", "2023 March" = "Mar. 23")
+  scale_color_manual(values = c("black", "white")) +
+  scale_fill_manual(values = c("black", "white")) +
+   scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23", "4" = "Aug.23")
   ) +
-  scale_shape_manual(name = "Site", values = c(21, 22), labels = c("Beach", "Forest")) +
-  theme_bw()
-
-percent_x_time
-
-
+  theme_minimal() + 
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"))
+vol_x_time
 
 
 
 ```
 
+
+#Decomposer experiment
+
+```{r}
+
+decomp<-read.csv("mesh_bag_exp.csv",header = T )
+decomp$Rep_no.<-as.factor(decomp$Rep_no.)
+decomp$Trip<-as.factor(decomp$Trip)
+decomp$prc_Delta<-as.numeric(decomp$prc_Delta)
+
+#quick view counts of percent
+ggplot(decomp) +
+ aes(x = Trip, fill = Treatment, weight = prc_means) +
+ geom_bar(position = "dodge") +
+ scale_fill_hue(direction = 1) +
+ theme_minimal() +
+ facet_grid(vars(Site), vars())
+
+
+#now lets look at mean values and SE
+#subset out trip 1 since its only going to show initial mass which is 100%
+decomp %>%
+  filter(!(Trip %in% "1")) %>%
+  filter(!(ratio %in% "")) %>%
+  ggplot() +
+  scale_fill_manual(name = "Mesh size", 
+                    values = c("large" = "grey25", "small" = "dark gray")) +
+  aes(x = Site, fill = Treatment, weight = prc_means) +
+  geom_bar(position = "dodge") +
+  geom_errorbar(aes(ymin = prc_means - prc_SE, ymax = prc_means + prc_SE), 
+                position = position_dodge(width = 0.9), 
+                width = 0.25) +  
+  labs(y = "Decomposition (% of initial dry biomass)") +
+  theme_minimal() +
+  facet_grid(Trip ~ ., labeller = labeller(Trip = function(x) ifelse(x == "2", "Nov. 22", ifelse(x == "3", "Mar. 23", x)))) 
+
+
+
+```
+
+
+#Plant Communities 
 ## Interior survey
 
 ```{r}
@@ -175,10 +161,6 @@ is.factor(interiorsurvey$Block)
 interiorsurvey$Block<-as.factor(interiorsurvey$Block)
 interiorsurvey$Trip<-as.factor(interiorsurvey$Trip)
 
-#make data long 
-interiorsurvey_long <- gather(interiorsurvey, key = "cover_type", value = "percent_cover", 14:17, -c(1:13))
-#use this for graphing purposes
-
 
 ###########subset out the dunes
 interior_sub_dune<-subset(interiorsurvey, Site == "Dunes")
@@ -191,10 +173,8 @@ intdune_df_sargassum <- int_sub_dune_1[int_sub_dune_1$Treatment == "Sargassum", 
 intdune_df_control <- int_sub_dune_1[int_sub_dune_1$Treatment == "Control", ]
 
 ### effect sizes for trip 1
-cohen.d(intdune_df_sargassum$grass_prc_cover,intdune_df_control$grass_prc_cover)
-cohen.d(intdune_df_sargassum$total_plant_prc_cover,intdune_df_control$total_plant_prc_cover)
-cohen.d(intdune_df_sargassum$bare_prc_cover,intdune_df_control$bare_prc_cover)
-cohen.d(intdune_df_sargassum$leaf_prc_cover,intdune_df_control$leaf_prc_cover)
+cohen.d(intdune_df_sargassum$bermuda,intdune_df_control$bermuda)
+cohen.d(intdune_df_sargassum$other_plant_cover,intdune_df_control$other_plant_cover)
 
 
 #subset trip 2
@@ -205,10 +185,11 @@ intdune_df_sargassum2 <- int_sub_dune_2[int_sub_dune_2$Treatment == "Sargassum",
 intdune_df_control2 <- int_sub_dune_2[int_sub_dune_2$Treatment == "Control", ]
 
 ### effect sizes for trip 2
-cohen.d(intdune_df_sargassum2$grass_prc_cover,intdune_df_control2$grass_prc_cover)
+cohen.d(intdune_df_sargassum2$bermuda,intdune_df_control2$bermuda)
 cohen.d(intdune_df_sargassum2$total_plant_prc_cover,intdune_df_control2$total_plant_prc_cover)
 cohen.d(intdune_df_sargassum2$bare_prc_cover,intdune_df_control2$bare_prc_cover)
 cohen.d(intdune_df_sargassum2$leaf_prc_cover,intdune_df_control2$leaf_prc_cover)
+cohen.d(intdune_df_sargassum2$other_plant_cover,intdune_df_control2$other_plant_cover)
 
 
 #subset trip 3
@@ -219,10 +200,26 @@ intdune_df_sargassum3 <- int_sub_dune_3[int_sub_dune_3$Treatment == "Sargassum",
 intdune_df_control3 <- int_sub_dune_3[int_sub_dune_3$Treatment == "Control", ]
 
 ### effect sizes for trip 3
-cohen.d(intdune_df_sargassum3$grass_prc_cover,intdune_df_control3$grass_prc_cover)
+cohen.d(intdune_df_sargassum3$bermuda,intdune_df_control3$bermuda)
 cohen.d(intdune_df_sargassum3$total_plant_prc_cover,intdune_df_control3$total_plant_prc_cover)
 cohen.d(intdune_df_sargassum3$bare_prc_cover,intdune_df_control3$bare_prc_cover)
 cohen.d(intdune_df_sargassum3$leaf_prc_cover,intdune_df_control3$leaf_prc_cover)
+cohen.d(intdune_df_sargassum3$other_plant_cover,intdune_df_control3$other_plant_cover)
+
+
+#subset trip 4
+int_sub_dune_4<-subset(interior_sub_dune, Trip == "4")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+intdune_df_sargassum4 <- int_sub_dune_4[int_sub_dune_4$Treatment == "Sargassum", ]
+intdune_df_control4 <- int_sub_dune_4[int_sub_dune_4$Treatment == "Control", ]
+
+### effect sizes for trip 4
+cohen.d(intdune_df_sargassum4$bermuda,intdune_df_control4$bermuda)
+cohen.d(intdune_df_sargassum4$total_plant_prc_cover,intdune_df_control4$total_plant_prc_cover)
+cohen.d(intdune_df_sargassum4$bare_prc_cover,intdune_df_control4$bare_prc_cover)
+cohen.d(intdune_df_sargassum4$leaf_prc_cover,intdune_df_control4$leaf_prc_cover)
+cohen.d(intdune_df_sargassum4$other_plant_cover,intdune_df_control4$other_plant_cover)
 
 
 ###########subset out the Jungle
@@ -236,10 +233,11 @@ intJungle_df_sargassum <- int_sub_Jungle_1[int_sub_Jungle_1$Treatment == "Sargas
 intJungle_df_control <- int_sub_Jungle_1[int_sub_Jungle_1$Treatment == "Control", ]
 
 ### effect sizes for trip 1
-cohen.d(intJungle_df_sargassum$grass_prc_cover,intJungle_df_control$grass_prc_cover)
+cohen.d(intJungle_df_sargassum$bermuda,intJungle_df_control$bermuda)
 cohen.d(intJungle_df_sargassum$total_plant_prc_cover,intJungle_df_control$total_plant_prc_cover)
 cohen.d(intJungle_df_sargassum$bare_prc_cover,intJungle_df_control$bare_prc_cover)
 cohen.d(intJungle_df_sargassum$leaf_prc_cover,intJungle_df_control$leaf_prc_cover)
+cohen.d(intJungle_df_sargassum$other_plant_cover,intJungle_df_control$other_plant_cover)
 
 
 #subset trip 2
@@ -250,10 +248,11 @@ intJungle_df_sargassum2 <- int_sub_Jungle_2[int_sub_Jungle_2$Treatment == "Sarga
 intJungle_df_control2 <- int_sub_Jungle_2[int_sub_Jungle_2$Treatment == "Control", ]
 
 ### effect sizes for trip 2
-cohen.d(intJungle_df_sargassum2$grass_prc_cover,intJungle_df_control2$grass_prc_cover)
+cohen.d(intJungle_df_sargassum2$bermuda,intJungle_df_control2$bermuda)
 cohen.d(intJungle_df_sargassum2$total_plant_prc_cover,intJungle_df_control2$total_plant_prc_cover)
 cohen.d(intJungle_df_sargassum2$bare_prc_cover,intJungle_df_control2$bare_prc_cover)
 cohen.d(intJungle_df_sargassum2$leaf_prc_cover,intJungle_df_control2$leaf_prc_cover)
+cohen.d(intJungle_df_sargassum2$other_plant_cover,intJungle_df_control2$other_plant_cover)
 
 #subset trip 3
 int_sub_Jungle_3<-subset(interior_sub_Jungle, Trip == "3")
@@ -263,66 +262,124 @@ intJungle_df_sargassum3 <- int_sub_Jungle_3[int_sub_Jungle_3$Treatment == "Sarga
 intJungle_df_control3 <- int_sub_Jungle_3[int_sub_Jungle_3$Treatment == "Control", ]
 
 ### effect sizes for trip 3
-cohen.d(intJungle_df_sargassum3$grass_prc_cover,intJungle_df_control3$grass_prc_cover)
+cohen.d(intJungle_df_sargassum3$bermuda,intJungle_df_control3$bermuda)
 cohen.d(intJungle_df_sargassum3$total_plant_prc_cover,intJungle_df_control3$total_plant_prc_cover)
 cohen.d(intJungle_df_sargassum3$bare_prc_cover,intJungle_df_control3$bare_prc_cover)
 cohen.d(intJungle_df_sargassum3$leaf_prc_cover,intJungle_df_control3$leaf_prc_cover)
+cohen.d(intJungle_df_sargassum3$other_plant_cover,intJungle_df_control3$other_plant_cover)
+
+
+
+#subset trip 4
+int_sub_Jungle_4<-subset(interior_sub_Jungle, Trip == "4")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+intJungle_df_sargassum4 <- int_sub_Jungle_4[int_sub_Jungle_4$Treatment == "Sargassum", ]
+intJungle_df_control4 <- int_sub_Jungle_4[int_sub_Jungle_4$Treatment == "Control", ]
+
+### effect sizes for trip 4
+cohen.d(intJungle_df_sargassum4$bermuda,intJungle_df_control4$bermuda)
+cohen.d(intJungle_df_sargassum4$total_plant_prc_cover,intJungle_df_control4$total_plant_prc_cover)
+cohen.d(intJungle_df_sargassum4$bare_prc_cover,intJungle_df_control4$bare_prc_cover)
+cohen.d(intJungle_df_sargassum4$leaf_prc_cover,intJungle_df_control4$leaf_prc_cover)
+cohen.d(intJungle_df_sargassum4$other_plant_cover,intJungle_df_control4$other_plant_cover)
 
 
 ```
 
-###interior survey graphs
+###percent cover
 ```{r}
 
-interioreffsize <-read.csv("interioreffsizes.csv",header=T)
+#import dataset
+interiorsurvey<-read.csv("interior_graphs.csv", header = TRUE)
 
+#we are going to use a dotplot to graph means and SE of percent cover for grass and other plants
+#i made a long datasheet called interior_graphs.csv with effect sizes and means (of quadrats in each plot n=3 since we are not interested in between quadrat variability)
+
+interiorsurvey2<-subset(interiorsurvey, Data == "graph")
+#make sure we have factors 
+interiorsurvey2$Treatment<-as.factor(interiorsurvey2$Treatment)
+interiorsurvey2$Trip<-as.factor(interiorsurvey2$Trip)
+interiorsurvey2$means<-as.numeric(interiorsurvey2$means)
+
+
+#graph it
+
+
+interior_pc_cover<- ggplot(data = interiorsurvey2,
+            aes(
+              x = Trip,
+              y = means,
+              shape = cover_type,
+              color = Treatment
+            )) +
+  stat_summary(geom = "point", fun = mean, position = position_dodge(width = 1),
+               size = 2L, stroke = 1) +
+  stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
+               width = 0.2) +  # Adjust the width of the error bars as needed
+  labs(
+    x = " ",
+    y = "Mean Percent Cover",
+    title = "Interior Mean Percent Cover",
+    shape = "Cover type"
+  ) +
+  scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
+  ) +
+  facet_grid(vars(), vars(Site)) +
+  theme_minimal() +
+  scale_fill_manual(values = c("grey44", "black")) +
+  scale_color_manual(values = c("grey44", "black")) +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines")
+  )
+
+interior_pc_cover
+
+
+```
+
+###effect sizes
+````{r}
+
+interioreffsize1 <-read.csv("interior_graphs.csv",header=T)
+interioreffsize <-subset(interioreffsize1, Data == "eff_size")
+
+interioreffsize<-subset(interioreffsize, !Cover == "all_plants")
+interioreffsize<-subset(interioreffsize, !Cover ==  "bare" ) 
+interioreffsize<-subset(interioreffsize, !Cover == "leaf_litter")
 interioreffsize$Trip<-as.factor(interioreffsize$Trip)
+interioreffsize$Effect_size<-as.numeric(interioreffsize$Effect_size)
 
 
 int_eff_plot <- ggplot(interioreffsize, aes(x = Trip, y = Effect_size, shape = Cover)) +
-  labs(y = "Effect size", shape = "Cover type", title = "") +
+  labs(y = "Effect size", title = "") +
   geom_path(aes(group = Cover), position = position_dodge(0.5), color = "dark gray") +
   theme_bw() +
-  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
-     geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
-    scale_x_discrete(
-    limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23") ) +
+  facet_wrap(vars(Site), ncol = 2L) +
+  geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
+  scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23", "4" = "Aug.23")
+  ) +
+    scale_shape_discrete(labels = c("grass", "other plants")) +
   theme(
-    axis.text = element_text(size=12),
-    axis.title = element_text(size=12),
-    plot.title = element_text(size=12),
-    axis.text.x = element_text(size=12),
-    strip.text = element_text(size=12)) +
-   xlab("") 
-#geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = " gray") +
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    plot.title = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    strip.text = element_text(size = 12)
+  ) +
+  xlab("") +
+    theme_minimal()  +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"))
 
 int_eff_plot
 
-
-#make data long 
-interiorsurvey_long <- gather(interiorsurvey, key = "cover_type", value = "percent_cover", 14:17, -c(1:13))
-
-#use this for graphing purposes
-
-interiorsurvey_long$Trip<-as.factor(interiorsurvey_long$Trip)
-
-
-ggplot(interiorsurvey_long) +
-  aes(x = Trip, fill = cover_type, weight = percent_cover) +
-  geom_bar(position = "dodge") +
-  scale_fill_hue(direction = 1) +
-  theme_bw() +
-  facet_grid(vars(Treatment), vars(Site))
-
-library(ggplot2)
-
-ggplot(interiorsurvey_long) +
-  aes(x = Trip, y = percent_cover, fill = cover_type) +
-  stat_summary(fun = "mean", geom = "bar", position = "dodge") +
-  scale_fill_hue(direction = 1) +
-  theme_bw() +
-  facet_grid(vars(Treatment), vars(Site))
 
 ```
 
@@ -332,7 +389,7 @@ ggplot(interiorsurvey_long) +
 #import dataset
 perimetersurvey<-read.csv("perimeter_survey_prc.csv", header = TRUE)
 
-perimetersurvey$Treatment<-as.factor(perimitersurvey$Treatment)
+perimetersurvey$Treatment<-as.factor(perimetersurvey$Treatment)
 perimetersurvey$Block<-as.factor(perimetersurvey$Block)
 perimetersurvey$Trip<-as.factor(perimetersurvey$Trip)
 
@@ -351,6 +408,7 @@ cohen.d(perdune_df_sargassum$grass_prc_cover,perdune_df_control$grass_prc_cover)
 cohen.d(perdune_df_sargassum$total_plant_prc_cover,perdune_df_control$total_plant_prc_cover)
 cohen.d(perdune_df_sargassum$bare_prc_cover,perdune_df_control$bare_prc_cover)
 cohen.d(perdune_df_sargassum$dead_prc_cover,perdune_df_control$dead_prc_cover)
+cohen.d(perdune_df_sargassum$other_plant_prc_cover,perdune_df_control$other_plant_prc_cover)
 
 
 #subset trip 2
@@ -365,6 +423,7 @@ cohen.d(perdune_df_sargassum2$grass_prc_cover,perdune_df_control2$grass_prc_cove
 cohen.d(perdune_df_sargassum2$total_plant_prc_cover,perdune_df_control2$total_plant_prc_cover)
 cohen.d(perdune_df_sargassum2$bare_prc_cover,perdune_df_control2$bare_prc_cover)
 cohen.d(perdune_df_sargassum2$dead_prc_cover,perdune_df_control2$dead_prc_cover)
+cohen.d(perdune_df_sargassum2$other_plant_prc_cover,perdune_df_control2$other_plant_prc_cover)
 
 
 #subset trip 3
@@ -379,7 +438,21 @@ cohen.d(perdune_df_sargassum3$grass_prc_cover,perdune_df_control3$grass_prc_cove
 cohen.d(perdune_df_sargassum3$total_plant_prc_cover,perdune_df_control3$total_plant_prc_cover)
 cohen.d(perdune_df_sargassum3$bare_prc_cover,perdune_df_control3$bare_prc_cover)
 cohen.d(perdune_df_sargassum3$dead_prc_cover,perdune_df_control3$dead_prc_cover)
+cohen.d(perdune_df_sargassum3$other_plant_prc_cover,perdune_df_control3$other_plant_prc_cover)
 
+#subset trip 4
+per_sub_dune_4<-subset(perimeter_sub_dune, Trip == "4")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+perdune_df_sargassum4 <- per_sub_dune_4[per_sub_dune_4$Treatment == "Sargassum", ]
+perdune_df_control4 <- per_sub_dune_4[per_sub_dune_4$Treatment == "Control", ]
+
+### effect sizes for trip 4
+cohen.d(perdune_df_sargassum4$grass_prc_cover,perdune_df_control4$grass_prc_cover)
+cohen.d(perdune_df_sargassum4$total_plant_prc_cover,perdune_df_control4$total_plant_prc_cover)
+cohen.d(perdune_df_sargassum4$bare_prc_cover,perdune_df_control4$bare_prc_cover)
+cohen.d(perdune_df_sargassum4$dead_prc_cover,perdune_df_control4$dead_prc_cover)
+cohen.d(perdune_df_sargassum$other_plant_prc_cover,perdune_df_control4$other_plant_prc_cover)
 
 ###########subset out the Jungle
 perimeter_sub_Jungle<-subset(perimetersurvey, Site == "Jungle")
@@ -396,7 +469,7 @@ cohen.d(perJungle_df_sargassum$grass_prc_cover,perJungle_df_control$grass_prc_co
 cohen.d(perJungle_df_sargassum$total_plant_prc_cover,perJungle_df_control$total_plant_prc_cover)
 cohen.d(perJungle_df_sargassum$bare_prc_cover,perJungle_df_control$bare_prc_cover)
 cohen.d(perJungle_df_sargassum$dead_prc_cover,perJungle_df_control$dead_prc_cover)
-
+cohen.d(perJungle_df_sargassum$other_plant_prc_cover,perJungle_df_control$other_plant_prc_cover)
 
 #subset trip 2
 per_sub_Jungle_2<-subset(perimeter_sub_Jungle, Trip == "2")
@@ -410,6 +483,7 @@ cohen.d(perJungle_df_sargassum2$grass_prc_cover,perJungle_df_control2$grass_prc_
 cohen.d(perJungle_df_sargassum2$total_plant_prc_cover,perJungle_df_control2$total_plant_prc_cover)
 cohen.d(perJungle_df_sargassum2$bare_prc_cover,perJungle_df_control2$bare_prc_cover)
 cohen.d(perJungle_df_sargassum2$dead_prc_cover,perJungle_df_control2$dead_prc_cover)
+cohen.d(perJungle_df_sargassum2$other_plant_prc_cover,perJungle_df_control2$other_plant_prc_cover)
 
 #subset trip 3
 per_sub_Jungle_3<-subset(perimeter_sub_Jungle, Trip == "3")
@@ -423,68 +497,123 @@ cohen.d(perJungle_df_sargassum3$grass_prc_cover,perJungle_df_control3$grass_prc_
 cohen.d(perJungle_df_sargassum3$total_plant_prc_cover,perJungle_df_control3$total_plant_prc_cover)
 cohen.d(perJungle_df_sargassum3$bare_prc_cover,perJungle_df_control3$bare_prc_cover)
 cohen.d(perJungle_df_sargassum3$dead_prc_cover,perJungle_df_control3$dead_prc_cover)
+cohen.d(perJungle_df_sargassum3$other_plant_prc_cover,perJungle_df_control3$other_plant_prc_cover)
 
+#subset trip 4
+per_sub_Jungle_4<-subset(perimeter_sub_Jungle, Trip == "4")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+perJungle_df_sargassum4 <- per_sub_Jungle_4[per_sub_Jungle_4$Treatment == "Sargassum", ]
+perJungle_df_control4 <- per_sub_Jungle_4[per_sub_Jungle_4$Treatment == "Control", ]
+
+### effect sizes for trip 4
+cohen.d(perJungle_df_sargassum4$grass_prc_cover,perJungle_df_control4$grass_prc_cover)
+cohen.d(perJungle_df_sargassum4$total_plant_prc_cover,perJungle_df_control4$total_plant_prc_cover)
+cohen.d(perJungle_df_sargassum4$bare_prc_cover,perJungle_df_control4$bare_prc_cover)
+cohen.d(perJungle_df_sargassum4$dead_prc_cover,perJungle_df_control4$dead_prc_cover)
+cohen.d(perJungle_df_sargassum4$other_plant_prc_cover,perJungle_df_control4$other_plant_prc_cover)
 
 
 ```
 
 
 
-###perimeter survey graphs
+###percent cover
 ```{r}
 
-#make data long 
-perimetersurvey_long <- gather(perimetersurvey, key = "cover_type", value = "percent_cover", 12:15, -c(1:11))
-#use this for graphing purposes
+#import dataset
+perimetersurvey<-read.csv("perimeter_graphs.csv", header = TRUE)
 
-perimetersurvey_long$Treatment<-as.factor(perimetersurvey_long$Treatment)
-perimetersurvey_long$Block<-as.factor(perimetersurvey_long$Block)
-perimetersurvey_long$Trip<-as.factor(perimetersurvey_long$Trip)
+#we are going to use a dotplot to graph means and SE of percent cover for grass and other plants
+#i made a long datasheet called perimeter_graphs.csv with effect sizes and means (of quadrats in each plot n=3 since we are not interested in between quadrat variability)
+
+perimetersurvey2<-subset(perimetersurvey, Data == "graph")
+#make sure we have factors 
+perimetersurvey2$Treatment<-as.factor(perimetersurvey2$Treatment)
+perimetersurvey2$Trip<-as.factor(perimetersurvey2$Trip)
+perimetersurvey2$means<-as.numeric(perimetersurvey2$means)
 
 
-ggplot(perimetersurvey_long) +
-  aes(x = Trip, fill = cover_type, weight = percent_cover) +
-  geom_bar(position = "dodge") +
-  scale_fill_hue(direction = 1) +
+#graph it
+
+
+perimeter_pc_cover<- ggplot(data = perimetersurvey2,
+            aes(
+              x = Trip,
+              y = means,
+              shape = cover_type,
+              color = Treatment
+            )) +
+  stat_summary(geom = "point", fun = mean, position = position_dodge(width = 1),
+               size = 2L, stroke = 1) +
+  stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
+               width = 0.2) +  # Adjust the width of the error bars as needed
+  labs(
+    x = " ",
+    y = "Mean Percent Cover",
+    title = "perimeter Mean Percent Cover",
+    shape = "Cover type"
+  ) +
+  scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
+  ) +
+  facet_grid(vars(), vars(Site)) +
   theme_minimal() +
-  facet_grid(vars(Treatment), vars(Site))
+  scale_fill_manual(values = c("grey44", "black")) +
+  scale_color_manual(values = c("grey44", "black")) +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines")
+  )
 
-ggplot(perimetersurvey_long) +
-  aes(x = Trip, y = percent_cover, fill = cover_type) +
-  stat_summary(fun = "mean", geom = "bar", position = "dodge") +
-  scale_fill_hue(direction = 1) +
-  theme_minimal() +
-  facet_grid(vars(Treatment), vars(Site))
+perimeter_pc_cover
 
 
+```
 
-perimetereffsize <-read.csv("perimetereffs.csv",header=T)
 
+###effect sizes
+````{r}
+
+perimetereffsize1 <-read.csv("perimeter_graphs.csv",header=T)
+perimetereffsize <-subset(perimetereffsize1, Data == "eff_size")
+
+perimetereffsize<-subset(perimetereffsize, !Cover == "all_plants")
+perimetereffsize<-subset(perimetereffsize, !Cover ==  "dead" ) 
+perimetereffsize<-subset(perimetereffsize, !Cover ==  "bare" ) 
 perimetereffsize$Trip<-as.factor(perimetereffsize$Trip)
+perimetereffsize$Effect_size<-as.numeric(perimetereffsize$Effect_size)
 
 
 per_eff_plot <- ggplot(perimetereffsize, aes(x = Trip, y = Effect_size, shape = Cover)) +
-  labs(y = "Effect size", shape = "Cover type", title = "") +
+  labs(y = "Effect size", title = "") +
   geom_path(aes(group = Cover), position = position_dodge(0.5), color = "dark gray") +
   theme_bw() +
-  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
-     geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
-    scale_x_discrete(
-    limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23") ) +
+  facet_wrap(vars(Site), ncol = 2L) +
+  geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
+  scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23", "4" = "Aug.23")
+  ) +
+    scale_shape_discrete(labels = c("grass", "other plants")) +
   theme(
-    axis.text = element_text(size=12),
-    axis.title = element_text(size=12),
-    plot.title = element_text(size=12),
-    axis.text.x = element_text(size=12),
-    strip.text = element_text(size=12)) +
-   xlab("") 
-#geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = " gray") +
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    plot.title = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    strip.text = element_text(size = 12)
+  ) +
+  xlab("") +
+    theme_minimal()  +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"))
 
 per_eff_plot
 
-```
 
+```
 
 
 
@@ -668,49 +797,40 @@ ladder$Trip<-as.factor(ladder$Trip)
 ladder$Quadrat<-as.factor(ladder$Quadrat)
 
 #make data long 
-laddersurvey_long <- gather(ladder, key = "cover_type", value = "percent_cover", 12:15, -c(1:11))
+laddersurvey_long <- gather(ladder, key = "cover_type", value = "percent_cover", 6:17, -c(1:5))
 #use this for graphing purposes
 
 #graph it
-
-
-laddersurvey_long %>%
- filter(Site %in% "Dunes") %>%
- ggplot() +
-  aes(x = Quadrat, fill = cover_type, weight = percent_cover) +
-  geom_bar(position = "dodge") +
-  scale_fill_hue(direction = 1) +
-  labs(title = "Beach") +
-  theme_minimal() +
-  facet_grid(vars(Trip), vars(Treatment))
-
-library(ggplot2)
-
-laddersurvey_long %>%
-  filter(Site %in% "Dunes") %>%
-  ggplot() +
-  aes(x = Quadrat, y = percent_cover, fill = cover_type) +
-  stat_summary(fun = "mean", geom = "bar", position = "dodge") +
-  scale_fill_hue(direction = 1) +
-  labs(title = "Beach") +
-  theme_minimal() +
-  facet_grid(vars(Trip), vars(Treatment))
-
+#lets look at the distance effect of sargassum on percent cover of grass and all other plants in the jungle 
 
 laddersurvey_long %>%
   filter(Site %in% "Jungle") %>%
   ggplot() +
   aes(x = Quadrat, y = percent_cover, fill = cover_type) +
-  stat_summary(fun = "mean", geom = "bar", position = "dodge") +
+  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
+  geom_errorbar(
+    stat = "summary", fun.data = "mean_se", 
+    position = position_dodge(width = 0.9), width = 0.25
+  ) +
   scale_fill_hue(direction = 1) +
-  labs(title = "Jungle") +
   theme_minimal() +
-  facet_grid(vars(Trip), vars(Treatment))
+  facet_grid(vars(Treatment), vars(Trip))
+#easy to see there is no pattern here
 
-
-
-
-
+#now lets do the same for the beach
+laddersurvey_long %>%
+  filter(Site %in% "Dunes") %>%
+  ggplot() +
+  aes(x = Quadrat, y = percent_cover, fill = cover_type) +
+  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
+  geom_errorbar(
+    stat = "summary", fun.data = "mean_se", 
+    position = position_dodge(width = 0.9), width = 0.25
+  ) +
+  scale_fill_hue(direction = 1) +
+  theme_minimal() +
+  facet_grid(vars(Treatment), vars(Trip))
+#we see no pattern at all for august 2022, as expected. overlapping bars and errors in november suggest no difference with distance or between treatments but we do see a hing of a grass effect in march 2023. less so with distance, just between control and sargassum, as expected.
 
 
 ```
@@ -1383,8 +1503,7 @@ combined_arthropod_effgraphs <- grid.arrange(sticky_eff_plot, pitfall_eff_plot, 
 ##quick nutrients
 
 chemicals<-read.csv("Soil_Chemicals2.csv",header=T)
-library(dplyr)
-library(ggplot2)
+
 #subset experiment
 pile_chem<-subset(chemicals, Exp == "Sargasso Manipulation")
 pile_chem$Block<-as.factor(pile_chem$Block)
@@ -1410,53 +1529,88 @@ pile_chem %>%
  theme_minimal() +
  facet_grid(vars(Trip), vars())
 
+
+#
+pile_chem %>%
+ filter(Trt %in% "Sediment") %>%
+ ggplot() +
+ aes(x = Trip, y = Nitrate, fill = Type) +
+ geom_boxplot() +
+ scale_fill_hue(direction = 1) +
+ theme_minimal() +
+ facet_grid(vars(Site), vars(), scales = "free")
+
+pile_chem %>%
+ filter(Trt %in% "Sediment") %>%
+ ggplot() +
+ aes(x = Trip, y = pH, fill = Type) +
+ geom_boxplot() +
+ scale_fill_hue(direction = 1) +
+ theme_minimal() +
+ facet_grid(vars(), vars(Site), scales = "free")
 ##respirometer CO2 readings
 
-CO2<-read.csv("insituCO2.csv",header=T)
-library(dplyr)
-library(ggplot2)
+CO2<-read.csv("gas_readings.csv",header=T)
+
 #subset experiment
-resp_CO2<-subset(CO2, !Treatment == "na")
-resp_CO2_long <- gather(resp_CO2, key = "gas", value = "units", 7:8, -c(1:6))
+gas_CO2<-subset(CO2, !Treatment == "na")
+gas_CO2_long <- gather(gas_CO2, key = "gas", value = "units", 7:8, -c(1:6))
+
+ggplot(gas_CO2_long) +
+ aes(x = Treatment, fill = Time, weight = units) +
+ geom_bar(position = "dodge") +
+ scale_fill_hue(direction = 1) +
+ theme_minimal() +
+ facet_grid(vars(Site), vars())
 
 
-resp_CO2_long %>%
- filter(gas %in% "Carbon.Dioxide") %>%
- ggplot() +
-  aes(x = Treatment, y = units, fill = Time) +
-  geom_boxplot() +
+
+# Your existing ggplot code modified for a box plot
+ggplot(gas_CO2_long, aes(x = Treatment, y = units, fill = Time)) +
+  geom_boxplot() +  # Use geom_boxplot instead of geom_bar
   scale_fill_hue(direction = 1) +
-  labs(title = "March 23 Insitu CO2 readings") +
   theme_minimal() +
-  facet_grid(vars(), vars(Site))
+ggtitle("CO2 gas collector Nov. 2022") +
+  facet_grid(vars(Site), vars())
+
 
 
 
 ```
 
 
-
 #manuscript figures
 ```{r}
 
 #pile volumes
-percent_x_time <- ggplot(data = piles2, aes(x = Month, y = Percent, shape = Location)) +
-  geom_point(size = 2, fill = "black") +
+
+piles <-read.csv("Sargassum_piles.csv",header=T)
+piles2<-subset(piles, Treatment== "Sargassum")
+piles2$Trip<-as.factor(piles2$Trip)
+piles2$Block<-as.factor(piles2$Block)
+# Calculate the means by month and location
+
+mean_data <- piles2 %>%
+  group_by(Trip, Location) %>%
+  summarize(mean_ellipsoid_vol = mean(Ellipsoid_prc_D))
+
+
+# Create the scatter plot with mean points connected by a line
+scatterplot <- ggplot(data = piles2, aes(x = Trip, y = Ellipsoid_prc_D, fill = Location)) +
+  geom_point(size = 2, shape = 21, aes(fill = Location)) +
+  geom_line(data = mean_data, aes(x = Trip, y = mean_ellipsoid_vol, group = Location), color = "gray")
+
+# Customize the plot appearance
+vol_x_time<- scatterplot + 
   labs(x = "", y = "Pile volume (%)") +
-  geom_line(data = percent_mean_data, aes(x = Month, y = mean_cone_percent, group = Location), color = "gray") +
-  scale_x_discrete(
-    limits = c("2022 July", "2022 November", "2023 March"),
-    labels = c("2022 July" = "Aug. 22", "2022 November" = "Nov. 22", "2023 March" = "Mar. 23")
+  scale_color_manual(values = c("black", "white")) +
+  scale_fill_manual(values = c("black", "white")) +
+   scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23", "4" = "Aug.23")
   ) +
-  scale_shape_manual(name = "Site", values = c(21, 22), labels = c("Beach", "Forest")) +
-  theme_bw()
-
-percent_x_time
-
-
-
-
-
+  theme_minimal()
+vol_x_time
 
 
 #arhtropod comparisons
@@ -1484,7 +1638,6 @@ sticky_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape 
 sticky_eff_plot
 
 
-#pitfall traps
 pitfall_eff_plot <- ggplot(pitfalleffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
   labs(y = "Effect size", shape = "Taxa", title = "Pitfall traps") +
   geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
@@ -1519,11 +1672,15 @@ combined_arthropod_effgraphs <- grid.arrange(sticky_eff_plot, pitfall_eff_plot, 
 sargman<-read.csv("nmec.csv",header=T)
 
 # Assuming your_data is your original data frame
-reshaped_data <- sargman %>%
+sargman2 <- sargman %>%
   pivot_longer(cols = c(top_layer, bottom_layer), names_to = "layer", values_to = "species")
 
-install.packages("tidyr")
-library(tidyr)
+
+
+
+
+
+
 
 
 
@@ -1539,12 +1696,39 @@ wide_data <- reshaped_data %>%
 view(wide_data)
 
 
+long_data <- gather(wide_data, key = "species", value = "count", 14:81, -c(1:13))
+
+
+# Group the data by quadrat_code and survey_date, then calculate the sum of other columns
+collapsed_df <- long_data %>%
+  group_by(quadrat_code, survey_date) %>%
+  summarize(total = sum(count),   # Replace 'column1' with the column you want to sum
+            # Add more columns you want to sum here
+            )
+
+# Replace 'column1', etc. with the actual column names you want to sum.
+
+
+# Group the data by 'quadrat_code' and 'survey_date', and summarize the data
+summary_df <- wide_data %>%
+  group_by(quadrat_code, survey_date) %>%
+  summarize(total = sum(column_to_sum),  # Replace 'column_to_sum' with the column you want to summarize
+            mean_value = mean(another_column))  # Replace 'another_column' with another column you want to summarize
+
+# Replace 'column_to_sum' and 'another_column' with the actual columns you want to summarize.
+
+
+
 # Assuming your data frame is named 'df'
 library(dplyr)
 
 # Add a new column 'total' that contains the sum of columns 3 through 30
 wide_data2 <- wide_data %>%
-  mutate(total = rowSums(across(3:30)))
+  mutate(total = rowSums(across(14:81)))
 
 # This calculates the sum of columns 3 through 30 for each row.
+
+view(wide_data2)
+
+```
 
