@@ -1,112 +1,112 @@
 ﻿Date,Trip,Exp,Site,Type,Block,Trt,Sample_no.,Nitrite,Nitrate,mean_N,sd_N,se_N,pH,KH
-11/7/21,0,Site Sampling,beach,Control,na,Beach Dune Control,1,0,0,3,4.472136,2,na,na
-11/7/21,0,Site Sampling,beach,Control,na,Beach Dune Control,2,0,0,3,4.472136,2,na,na
-11/7/21,0,Site Sampling,beach,Control,na,Beach Dune Control,3,0,0,3,4.472136,2,na,na
-11/7/21,0,Site Sampling,beach,Control,na,Beach Dune Control,4,0,5,3,4.472136,2,na,na
-11/7/21,0,Site Sampling,beach,Control,na,Beach Dune Control,5,0,10,3,4.472136,2,na,na
-11/7/21,0,Site Sampling,beach,Sargassum,na,Beach Dune Sargasso,6,0,70,44,29.874738,13.360389,na,na
-11/7/21,0,Site Sampling,beach,Sargassum,na,Beach Dune Sargasso,7,0,25,44,29.874738,13.360389,na,na
-11/7/21,0,Site Sampling,beach,Sargassum,na,Beach Dune Sargasso,8,0,10,44,29.874738,13.360389,na,na
-11/7/21,0,Site Sampling,beach,Sargassum,na,Beach Dune Sargasso,9,0,80,44,29.874738,13.360389,na,na
-11/7/21,0,Site Sampling,beach,Sargassum,na,Beach Dune Sargasso,10,0,35,44,29.874738,13.360389,na,na
-11/8/21,0,Site Sampling,forest,Control,na,Jungle Control,1,0,35,23.16667,10.251016,5.918427,na,na
-11/8/21,0,Site Sampling,forest,Control,na,Jungle Control,2,0,17.5,23.16667,10.251016,5.918427,na,na
-11/8/21,0,Site Sampling,forest,Control,na,Jungle Control,3,0,17,23.16667,10.251016,5.918427,na,na
-11/8/21,0,Site Sampling,forest,Sargassum,na,Jungle Sargasso,1,1,90,80,26.457513,15.275252,na,na
-11/8/21,0,Site Sampling,forest,Sargassum,na,Jungle Sargasso,2,0,50,80,26.457513,15.275252,na,na
-11/8/21,0,Site Sampling,forest,Sargassum,na,Jungle Sargasso,3,1,100,80,26.457513,15.275252,na,na
-7/31/22,1,Sargasso Manipulation,beach,Control,4,Sediment,na,0,0,na,na,na,8,240
-7/31/22,1,Sargasso Manipulation,beach,Sargassum,3,Seaweed,na,0,0,na,na,na,8.4,40
-7/31/22,1,Sargasso Manipulation,beach,Sargassum,3,Sediment,na,0,0,na,na,na,8,40
-7/31/22,1,Sargasso Manipulation,beach,Control,3,Sediment,na,0,0,na,na,na,8.4,360
-7/31/22,1,Sargasso Manipulation,beach,Control,1,Sediment,na,0,0,na,na,na,8.4,60
-7/31/22,1,Sargasso Manipulation,beach,Sargassum,1,Sediment,na,0,17.5,na,na,na,8,40
-7/31/22,1,Sargasso Manipulation,beach,Sargassum,1,Seaweed,na,0,0,na,na,na,8,40
-7/31/22,1,Sargasso Manipulation,beach,Control,5,Sediment,na,0,0,na,na,na,8.4,240
-7/31/22,1,Sargasso Manipulation,beach,Sargassum,5,Sediment,na,0,5,na,na,na,8,100
-7/31/22,1,Sargasso Manipulation,beach,Sargassum,5,Seaweed,na,0,0,na,na,na,8,60
-7/31/22,1,Sargasso Manipulation,beach,Sargassum,2,Seaweed,na,0,0,na,na,na,8,60
-7/31/22,1,Sargasso Manipulation,beach,Sargassum,2,Sediment,na,0,5,na,na,na,8,60
-7/31/22,1,Sargasso Manipulation,beach,Sargassum,4,Sediment,na,0,5,na,na,na,8,60
-7/31/22,1,Sargasso Manipulation,beach,Control,2,Sediment,na,0,0,na,na,na,8.4,180
-7/31/22,1,Sargasso Manipulation,beach,Sargassum,4,Seaweed,na,0,0,na,na,na,8,40
-11/11/22,2,Sargasso Manipulation,forest,Sargassum,1,Seaweed,na,0,100,na,na,na,8,0
-11/11/22,2,Sargasso Manipulation,forest,Sargassum,1,Sediment,na,0,10,na,na,na,6.8,80
-11/11/22,2,Sargasso Manipulation,forest,Control,1,Sediment,na,0,0,na,na,na,6.8,80
-11/11/22,2,Sargasso Manipulation,forest,Sargassum,2,Seaweed,na,0,10,na,na,na,6.8,40
-11/11/22,2,Sargasso Manipulation,forest,Sargassum,2,Sediment,na,0,25,na,na,na,6.8,50
-11/11/22,2,Sargasso Manipulation,forest,Control,2,Sediment,na,0,0,na,na,na,8,360
-11/11/22,2,Sargasso Manipulation,forest,Control,3,Sediment,na,0,0,na,na,na,8,360
-11/11/22,2,Sargasso Manipulation,forest,Sargassum,3,Seaweed,na,0,10,na,na,na,8,360
-11/11/22,2,Sargasso Manipulation,forest,Sargassum,3,Sediment,na,0,10,na,na,na,8,360
-11/11/22,2,Sargasso Manipulation,forest,Control,4,Sediment,na,0,0,na,na,na,8,360
-11/11/22,2,Sargasso Manipulation,forest,Sargassum,4,Sediment,na,0,0,na,na,na,8,360
-11/11/22,2,Sargasso Manipulation,forest,Sargassum,4,Seaweed,na,0,0,na,na,na,8,360
-11/11/22,2,Sargasso Manipulation,forest,Sargassum,5,Sediment,na,0,0,na,na,na,8,360
-11/11/22,2,Sargasso Manipulation,forest,Sargassum,5,Sediment,na,0,0,na,na,na,8,360
-11/11/22,2,Sargasso Manipulation,forest,Control,5,Seaweed,na,0,0,na,na,na,8,360
-11/11/22,2,Sargasso Manipulation,beach,Sargassum,1,Sediment,na,0,10,na,na,na,8,240
-11/11/22,2,Sargasso Manipulation,beach,Sargassum,1,Seaweed,na,0,0,na,na,na,8.4,240
-11/11/22,2,Sargasso Manipulation,beach,Control,1,Sediment,na,0,0,na,na,na,8.4,240
-11/11/22,2,Sargasso Manipulation,beach,Sargassum,2,Seaweed,na,0,0,na,na,na,8,360
-11/11/22,2,Sargasso Manipulation,beach,Sargassum,2,Sediment,na,0,17.5,na,na,na,8.4,240
-11/11/22,2,Sargasso Manipulation,beach,Control,2,Sediment,na,0,0,na,na,na,8,240
-11/11/22,2,Sargasso Manipulation,beach,Sargassum,3,Seaweed,na,0,75,na,na,na,8,240
-11/11/22,2,Sargasso Manipulation,beach,Sargassum,3,Sediment,na,0,37.5,na,na,na,8,240
-11/11/22,2,Sargasso Manipulation,beach,Control,3,Sediment,na,0,0,na,na,na,8,240
-11/11/22,2,Sargasso Manipulation,beach,Control,4,Sediment,na,0,0,na,na,na,8,240
-11/11/22,2,Sargasso Manipulation,beach,Sargassum,4,Sediment,na,0,17.5,na,na,na,8,240
-11/11/22,2,Sargasso Manipulation,beach,Sargassum,4,Seaweed,na,0,75,na,na,na,8,240
-11/11/22,2,Sargasso Manipulation,beach,Sargassum,5,Sediment,na,0,10,na,na,na,8,240
-11/11/22,2,Sargasso Manipulation,beach,Control,5,Sediment,na,0,0,na,na,na,8,240
-11/11/22,2,Sargasso Manipulation,beach,Sargassum,5,Seaweed,na,0,75,na,na,na,8,240
-3/18/23,3,Sargasso Manipulation,beach,Sargassum,1,Seaweed,na,0,17.5,na,na,na,6.4,na
-3/18/23,3,Sargasso Manipulation,beach,Sargassum,1,Sediment,na,0,10,na,na,na,6.6,na
-3/18/23,3,Sargasso Manipulation,beach,Control,1,Sediment,na,0,0,na,na,na,8.4,na
-3/18/23,3,Sargasso Manipulation,beach,Control,2,Sediment,na,0,0,na,na,na,7.6,na
-3/18/23,3,Sargasso Manipulation,beach,Sargassum,2,Seaweed,na,0,17.5,na,na,na,6.8,na
-3/18/23,3,Sargasso Manipulation,beach,Sargassum,2,Sediment,na,0,75,na,na,na,6.4,na
-3/18/23,3,Sargasso Manipulation,beach,Control,3,Sediment,na,0,0,na,na,na,8,na
-3/18/23,3,Sargasso Manipulation,beach,Sargassum,3,Seaweed,na,0,5,na,na,na,7.2,na
-3/18/23,3,Sargasso Manipulation,beach,Sargassum,3,Sediment,na,0,25,na,na,na,6.4,na
-3/18/23,3,Sargasso Manipulation,beach,Sargassum,4,Sediment,na,0,250,na,na,na,6.4,na
-3/18/23,3,Sargasso Manipulation,beach,Sargassum,4,Seaweed,na,0,17.5,na,na,na,6.8,na
-3/18/23,3,Sargasso Manipulation,beach,Control,4,Sediment,na,0,0,na,na,na,7.55,na
-3/18/23,3,Sargasso Manipulation,beach,Sargassum,5,Seaweed,na,0,5,na,na,na,7.2,na
-3/18/23,3,Sargasso Manipulation,beach,Sargassum,5,Sediment,na,0,37.5,na,na,na,6.8,na
-3/18/23,3,Sargasso Manipulation,beach,Control,5,Sediment,na,0,0,na,na,na,8,na
-3/18/23,3,Sargasso Manipulation,forest,Sargassum,1,Sediment,na,0,17.5,na,na,na,6.8,na
-3/18/23,3,Sargasso Manipulation,forest,Sargassum,1,Seaweed,na,0,17.5,na,na,na,6.4,na
-3/18/23,3,Sargasso Manipulation,forest,Control,1,Sediment,na,0,0,na,na,na,6.8,na
-3/18/23,3,Sargasso Manipulation,forest,Control,2,Sediment,na,0,0,na,na,na,6.8,na
-3/18/23,3,Sargasso Manipulation,forest,Sargassum,2,Sediment,na,0,10,na,na,na,6.8,na
-3/18/23,3,Sargasso Manipulation,forest,Sargassum,2,Seaweed,na,0,17.5,na,na,na,6.4,na
-3/18/23,3,Sargasso Manipulation,forest,Control,3,Sediment,na,0,0,na,na,na,7.2,na
-3/18/23,3,Sargasso Manipulation,forest,Sargassum,3,Seaweed,na,0,10,na,na,na,6.4,na
-3/18/23,3,Sargasso Manipulation,forest,Sargassum,3,Sediment,na,0,10,na,na,na,7.2,na
-3/18/23,3,Sargasso Manipulation,forest,Sargassum,4,Sediment,na,0,37.5,na,na,na,6.8,na
-3/18/23,3,Sargasso Manipulation,forest,Control,4,Sediment,na,0,0,na,na,na,6.4,na
-3/18/23,3,Sargasso Manipulation,forest,Sargassum,4,Seaweed,na,0,75,na,na,na,6.4,na
-3/18/23,3,Sargasso Manipulation,forest,Sargassum,5,Seaweed,na,0,10,na,na,na,7.2,na
-3/18/23,3,Sargasso Manipulation,forest,Control,5,Sediment,na,0,0,na,na,na,6.4,na
-3/18/23,3,Sargasso Manipulation,forest,Sargassum,5,Sediment,na,0,25,na,na,na,7.2,na
-8/3.223,4,Sargasso Manipulation,forest,Control,1,Sediment,na,0,0,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,forest,Sargassum,1,Sediment,na,0,10,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,forest,Sargassum,2,Sediment,na,0,10,na,na,na,6.8,80
-8/3.223,4,Sargasso Manipulation,forest,Control,2,Sediment,na,0,0,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,forest,Sargassum,3,Sediment,na,0,10,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,forest,Control,3,Sediment,na,1,0,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,forest,Control,4,Sediment,na,0,0,na,na,na,6.4,80
-8/3.223,4,Sargasso Manipulation,forest,Sargassum,4,Sediment,na,0,10,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,forest,Sargassum,5,Sediment,na,0,10,na,na,na,6.4,0
-8/3.223,4,Sargasso Manipulation,forest,Control,5,Sediment,na,0,0,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,beach,Control,3,Sediment,na,0,0,na,na,na,6.8,80
-8/3.223,4,Sargasso Manipulation,beach,Sargassum,1,Sediment,na,5,50,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,beach,Sargassum,5,Sediment,na,0,50,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,beach,Control,1,Sediment,na,0,0,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,beach,Control,5,Sediment,na,0,0,na,na,na,6.8,80
-8/3.223,4,Sargasso Manipulation,beach,Sargassum,3,Sediment,na,0,10,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,beach,Control,2,Sediment,na,0,0,na,na,na,6.8,100
-8/3.223,4,Sargasso Manipulation,beach,Sargassum,4,Sediment,na,0,0,na,na,na,6.4,40
-8/3.223,4,Sargasso Manipulation,beach,Sargassum,2,Sediment,na,0,10,na,na,na,6.8,80
-8/3.223,4,Sargasso Manipulation,beach,Control,4,Sediment,na,0,0,na,na,na,6.4,80
+11/7/21,0,Site Sampling,Beach,Control,na,Beach Dune Control,1,0,0,3,4.472136,2,na,na
+11/7/21,0,Site Sampling,Beach,Control,na,Beach Dune Control,2,0,0,3,4.472136,2,na,na
+11/7/21,0,Site Sampling,Beach,Control,na,Beach Dune Control,3,0,0,3,4.472136,2,na,na
+11/7/21,0,Site Sampling,Beach,Control,na,Beach Dune Control,4,0,5,3,4.472136,2,na,na
+11/7/21,0,Site Sampling,Beach,Control,na,Beach Dune Control,5,0,10,3,4.472136,2,na,na
+11/7/21,0,Site Sampling,Beach,Sargassum,na,Beach Dune Sargasso,6,0,70,44,29.874738,13.360389,na,na
+11/7/21,0,Site Sampling,Beach,Sargassum,na,Beach Dune Sargasso,7,0,25,44,29.874738,13.360389,na,na
+11/7/21,0,Site Sampling,Beach,Sargassum,na,Beach Dune Sargasso,8,0,10,44,29.874738,13.360389,na,na
+11/7/21,0,Site Sampling,Beach,Sargassum,na,Beach Dune Sargasso,9,0,80,44,29.874738,13.360389,na,na
+11/7/21,0,Site Sampling,Beach,Sargassum,na,Beach Dune Sargasso,10,0,35,44,29.874738,13.360389,na,na
+11/8/21,0,Site Sampling,Forest,Control,na,Jungle Control,1,0,35,23.16667,10.251016,5.918427,na,na
+11/8/21,0,Site Sampling,Forest,Control,na,Jungle Control,2,0,17.5,23.16667,10.251016,5.918427,na,na
+11/8/21,0,Site Sampling,Forest,Control,na,Jungle Control,3,0,17,23.16667,10.251016,5.918427,na,na
+11/8/21,0,Site Sampling,Forest,Sargassum,na,Jungle Sargasso,1,1,90,80,26.457513,15.275252,na,na
+11/8/21,0,Site Sampling,Forest,Sargassum,na,Jungle Sargasso,2,0,50,80,26.457513,15.275252,na,na
+11/8/21,0,Site Sampling,Forest,Sargassum,na,Jungle Sargasso,3,1,100,80,26.457513,15.275252,na,na
+7/31/22,1,Sargasso Manipulation,Beach,Control,4,Sediment,na,0,0,na,na,na,8,240
+7/31/22,1,Sargasso Manipulation,Beach,Sargassum,3,Seaweed,na,0,0,na,na,na,8.4,40
+7/31/22,1,Sargasso Manipulation,Beach,Sargassum,3,Sediment,na,0,0,na,na,na,8,40
+7/31/22,1,Sargasso Manipulation,Beach,Control,3,Sediment,na,0,0,na,na,na,8.4,360
+7/31/22,1,Sargasso Manipulation,Beach,Control,1,Sediment,na,0,0,na,na,na,8.4,60
+7/31/22,1,Sargasso Manipulation,Beach,Sargassum,1,Sediment,na,0,17.5,na,na,na,8,40
+7/31/22,1,Sargasso Manipulation,Beach,Sargassum,1,Seaweed,na,0,0,na,na,na,8,40
+7/31/22,1,Sargasso Manipulation,Beach,Control,5,Sediment,na,0,0,na,na,na,8.4,240
+7/31/22,1,Sargasso Manipulation,Beach,Sargassum,5,Sediment,na,0,5,na,na,na,8,100
+7/31/22,1,Sargasso Manipulation,Beach,Sargassum,5,Seaweed,na,0,0,na,na,na,8,60
+7/31/22,1,Sargasso Manipulation,Beach,Sargassum,2,Seaweed,na,0,0,na,na,na,8,60
+7/31/22,1,Sargasso Manipulation,Beach,Sargassum,2,Sediment,na,0,5,na,na,na,8,60
+7/31/22,1,Sargasso Manipulation,Beach,Sargassum,4,Sediment,na,0,5,na,na,na,8,60
+7/31/22,1,Sargasso Manipulation,Beach,Control,2,Sediment,na,0,0,na,na,na,8.4,180
+7/31/22,1,Sargasso Manipulation,Beach,Sargassum,4,Seaweed,na,0,0,na,na,na,8,40
+11/11/22,2,Sargasso Manipulation,Forest,Sargassum,1,Seaweed,na,0,100,na,na,na,8,0
+11/11/22,2,Sargasso Manipulation,Forest,Sargassum,1,Sediment,na,0,10,na,na,na,6.8,80
+11/11/22,2,Sargasso Manipulation,Forest,Control,1,Sediment,na,0,0,na,na,na,6.8,80
+11/11/22,2,Sargasso Manipulation,Forest,Sargassum,2,Seaweed,na,0,10,na,na,na,6.8,40
+11/11/22,2,Sargasso Manipulation,Forest,Sargassum,2,Sediment,na,0,25,na,na,na,6.8,50
+11/11/22,2,Sargasso Manipulation,Forest,Control,2,Sediment,na,0,0,na,na,na,8,360
+11/11/22,2,Sargasso Manipulation,Forest,Control,3,Sediment,na,0,0,na,na,na,8,360
+11/11/22,2,Sargasso Manipulation,Forest,Sargassum,3,Seaweed,na,0,10,na,na,na,8,360
+11/11/22,2,Sargasso Manipulation,Forest,Sargassum,3,Sediment,na,0,10,na,na,na,8,360
+11/11/22,2,Sargasso Manipulation,Forest,Control,4,Sediment,na,0,0,na,na,na,8,360
+11/11/22,2,Sargasso Manipulation,Forest,Sargassum,4,Sediment,na,0,0,na,na,na,8,360
+11/11/22,2,Sargasso Manipulation,Forest,Sargassum,4,Seaweed,na,0,0,na,na,na,8,360
+11/11/22,2,Sargasso Manipulation,Forest,Sargassum,5,Sediment,na,0,0,na,na,na,8,360
+11/11/22,2,Sargasso Manipulation,Forest,Sargassum,5,Sediment,na,0,0,na,na,na,8,360
+11/11/22,2,Sargasso Manipulation,Forest,Control,5,Seaweed,na,0,0,na,na,na,8,360
+11/11/22,2,Sargasso Manipulation,Beach,Sargassum,1,Sediment,na,0,10,na,na,na,8,240
+11/11/22,2,Sargasso Manipulation,Beach,Sargassum,1,Seaweed,na,0,0,na,na,na,8.4,240
+11/11/22,2,Sargasso Manipulation,Beach,Control,1,Sediment,na,0,0,na,na,na,8.4,240
+11/11/22,2,Sargasso Manipulation,Beach,Sargassum,2,Seaweed,na,0,0,na,na,na,8,360
+11/11/22,2,Sargasso Manipulation,Beach,Sargassum,2,Sediment,na,0,17.5,na,na,na,8.4,240
+11/11/22,2,Sargasso Manipulation,Beach,Control,2,Sediment,na,0,0,na,na,na,8,240
+11/11/22,2,Sargasso Manipulation,Beach,Sargassum,3,Seaweed,na,0,75,na,na,na,8,240
+11/11/22,2,Sargasso Manipulation,Beach,Sargassum,3,Sediment,na,0,37.5,na,na,na,8,240
+11/11/22,2,Sargasso Manipulation,Beach,Control,3,Sediment,na,0,0,na,na,na,8,240
+11/11/22,2,Sargasso Manipulation,Beach,Control,4,Sediment,na,0,0,na,na,na,8,240
+11/11/22,2,Sargasso Manipulation,Beach,Sargassum,4,Sediment,na,0,17.5,na,na,na,8,240
+11/11/22,2,Sargasso Manipulation,Beach,Sargassum,4,Seaweed,na,0,75,na,na,na,8,240
+11/11/22,2,Sargasso Manipulation,Beach,Sargassum,5,Sediment,na,0,10,na,na,na,8,240
+11/11/22,2,Sargasso Manipulation,Beach,Control,5,Sediment,na,0,0,na,na,na,8,240
+11/11/22,2,Sargasso Manipulation,Beach,Sargassum,5,Seaweed,na,0,75,na,na,na,8,240
+3/18/23,3,Sargasso Manipulation,Beach,Sargassum,1,Seaweed,na,0,17.5,na,na,na,6.4,na
+3/18/23,3,Sargasso Manipulation,Beach,Sargassum,1,Sediment,na,0,10,na,na,na,6.6,na
+3/18/23,3,Sargasso Manipulation,Beach,Control,1,Sediment,na,0,0,na,na,na,8.4,na
+3/18/23,3,Sargasso Manipulation,Beach,Control,2,Sediment,na,0,0,na,na,na,7.6,na
+3/18/23,3,Sargasso Manipulation,Beach,Sargassum,2,Seaweed,na,0,17.5,na,na,na,6.8,na
+3/18/23,3,Sargasso Manipulation,Beach,Sargassum,2,Sediment,na,0,75,na,na,na,6.4,na
+3/18/23,3,Sargasso Manipulation,Beach,Control,3,Sediment,na,0,0,na,na,na,8,na
+3/18/23,3,Sargasso Manipulation,Beach,Sargassum,3,Seaweed,na,0,5,na,na,na,7.2,na
+3/18/23,3,Sargasso Manipulation,Beach,Sargassum,3,Sediment,na,0,25,na,na,na,6.4,na
+3/18/23,3,Sargasso Manipulation,Beach,Sargassum,4,Sediment,na,0,250,na,na,na,6.4,na
+3/18/23,3,Sargasso Manipulation,Beach,Sargassum,4,Seaweed,na,0,17.5,na,na,na,6.8,na
+3/18/23,3,Sargasso Manipulation,Beach,Control,4,Sediment,na,0,0,na,na,na,7.55,na
+3/18/23,3,Sargasso Manipulation,Beach,Sargassum,5,Seaweed,na,0,5,na,na,na,7.2,na
+3/18/23,3,Sargasso Manipulation,Beach,Sargassum,5,Sediment,na,0,37.5,na,na,na,6.8,na
+3/18/23,3,Sargasso Manipulation,Beach,Control,5,Sediment,na,0,0,na,na,na,8,na
+3/18/23,3,Sargasso Manipulation,Forest,Sargassum,1,Sediment,na,0,17.5,na,na,na,6.8,na
+3/18/23,3,Sargasso Manipulation,Forest,Sargassum,1,Seaweed,na,0,17.5,na,na,na,6.4,na
+3/18/23,3,Sargasso Manipulation,Forest,Control,1,Sediment,na,0,0,na,na,na,6.8,na
+3/18/23,3,Sargasso Manipulation,Forest,Control,2,Sediment,na,0,0,na,na,na,6.8,na
+3/18/23,3,Sargasso Manipulation,Forest,Sargassum,2,Sediment,na,0,10,na,na,na,6.8,na
+3/18/23,3,Sargasso Manipulation,Forest,Sargassum,2,Seaweed,na,0,17.5,na,na,na,6.4,na
+3/18/23,3,Sargasso Manipulation,Forest,Control,3,Sediment,na,0,0,na,na,na,7.2,na
+3/18/23,3,Sargasso Manipulation,Forest,Sargassum,3,Seaweed,na,0,10,na,na,na,6.4,na
+3/18/23,3,Sargasso Manipulation,Forest,Sargassum,3,Sediment,na,0,10,na,na,na,7.2,na
+3/18/23,3,Sargasso Manipulation,Forest,Sargassum,4,Sediment,na,0,37.5,na,na,na,6.8,na
+3/18/23,3,Sargasso Manipulation,Forest,Control,4,Sediment,na,0,0,na,na,na,6.4,na
+3/18/23,3,Sargasso Manipulation,Forest,Sargassum,4,Seaweed,na,0,75,na,na,na,6.4,na
+3/18/23,3,Sargasso Manipulation,Forest,Sargassum,5,Seaweed,na,0,10,na,na,na,7.2,na
+3/18/23,3,Sargasso Manipulation,Forest,Control,5,Sediment,na,0,0,na,na,na,6.4,na
+3/18/23,3,Sargasso Manipulation,Forest,Sargassum,5,Sediment,na,0,25,na,na,na,7.2,na
+8/3.223,4,Sargasso Manipulation,Forest,Control,1,Sediment,na,0,0,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Forest,Sargassum,1,Sediment,na,0,10,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Forest,Sargassum,2,Sediment,na,0,10,na,na,na,6.8,80
+8/3.223,4,Sargasso Manipulation,Forest,Control,2,Sediment,na,0,0,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Forest,Sargassum,3,Sediment,na,0,10,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Forest,Control,3,Sediment,na,1,0,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Forest,Control,4,Sediment,na,0,0,na,na,na,6.4,80
+8/3.223,4,Sargasso Manipulation,Forest,Sargassum,4,Sediment,na,0,10,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Forest,Sargassum,5,Sediment,na,0,10,na,na,na,6.4,0
+8/3.223,4,Sargasso Manipulation,Forest,Control,5,Sediment,na,0,0,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Beach,Control,3,Sediment,na,0,0,na,na,na,6.8,80
+8/3.223,4,Sargasso Manipulation,Beach,Sargassum,1,Sediment,na,5,50,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Beach,Sargassum,5,Sediment,na,0,50,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Beach,Control,1,Sediment,na,0,0,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Beach,Control,5,Sediment,na,0,0,na,na,na,6.8,80
+8/3.223,4,Sargasso Manipulation,Beach,Sargassum,3,Sediment,na,0,10,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Beach,Control,2,Sediment,na,0,0,na,na,na,6.8,100
+8/3.223,4,Sargasso Manipulation,Beach,Sargassum,4,Sediment,na,0,0,na,na,na,6.4,40
+8/3.223,4,Sargasso Manipulation,Beach,Sargassum,2,Sediment,na,0,10,na,na,na,6.8,80
+8/3.223,4,Sargasso Manipulation,Beach,Control,4,Sediment,na,0,0,na,na,na,6.4,80

@@ -40,7 +40,6 @@ library(DHARMa)
 library(glmmTMB)
 library(emmeans)
 
-
 ```
 
 
@@ -387,7 +386,7 @@ int_eff_plot
 ```{r}
 #upload and subset data for perimeter surveys 
 #import dataset
-perimetersurvey<-read.csv("perimeter_survey_prc.csv", header = TRUE)
+perimetersurvey<-read.csv("perimeter_survey.csv", header = TRUE)
 
 perimetersurvey$Treatment<-as.factor(perimetersurvey$Treatment)
 perimetersurvey$Block<-as.factor(perimetersurvey$Block)
@@ -797,41 +796,39 @@ ladder$Trip<-as.factor(ladder$Trip)
 ladder$Quadrat<-as.factor(ladder$Quadrat)
 
 #make data long 
-laddersurvey_long <- gather(ladder, key = "cover_type", value = "percent_cover", 6:17, -c(1:5))
+laddersurvey_long <- gather(ladder, key = "cover_type", value = "percent_cover", 16:17, -c(1:5),) 
 #use this for graphing purposes
+laddersurvey_long$percent_cover<-as.numeric(laddersurvey_long$percent_cover)
+laddersurvey_long$Trip<-as.factor(laddersurvey_long$Trip)
 
 #graph it
 #lets look at the distance effect of sargassum on percent cover of grass and all other plants in the jungle 
 
-laddersurvey_long %>%
-  filter(Site %in% "Jungle") %>%
+
+ladder<- laddersurvey_long %>%
   ggplot() +
   aes(x = Quadrat, y = percent_cover, fill = cover_type) +
-  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
-  geom_errorbar(
-    stat = "summary", fun.data = "mean_se", 
-    position = position_dodge(width = 0.9), width = 0.25
+  stat_summary(
+    fun.y = "mean",
+    geom = "bar",
+    position = "dodge",
+    width = 0.7
+  ) +
+  stat_summary(
+    fun.data = mean_se,
+    geom = "errorbar",
+    position = position_dodge(width = 0.7),
+    width = 0.25
   ) +
   scale_fill_hue(direction = 1) +
+  labs(
+    x = "Distance from plot (m)",
+    y = "Percent cover",
+    fill = "Cover type") +
   theme_minimal() +
-  facet_grid(vars(Treatment), vars(Trip))
-#easy to see there is no pattern here
+  facet_grid(vars(Trip), vars(Site), scales = "free")
 
-#now lets do the same for the beach
-laddersurvey_long %>%
-  filter(Site %in% "Dunes") %>%
-  ggplot() +
-  aes(x = Quadrat, y = percent_cover, fill = cover_type) +
-  geom_bar(stat = "summary", fun = "mean", position = "dodge") +
-  geom_errorbar(
-    stat = "summary", fun.data = "mean_se", 
-    position = position_dodge(width = 0.9), width = 0.25
-  ) +
-  scale_fill_hue(direction = 1) +
-  theme_minimal() +
-  facet_grid(vars(Treatment), vars(Trip))
-#we see no pattern at all for august 2022, as expected. overlapping bars and errors in november suggest no difference with distance or between treatments but we do see a hing of a grass effect in march 2023. less so with distance, just between control and sargassum, as expected.
-
+ladder
 
 ```
 
@@ -846,13 +843,6 @@ stickies <-read.csv("stickies.csv",header=T)
 #remove total column
 
 stickies <- subset(stickies, select = -Total)
-
-
-# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors
-stickies_data_long <- gather(stickies, key = "Order", value = "Count", 9:28, -c(1:8))
-is.factor(stickies_data_long$Trip)
-stickies_data_long$Trip<-as.factor(stickies_data_long$Trip)
-stickies_data_long$Block<-as.factor(stickies_data_long$Block)
 
 #subset dunes 
 stickies_dunes<- subset(stickies_data_long, Site == "Dune")
@@ -1052,139 +1042,12 @@ cohen.d(jungle_df_sargassum3$Amphipods,jungle_df_control3$Amphipods)
 cohen.d(jungle_df_sargassum3$Diptera,jungle_df_control3$Diptera)
 cohen.d(jungle_df_sargassum3$Hymenoptera,jungle_df_control3$Hymenoptera)
 
-
-
-
-
-### make data long for analysis
-stickiesmod1 <-read.csv("stickies1.csv",header=T)
-stickies_data_long <- gather(stickiesmod1, key = "Order", value = "Count", 6:8, -c(1:5))
-stickies_data_long$Block<-as.factor(stickies_data_long$Block)
-stickies_data_long$Trip<-as.factor(stickies_data_long$Trip)
-
-#look at how counts stack up per species
-countsxorder <- ggplot(stickies_data_long,
-       aes(x = Treatment,
-           y = Count)) +
-  geom_point()
-
-countsxorder
-
-
-#create a quick model to look at the distribution 
-model1 <- lmer(Count ~ Site + Treatment + (1|Trip) + (1|Block), data = stickies_data_long)
-check_model(model1)
-
-
-#our data seem to have a right-skewed distribution,  i will add a constant (1) to use other disstributions that require >0 counts
-
-stickies_data_long$Count_transformed <- stickies_data_long$Count + 1
-
-
-stickies_glm <- glm(Count_transformed ~ Treatment + Site + Trip, 
-                family = poisson(link = "log"),
-                data = stickies_data_long)
-
-check_model(stickies_glm)
-
-res <- simulateResiduals(stickies_glm)
-plotQQunif(res)
-
-#predicted lines somewhat fit but this model violates several assumptions and has signifant deviation in residuals. going to try a different distribution.
-
-#changing to a gamma distribution.
-stickies_glm2 <- glm(Count_transformed ~ Treatment + Order + Site, 
-                  family = Gamma(link = "log"),
-                  data = stickies_data_long)
-
-
-check_model(stickies_glm2)
-
-res2 <- simulateResiduals(stickies_glm2)
-plotQQunif(res2)
-
-#this model was much better but the deviation is still significant in the KS test. attempting another distribution
-
-#keeping the gamma but adding a random inercept for Block since we dont care abut between block variability.
-
-stickies_glmer <- glmmTMB(Count ~ Site + Treatment + Trip + (1|Block),
-                        family = poisson(link = "log"),
-                        data = stickies_data_long)
-
-check_model(stickies_glmer)
-
-res2 <- simulateResiduals(stickies_glmer)
-plotQQunif(res2)
-
-summary(stickies_glmer)
-
-
-
-# Calculate log response ratio
-X_treatment <- mean(treatment_group)  # Replace 'treatment_group' with your actual treatment group data
-X_control <- mean(control_group)  # Replace 'control_group' with your actual control group data
-
-LRR <- log(X_treatment / X_control)
-
-
-
-
-```
-
-###sticky trap figures
-
-```{r}
-#load data
-stickies1 <-read.csv("stickies.csv",header=T)
-#remove total column so computations dont add that to our models
-stickies2 <- subset(stickies1, select = -Total)
-#remove No.per trap for same reason
-stickies3<- subset(stickies2, select = -No._per_trap)
-
-
-# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors to visualize important players
-stickies_data_long_full <- gather(stickies3, key = "Order", value = "Count", 9:28, -c(1:8))
-stickies_data_long_full$Trip<-as.factor(stickies_data_long_full$Trip)
-stickies_data_long_full$Block<-as.factor(stickies_data_long_full$Block)
-stickies_data_long_full$No._per_trap<-as.numeric(stickies_data_long_full$No._per_trap)
-
-stickies_data_long_full %>%
- filter(Order %in% c("Amphipods", "Diptera", "Hymenoptera")) %>%
- ggplot() +
-  aes(x = Trip, y = Count, colour = Site, shape = Order) +
-  geom_point(size = 1.5) +
-  scale_color_hue(direction = 1) +
-  theme_minimal()
-
-
 #####Effect sizes Graph#####
 #I manually input the effect sizes, lower and upper limits to a file called stickies_effsize.csv
 stickieseffsize <-read.csv("sticky_effsize.csv",header=T)
 
 stickieseffsize$Trip<-as.factor(stickieseffsize$Trip)
 
-
-sticky_eff_plot <- ggplot(stickieseffsize) +
-  aes(x = Trip, y = Effect_size, shape = Order) +
-  geom_point(size = 2) +
-  geom_path(aes(group = Order), color = "black") + 
-  labs(y = "Effect size", shape = "Taxa") +
-  theme_bw() +
-  facet_wrap(vars(Site), ncol = 2L)
-
-sticky_eff_plot
-
-
-sticky_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
-  
-  geom_point(size = 2) +
-  geom_path(aes(group = Order), color = "black") +
-  labs(y = "Effect size", shape = "Taxa", title = "Sticky traps") +
-  theme_bw() +
-  facet_wrap(vars(Site), ncol = 2L) +
-  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), alpha = 0.4, width=0.25)
-
-sticky_eff_plot
 
 
 sticky_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
@@ -1208,33 +1071,83 @@ sticky_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape 
 sticky_eff_plot
 
 
+```
+
+###sticky trap figures
+
+```{r}
+
+
+#load data
+stickies <-read.csv("stickies1.csv",header=T)  
+stickies$Trip<-as.factor(stickies$Trip)
+
+# Calculate means and standard errors for each combination of Trip, Taxa, and Treatment
+stickies_data <- stickies %>%
+  group_by(Trip, Site, Treatment, Taxa) %>%
+  summarize(mean_count = mean(Count), 
+            std_error = sd(Count) / sqrt(n()))
+
+# Create the bar plot with means and error bars
+ggplot(stickies_data) +
+  aes(x = Trip, y = mean_count, fill = Taxa) +
+  geom_bar(stat = "identity", position = "dodge", color = "black", size = 0.5) +
+  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error), 
+                position = position_dodge(width = 0.9), width = 0.25, color = "black") +
+  scale_fill_manual(values = c("white", "gray60", "gray40")) +
+  theme_bw() + 
+   scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
+  ) +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    plot.title = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    strip.background = element_blank() )+
+  xlab("") +
+  facet_grid(vars(Treatment), vars(Site), scales = "free_y")
+
+
+#####Effect sizes Graph#####
+#I manually input the effect sizes, lower and upper limits to a file called pitfall_effsize.csv
+stickieseffsize <-read.csv("sticky_effsize.csv",header=T)
+
+stickieseffsize$Trip<-as.factor(stickieseffsize$Trip)
+
+stickies_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
+  labs(y = "Effect size", shape = "Taxa", title = "stickie traps") +
+  geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
+  geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
+  scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
+  ) +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    plot.title = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    strip.text = element_blank(),  # Remove facet title
+    strip.background = element_blank()  # Remove facet boxes
+    # geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = "gray") +
+  ) +
+  xlab("")
+
+stickies_eff_plot
+
 
 ```
 
 #pitfalls
-####pitfalls exploration
+####pitfalls analysis
 
 ```{r}
-Pitfalls <-read.csv("Pitfalls1.csv",header=T)
 
-# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors
-pitfalls_data_long <- gather(Pitfalls, key = "Order", value = "Count", 5:20, -c(1:4))
-pitfalls_data_long$Trip<-as.factor(pitfalls_data_long$Trip)
-pitfalls_data_long$Block<-as.factor(pitfalls_data_long$Block)
-
-#subset dunes 
-pitfall_dunes<- subset(pitfalls_data_long, Site == "Dune")
-
-#subset jungle
-pitfall_jungle<- subset(pitfalls_data_long, Site == "Jungle")
-
-```
-
-##pitfall analysis
-```{r}
-#load data from pitfalls2.csv, i curated that data sheet to only include the 3 orders we are interested in and simple averaged averaged "hi" and "lo" for each block/treatment. I decided to do this in excel in the interest of time.
-
-pitfallsmod1 <-read.csv("pitfalls1.csv",header=T)
+pitfallsmod1 <-read.csv("Pitfalls.csv",header=T)
 
 ############################################dunes############################################
 #subset out the dunes
@@ -1323,8 +1236,6 @@ cohen.d(pitjungle_df_sargassum3$Hymenoptera,pitjungle_df_control3$Hymenoptera)
 #I manually input the effect sizes, lower and upper limits to a file called pitfalls_effsize.csv
 pitfallseffsize <-read.csv("pitfalls_effsize.csv",header=T)
 
-pitfallseffsize$Trip<-as.factor(pitfallseffsize$Trip)
-
 
 sticky_eff_plot <- ggplot(pitfallseffsize) +
   aes(x = Trip, y = Effect_size, shape = Order) +
@@ -1335,77 +1246,6 @@ sticky_eff_plot <- ggplot(pitfallseffsize) +
 
 sticky_eff_plot
 
-
-### make data long for analysis
-pitfallsmod1 <-read.csv("pitfalls1.csv",header=T)
-pitfalls_data_long <- gather(pitfallsmod1, key = "Order", value = "Count", 6:8, -c(1:5))
-pitfalls_data_long$Block<-as.factor(pitfalls_data_long$Block)
-pitfalls_data_long$Trip<-as.factor(pitfalls_data_long$Trip)
-
-#look at how counts stack up per species
-countsxorder <- ggplot(pitfalls_data_long,
-       aes(x = Treatment,
-           y = Count)) +
-  geom_point()
-
-countsxorder
-
-
-#create a quick model to look at the distribution 
-model1 <- lmer(Count ~ Site + Treatment + (1|Trip) + (1|Block), data = pitfalls_data_long)
-check_model(model1)
-
-
-#our data seem to have a right-skewed distribution,  i will add a constant (1) to use other disstributions that require >0 counts
-
-pitfalls_data_long$Count_transformed <- pitfalls_data_long$Count + 1
-
-
-pitfalls_glm <- glm(Count_transformed ~ Treatment + Site + Trip, 
-                family = poisson(link = "log"),
-                data = pitfalls_data_long)
-
-check_model(pitfalls_glm)
-
-res <- simulateResiduals(pitfalls_glm)
-plotQQunif(res)
-
-#predicted lines somewhat fit but this model violates several assumptions and has signifant deviation in residuals. going to try a different distribution.
-
-#changing to a gamma distribution.
-pitfalls_glm2 <- glm(Count_transformed ~ Treatment + Order + Site, 
-                  family = Gamma(link = "log"),
-                  data = pitfalls_data_long)
-
-
-check_model(pitfalls_glm2)
-
-res2 <- simulateResiduals(pitfalls_glm2)
-plotQQunif(res2)
-
-#this model was much better but the deviation is still significant in the KS test. attempting another distribution
-
-#keeping the gamma but adding a random inercept for Block since we dont care abut between block variability.
-
-pitfalls_glmer <- glmmTMB(Count ~ Site + Treatment + Trip + (1|Block),
-                        family = poisson(link = "log"),
-                        data = pitfalls_data_long)
-
-check_model(pitfalls_glmer)
-
-res2 <- simulateResiduals(pitfalls_glmer)
-plotQQunif(res2)
-
-summary(pitfalls_glmer)
-
-
-
-# Calculate log response ratio
-X_treatment <- mean(treatment_group)  # Replace 'treatment_group' with your actual treatment group data
-X_control <- mean(control_group)  # Replace 'control_group' with your actual control group data
-
-LRR <- log(X_treatment / X_control)
-
 ```
 
 
@@ -1413,26 +1253,35 @@ LRR <- log(X_treatment / X_control)
 
 ```{r}
 #load data
-pitfall1 <-read.csv("pitfalls.csv",header=T)
-#remove total column so computations dont add that to our models
-pitfall2 <- subset(pitfall1, select = -Total)
-#remove No.per trap for same reason
-pitfall3<- subset(pitfall2, select = -No._per_trap)
+pitfalls <-read.csv("Pitfalls1.csv",header=T)  
+pitfalls$Trip<-as.factor(pitfalls$Trip)
 
+# Calculate means and standard errors for each combination of Trip, Taxa, and Treatment
+pitfalls_data <- pitfalls %>%
+  group_by(Trip, Site, Treatment, Taxa) %>%
+  summarize(mean_count = mean(Count), 
+            std_error = sd(Count) / sqrt(n()))
 
-# Convert columns 9 to 26 into rows while keeping columns 1 to 8 as factors to visualize important players
-pitfall_data_long_full <- gather(pitfall1, key = "Order", value = "Count", 8:25, -c(1:7))
-pitfall_data_long_full$Trip<-as.factor(pitfall_data_long_full$Trip)
-pitfall_data_long_full$Block<-as.factor(pitfall_data_long_full$Block)
-pitfall_data_long_full$No._per_trap<-as.numeric(pitfall_data_long_full$No._per_trap)
-
-pitfall_data_long_full %>%
- filter(Order %in% c("Amphipods", "Arachnid", "Hymenoptera")) %>%
- ggplot() +
-  aes(x = Trip, y = Count, colour = Site, shape = Order) +
-  geom_point(size = 1.5) +
-  scale_color_hue(direction = 1) +
-  theme_minimal()
+# Create the bar plot with means and error bars
+ggplot(pitfalls_data) +
+  aes(x = Trip, y = mean_count, fill = Taxa) +
+  geom_bar(stat = "identity", position = "dodge", color = "black", size = 0.5) +
+  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error), 
+                position = position_dodge(width = 0.9), width = 0.25, color = "black") +
+  scale_fill_manual(values = c("white", "gray60", "gray40")) +
+  theme_bw() + 
+   scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
+  ) +
+  theme(
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    plot.title = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    strip.background = element_blank() )+
+  xlab("") +
+  facet_grid(vars(Treatment), vars(Site), scales = "free_y")
 
 
 #####Effect sizes Graph#####
@@ -1440,31 +1289,6 @@ pitfall_data_long_full %>%
 pitfalleffsize <-read.csv("pitfalls_effsize.csv",header=T)
 
 pitfalleffsize$Trip<-as.factor(pitfalleffsize$Trip)
-
-
-
-pitfall_eff_plot <- ggplot(pitfalleffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
-  geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = " gray") +
-  labs(y = "Effect size (Cohen's d)", shape = "Taxa", title = "Pitfall traps") +
-  geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
-  theme_bw() +
-  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
-     geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
-    scale_x_discrete(
-    limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23") ) +
-  theme(
-    axis.text = element_text(size=12),
-    axis.title = element_text(size=12),
-    plot.title = element_text(size=12),
-    axis.text.x = element_text(size=12),
-    strip.text = element_text(size=12)) +
-   xlab("") 
-
-pitfall_eff_plot
-
-
-
 
 pitfall_eff_plot <- ggplot(pitfalleffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
   labs(y = "Effect size", shape = "Taxa", title = "Pitfall traps") +
@@ -1491,12 +1315,10 @@ pitfall_eff_plot
 
 
 
-combined_arthropod_effgraphs <- grid.arrange(sticky_eff_plot, pitfall_eff_plot, ncol = 1)
-
 ```
 
-#Chemicals
-##  Nutrients
+#Chemicals and gases
+##nutrients
 
 ```{r}
 
@@ -1512,6 +1334,8 @@ pile_chem$pH<-as.numeric(pile_chem$pH)
 pile_chem$KH<-as.numeric(pile_chem$KH)
 
 
+#explore
+#nitrate by block at beach and forest for 4 trips
 ggplot(pile_chem) +
   aes(x = Site, y = Nitrate, fill = Block) +
   geom_boxplot() +
@@ -1519,6 +1343,10 @@ ggplot(pile_chem) +
   theme_minimal() +
   facet_grid(vars(Trip), vars())
 
+
+
+
+#added treatment. It is way too convoluted and impossible t read this way
 pile_chem %>%
  filter(Type %in% "Sargassum") %>%
  ggplot() +
@@ -1530,59 +1358,133 @@ pile_chem %>%
  facet_grid(vars(Trip), vars())
 
 
-#
-pile_chem %>%
- filter(Trt %in% "Sediment") %>%
- ggplot() +
- aes(x = Trip, y = Nitrate, fill = Type) +
- geom_boxplot() +
- scale_fill_hue(direction = 1) +
- theme_minimal() +
- facet_grid(vars(Site), vars(), scales = "free")
+# We are interested in the sediment nutrients rather than sediment and seaweed
+
 
 pile_chem %>%
- filter(Trt %in% "Sediment") %>%
- ggplot() +
- aes(x = Trip, y = pH, fill = Type) +
- geom_boxplot() +
- scale_fill_hue(direction = 1) +
- theme_minimal() +
- facet_grid(vars(), vars(Site), scales = "free")
-##respirometer CO2 readings
+  filter(Type %in% "Sargassum") %>%
+  filter(Trt %in% "Sediment") %>%
+  group_by(Trip, Site) %>%
+  summarize(mean_Nitrate = mean(Nitrate), se = sd(Nitrate) / sqrt(n())) %>%
+  ggplot() +
+  aes(x = Trip, y = mean_Nitrate, fill = Site) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean_Nitrate - se, ymax = mean_Nitrate + se), 
+                position = position_dodge(width = 0.9), width = 0.25) +
+  scale_fill_hue(direction = 1) +
+    scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23") ) +
+  labs(
+    x = " ",
+    y = "Nitrate content (mg/L)",
+    title = "",
+    fill = "Sample"
+  ) +
+  theme_minimal()  +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"))
 
+
+```
+
+##gasses
+```{r}
 CO2<-read.csv("gas_readings.csv",header=T)
 
 #subset experiment
 gas_CO2<-subset(CO2, !Treatment == "na")
-gas_CO2_long <- gather(gas_CO2, key = "gas", value = "units", 7:8, -c(1:6))
-
-ggplot(gas_CO2_long) +
- aes(x = Treatment, fill = Time, weight = units) +
- geom_bar(position = "dodge") +
- scale_fill_hue(direction = 1) +
- theme_minimal() +
- facet_grid(vars(Site), vars())
+gas_CO2$Carbon_dioxide<-as.numeric(gas_CO2$Carbon_dioxide)
+gas_CO2$Trip<-is.factor(gas_CO2$Carbon_dioxide)
 
 
 
-# Your existing ggplot code modified for a box plot
-ggplot(gas_CO2_long, aes(x = Treatment, y = units, fill = Time)) +
-  geom_boxplot() +  # Use geom_boxplot instead of geom_bar
+#gas collectors
+gas_CO2 %>%
+  filter(Experiment %in% "collectors") %>%
+  ggplot() +
+  aes(x = Treatment, y = Carbon_dioxide, fill = Time) +
+  stat_summary(
+    fun = "mean",
+    geom = "bar",
+    position = "dodge",
+    width = 0.7
+  ) +
+  stat_summary(
+    fun.data = mean_se,
+    geom = "errorbar",
+    position = position_dodge(width = 0.7),
+    width = 0.25
+  ) +
   scale_fill_hue(direction = 1) +
-  theme_minimal() +
-ggtitle("CO2 gas collector Nov. 2022") +
-  facet_grid(vars(Site), vars())
+  labs(
+    x = " ",
+    y = "Units",
+    title = "Gas collector",
+    fill = "Time point"
+  ) +
+    theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    axis.title = element_text(size = 16),   # Adjust the size of axis titles
+    axis.text = element_text(size = 14),    # Adjust the size of axis labels
+    axis.text.x = element_text(size = 14),  # Adjust the size of x-axis labels
+    plot.title = element_text(size = 18),   # Adjust the size of the plot title (if needed)
+    legend.title = element_text(size = 16), # Adjust the size of the legend title
+    legend.text = element_text(size = 14)   # Adjust the size of legend labels
+  ) +
+  facet_grid(vars(), vars(Site), scales = "free_y")
 
+#respirometer
+
+gas_CO2 %>%
+  filter(Experiment %in% "respirometer") %>%
+  ggplot() +
+  aes(x = Treatment, y = Carbon_dioxide, fill = Position) +
+  stat_summary(
+    fun = "mean",
+    geom = "bar",
+    position = "dodge",
+    width = 0.7
+  ) +
+  stat_summary(
+    fun.data = mean_se,
+    geom = "errorbar",
+    position = position_dodge(width = 0.7),
+    width = 0.25
+  ) +
+  scale_fill_hue(direction = 1) +
+  labs(
+    x = " ",
+    y = "Units",
+    title = "Respirometer",
+    fill = "Reader position"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    axis.title = element_text(size = 16),   # Adjust the size of axis titles
+    axis.text = element_text(size = 14),    # Adjust the size of axis labels
+    axis.text.x = element_text(size = 14),  # Adjust the size of x-axis labels
+    plot.title = element_text(size = 18),   # Adjust the size of the plot title (if needed)
+    legend.title = element_text(size = 16), # Adjust the size of the legend title
+    legend.text = element_text(size = 14)   # Adjust the size of legend labels
+  ) +
+  facet_grid(vars(), vars(Site))
 
 
 
 ```
 
 
-#manuscript figures
+#Manuscript figures
+##pile vol
 ```{r}
 
-#pile volumes
+#####################################pile volumes#####################################
 
 piles <-read.csv("Sargassum_piles.csv",header=T)
 piles2<-subset(piles, Treatment== "Sargassum")
@@ -1601,42 +1503,427 @@ scatterplot <- ggplot(data = piles2, aes(x = Trip, y = Ellipsoid_prc_D, fill = L
   geom_line(data = mean_data, aes(x = Trip, y = mean_ellipsoid_vol, group = Location), color = "gray")
 
 # Customize the plot appearance
-vol_x_time<- scatterplot + 
+vol_x_time <- scatterplot +
   labs(x = "", y = "Pile volume (%)") +
   scale_color_manual(values = c("black", "white")) +
   scale_fill_manual(values = c("black", "white")) +
-   scale_x_discrete(
+  scale_x_discrete(
     limits = c("1", "2", "3", "4"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23", "4" = "Aug.23")
   ) +
-  theme_minimal()
-vol_x_time
-
-
-#arhtropod comparisons
-
-#aerial traps
-
-sticky_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
-  labs(y = "Effect size", shape = "Taxa", title = "Aerial traps") +
-  geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
-  theme_bw() +
-  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
-     geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
-    scale_x_discrete(
-    limits = c("1", "2", "3"),
-    labels = c("1" = "", "2" = "", "3" = "") ) +
+  theme_minimal() +
   theme(
-    axis.text = element_text(size=12),
-    axis.title = element_text(size=12),
-    plot.title = element_text(size=12),
-    axis.text.x = element_text(size=12),
-    strip.text = element_text(size=12)) +
-   xlab("") 
-#geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = " gray") +
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    axis.title = element_text(size = 16),   # Adjust the size of axis titles
+    axis.text = element_text(size = 14),    # Adjust the size of axis labels
+    axis.text.x = element_text(size = 14),  # Adjust the size of x-axis labels
+    plot.title = element_text(size = 18),   # Adjust the size of the plot title (if needed)
+    legend.title = element_text(size = 16), # Adjust the size of the legend title
+    legend.text = element_text(size = 14)   # Adjust the size of legend labels
+  )
 
-sticky_eff_plot
+vol_x_time
+```
 
+##decomp 
+```{r}
+
+##############################decomposer experiment##################################
+#now lets look at mean values and SE
+#subset out trip 1 since its only going to show initial mass which is 100%
+decomp %>%
+  filter(!(Trip %in% "1")) %>%
+  filter(!(ratio %in% "")) %>%
+  ggplot() +
+  scale_fill_manual(name = "Mesh size", 
+                    values = c("large" = "light gray", "small" = "white")) +  # Set bars to white
+  scale_color_manual(name = "Mesh size",
+                     values = c("large" = "black", "small" = "black")) +  # Set outline color to black
+  aes(x = Site, fill = Treatment, weight = prc_means) +  # Add color aesthetic
+  geom_bar(position = "dodge", color = "black") +  # Specify outline color
+  geom_errorbar(aes(ymin = prc_means - prc_SE, ymax = prc_means + prc_SE), 
+                position = position_dodge(width = 0.9), 
+                width = 0.25) +  
+  labs(y = "Decomposition (% of initial dry biomass)", x = "") +
+  theme_minimal() +
+  facet_grid(Trip ~ ., labeller = labeller(Trip = function(x) ifelse(x == "2", "Nov. 22", ifelse(x == "3", "Mar. 23", x)))) + 
+    theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    axis.title = element_text(size = 16),   # Adjust the size of axis titles
+    axis.text = element_text(size = 14),    # Adjust the size of axis labels
+    axis.text.x = element_text(size = 14),  # Adjust the size of x-axis labels
+    plot.title = element_text(size = 18),   # Adjust the size of the plot title (if needed)
+    legend.title = element_text(size = 16), # Adjust the size of the legend title
+    legend.text = element_text(size = 14)   # Adjust the size of legend labels
+  )
+```
+## nutrients 
+
+```{r}
+#############################nutrients##############################################
+pile_chem %>%
+  filter(Type %in% "Sargassum") %>%
+  filter(Trt %in% "Sediment") %>%
+  group_by(Trip, Site) %>%
+  summarize(mean_Nitrate = mean(Nitrate), se = sd(Nitrate) / sqrt(n())) %>%
+  ggplot() +
+  aes(x = Trip, y = mean_Nitrate, fill = Site) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  geom_errorbar(aes(ymin = mean_Nitrate - se, ymax = mean_Nitrate + se), 
+                position = position_dodge(width = 0.9), width = 0.25) +
+  scale_fill_manual(values = c("lightgray", "white")) +
+  scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
+  ) +
+  labs(
+    x = " ",
+    y = "Nitrate content (mg/L)",
+    title = "",
+    fill = "Sample"
+  ) +
+  theme_minimal() +
+ theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()) # Remove facet labels
+
+```
+
+##CO2
+```{r}
+##############################gases#################################################
+#gas collectors
+
+CO2<-read.csv("gas_readings.csv",header=T)
+
+#subset experiment
+collectors<-subset(CO2, Experiment == "collectors") 
+collectors<-subset(collectors, !Site == "Calibrate")
+
+
+CO2plot1 <- collectors %>%
+  group_by(Site, Treatment, Time) %>%
+  summarize(mean_CO2 = mean(Carbon_dioxide), se = sd(Carbon_dioxide) / sqrt(n())) %>%
+  ggplot() +
+  aes(x = Treatment, y = mean_CO2, fill = Time) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  geom_errorbar(aes(ymin = mean_CO2 - se, ymax = mean_CO2 + se), 
+                position = position_dodge(width = 0.9), width = 0.25) +
+  scale_fill_manual(values = c("lightgray", "white")) +
+ 
+  labs(
+    x = " ",
+    y = "CO2 UNITS",
+    title = "",
+    fill = "Sample"
+  ) +
+  scale_x_discrete(labels = NULL) +  # Remove x-axis labels
+  theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 18),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14)
+  ) +
+   facet_grid(vars(), vars(Site), scales = "free_y")
+
+
+
+CO2plot1
+
+
+
+
+
+#respirometer
+
+CO2<-read.csv("gas_readings.csv",header=T)
+
+
+#subset experiment
+respirometer<-subset(CO2, Experiment == "respirometer") 
+
+CO2plot2 <- respirometer %>%
+  group_by(Site, Treatment, Position) %>%
+  summarize(mean_CO2 = mean(Carbon_dioxide), se = sd(Carbon_dioxide) / sqrt(n())) %>%
+  ggplot() +
+  aes(x = Treatment, y = mean_CO2, fill = Position) +
+  geom_bar(stat = "identity", position = "dodge", color = "black") +
+  geom_errorbar(aes(ymin = mean_CO2 - se, ymax = mean_CO2 + se), 
+                position = position_dodge(width = 0.9), width = 0.25) +
+  scale_fill_manual(values = c("lightgray", "white")) +
+  labs(
+    x = " ",
+    y = "CO2 UNITS",
+    title = "",
+    fill = "Position"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14)
+  ) +
+  facet_grid(vars(), vars(Site), scales = "free_y")
+
+
+CO2plot2 <- CO2plot2 +
+  theme(
+    axis.title.y = element_text(margin = margin(r = 25)),  # Adjust the margin
+    # Other theme settings...
+  )
+
+CO2plot2
+
+
+combined_CO2 <- grid.arrange(CO2plot1, CO2plot2, ncol = 1)
+
+```
+
+##interior percent cover
+```{r}
+##############################interior percent cover##################################
+interior_pc_cover<- ggplot(data = interiorsurvey2,
+            aes(
+              x = Trip,
+              y = means,
+              shape = cover_type,
+              color = Treatment
+            )) +
+  stat_summary(geom = "point", fun = mean, position = position_dodge(width = 1),
+               size = 2L, stroke = 1) +
+  stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
+               width = 0.2) +  # Adjust the width of the error bars as needed
+  labs(
+    x = " ",
+    y = "Mean percent cover",
+    title = "Interior Mean Percent Cover and Effect Sizes",
+    shape = "Cover type"
+  ) +
+   scale_shape_discrete(
+    labels = c("grass", "other plants"),
+    name = "Cover"  # Change the legend title to "Cover"
+  ) +
+  scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
+  ) +
+  facet_grid(vars(), vars(Site)) +
+  theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()  # Remove facet labels
+  ) +
+  scale_fill_manual(values = c("grey44", "black")) +
+  scale_color_manual(values = c("grey44", "black")) 
+  
+  
+
+interior_pc_cover
+
+#interior effect size graph
+int_eff_plot <- ggplot(interioreffsize, aes(x = Trip, y = Effect_size, shape = Cover)) +
+  labs(y = "Effect size", title = "") +
+  geom_path(aes(group = Cover), position = position_dodge(0.5), color = "dark gray") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L) +
+  geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
+  scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23", "4" = "Aug.23")
+  ) +
+    scale_shape_discrete(labels = c("grass", "other plants")) +
+ theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()  # Remove facet labels
+  ) +
+  xlab("") 
+
+int_eff_plot
+
+#combine 
+combined_int_effgraphs <- grid.arrange(interior_pc_cover, int_eff_plot, ncol = 1)
+
+```
+
+##perimeter percent cover
+```{r}
+#################################perimeter percent cover#########################
+perimeter_pc_cover<- ggplot(data = perimetersurvey2,
+            aes(
+              x = Trip,
+              y = means,
+              shape = cover_type,
+              color = Treatment
+            )) +
+  stat_summary(geom = "point", fun = mean, position = position_dodge(width = 1),
+               size = 2L, stroke = 1) +
+  stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
+               width = 0.2) +  # Adjust the width of the error bars as needed
+  labs(
+    x = " ",
+    y = "Mean percent cover",
+    title = "perimeter Mean Percent Cover and Effect Sizes",
+    shape = "Cover type"
+  ) +
+  scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
+  ) +
+    scale_shape_discrete(
+    labels = c("grass", "other plants"),
+    name = "Cover"  # Change the legend title to "Cover"
+  ) +
+theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14)
+  ) +
+  facet_grid(vars(), vars(Site), scales = "free_y") +
+  scale_fill_manual(values = c("grey44", "black")) +
+  scale_color_manual(values = c("grey44", "black")) +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines")
+  )
+
+perimeter_pc_cover
+
+#eff sizes 
+per_eff_plot <- ggplot(perimetereffsize, aes(x = Trip, y = Effect_size, shape = Cover)) +
+  labs(y = "Effect size", title = "") +
+  geom_path(aes(group = Cover), position = position_dodge(0.5), color = "dark gray") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L) +
+  geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
+  scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23", "4" = "Aug.23")
+  ) +
+  scale_shape_discrete(
+    labels = c("grass", "other plants"),
+    name = "Cover"  # Change the legend title to "Cover"
+  ) +
+theme_minimal() +
+theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()  # Remove facet labels
+  ) +
+  facet_grid(vars(), vars(Site), scales = "free_y") +
+xlab("") 
+
+per_eff_plot
+
+#combine 
+combined_perimeter_graph<- grid.arrange(perimeter_pc_cover, per_eff_plot, ncol = 1)
+
+```
+
+
+##arthropods
+```{r}
+
+
+##################################arthropods##########################
+
+#pitfalls
+#load data
+pitfalls <-read.csv("Pitfalls1.csv",header=T)  
+pitfalls$Trip<-as.factor(pitfalls$Trip)
+
+# Calculate means and standard errors for each combination of Trip, Taxa, and Treatment
+pitfalls_data <- pitfalls %>%
+  group_by(Trip, Site, Treatment, Taxa) %>%
+  summarize(mean_count = mean(Count), 
+            std_error = sd(Count) / sqrt(n()))
+
+# Create the bar plot with means and error bars
+pitfall_prc_cover<-ggplot(pitfalls_data) +
+  aes(x = Trip, y = mean_count, fill = Taxa) +
+  geom_bar(stat = "identity", position = "dodge", color = "black", size = 0.5) +
+  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error), 
+                position = position_dodge(width = 0.9), width = 0.25, color = "black") +
+  scale_fill_manual(values = c("white", "gray60", "gray40")) +
+  theme_bw() + 
+   scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
+  ) +
+theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()  # Remove facet labels
+  ) +
+  xlab("") +
+  ylab("Crawling arthropod count") +
+  facet_grid(vars(Treatment), vars(Site), scales = "free_y")
+
+pitfall_prc_cover
+
+#####Effect sizes Graph#####
+#I manually input the effect sizes, lower and upper limits to a file called pitfall_effsize.csv
+pitfalleffsize <-read.csv("pitfalls_effsize.csv",header=T)
+
+pitfalleffsize$Trip<-as.factor(pitfalleffsize$Trip)
 
 pitfall_eff_plot <- ggplot(pitfalleffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
   labs(y = "Effect size", shape = "Taxa", title = "Pitfall traps") +
@@ -1648,25 +1935,237 @@ pitfall_eff_plot <- ggplot(pitfalleffsize, aes(x = Trip, y = Effect_size, shape 
     limits = c("1", "2", "3"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
   ) +
-  theme(
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 12),
+theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
     plot.title = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
-    strip.text = element_blank(),  # Remove facet title
-    strip.background = element_blank()  # Remove facet boxes
-    # geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = "gray") +
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()  # Remove facet labels
   ) +
   xlab("")
 
 pitfall_eff_plot
 
+combined_pitfall_graphs <- grid.arrange(pitfall_prc_cover, pitfall_eff_plot, ncol = 1)
 
-#combine 
-combined_arthropod_effgraphs <- grid.arrange(sticky_eff_plot, pitfall_eff_plot, ncol = 1)
+
+
+
+#aerial traps
+
+
+#load data
+stickies <-read.csv("stickies1.csv",header=T)  
+stickies$Trip<-as.factor(stickies$Trip)
+
+# Calculate means and standard errors for each combination of Trip, Taxa, and Treatment
+stickies_data <- stickies %>%
+  group_by(Trip, Site, Treatment, Taxa) %>%
+  summarize(mean_count = mean(Count), 
+            std_error = sd(Count) / sqrt(n()))
+
+# Create the bar plot with means and error bars
+stickies_prc_cover<-ggplot(stickies_data) +
+  aes(x = Trip, y = mean_count, fill = Taxa) +
+  geom_bar(stat = "identity", position = "dodge", color = "black", size = 0.5) +
+  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error), 
+                position = position_dodge(width = 0.9), width = 0.25, color = "black") +
+  scale_fill_manual(values = c("white", "gray60", "gray40")) +
+  theme_bw() + 
+   scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
+  ) +
+theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()  # Remove facet labels
+  ) +
+  xlab("") +
+    ylab("Flying arthropod count") +
+  facet_grid(vars(Treatment), vars(Site), scales = "free_y")
+stickies_prc_cover
+
+#####Effect sizes Graph#####
+#I manually input the effect sizes, lower and upper limits to a file called pitfall_effsize.csv
+stickieseffsize <-read.csv("sticky_effsize.csv",header=T)
+
+stickieseffsize$Trip<-as.factor(stickieseffsize$Trip)
+
+stickies_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
+  labs(y = "Effect size", shape = "Taxa", title = "stickie traps") +
+  geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
+  geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
+  scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
+  ) +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()  # Remove facet labels
+  ) +
+  xlab("")
+
+stickies_eff_plot
+
+
+combined_stickies_graphs <- grid.arrange(stickies_prc_cover, stickies_eff_plot, ncol = 1)
+
+all_arthropod_graphs <- grid.arrange(combined_pitfall_graphs,combined_stickies_graphs, ncol = 2)
 
 ```
+#Supplementary graphs
+## Full ladder survey
 
+```{r}
+
+laddersurvey_long_sarg<-subset(laddersurvey_long, Treatment == "Sargassum")
+
+ggplot(laddersurvey_long_sarg) +
+  aes(x = Trip, fill = cover_type, y = percent_cover) +
+    stat_summary(
+    fun.y = "mean",
+    geom = "bar",
+    position = "dodge",
+    width = 0.7   ) +
+     scale_fill_manual(values = c("lightgray", "darkgray"),  # Specify custom colors
+                    labels = c("grass", "other plants")) +     # Specify custom labels
+  stat_summary(
+    fun.data = mean_se,
+    geom = "errorbar",
+    position = position_dodge(width = 0.7),
+    width = 0.25
+  ) +
+  labs(
+    x = "Distance from plot (m)",
+    y = "Percent cover",
+    fill = "Cover type") +
+    scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
+  ) +
+   labs(
+    x = "",
+    y = "Percent cover",
+    fill = "Cover type") +
+  theme_minimal() +
+   theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 24),
+    axis.title = element_text(size = 26),
+    axis.text = element_text(size = 24),
+    axis.text.x = element_text(size = 24),
+    plot.title = element_text(size = 22),
+    legend.title = element_text(size = 26),
+    legend.text = element_text(size = 24)
+  ) +
+
+  
+  facet_grid(vars(Quadrat), vars(Site))
+
+```
+## Full perimeter percent cover
+
+
+```{r}
+#import dataset
+perimetersurvey_full<-read.csv("perimeter_survey.csv", header = TRUE)
+
+perimeter_prc_long<-perimetersurvey_full %>%
+  gather(key = "cover_type", value = "prc_cover", c(7:58))
+
+perimeter_prc_long$Trip<-as.factor(perimeter_prc_long$Trip) 
+#remove zeros so the data is not so cluttered
+# Remove rows where B is zero
+perimeter_prc_long <- subset(perimeter_prc_long, prc_cover != 0)
+
+view(perimeter_prc_long)
+esquisse::esquisser(perimeter_prc_long)
+
+
+# Create a heatmap
+ggplot(perimeter_prc_long, aes(x = Trip, y = cover_type, fill = prc_cover)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "blue") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+
+
+perimetersurvey2<-subset(perimetersurvey, Data == "graph")
+perimeter_total_pc_cover<- ggplot(data = perimetersurvey2,
+            aes(
+              x = Trip,
+              y = means,
+              shape = cover_type,
+              color = Treatment
+            )) +
+  stat_summary(geom = "point", fun = mean, position = position_dodge(width = 1),
+               size = 2L, stroke = 1) +
+  stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
+               width = 0.2) +  # Adjust the width of the error bars as needed
+  labs(
+    x = " ",
+    y = "Mean percent cover",
+    title = "perimeter Mean Percent Cover and Effect Sizes",
+    shape = "Cover type"
+  ) +
+  scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
+  ) +
+    scale_shape_discrete(
+    labels = c("grass", "other plants"),
+    name = "Cover"  # Change the legend title to "Cover"
+  ) +
+theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14)
+  ) +
+  facet_grid(vars(), vars(Site), scales = "free_y") +
+  scale_fill_manual(values = c("grey44", "black")) +
+  scale_color_manual(values = c("grey44", "black")) +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines")
+  )
+
+
+
+```
 
 ```{r}
 sargman<-read.csv("nmec.csv",header=T)

@@ -1,61 +1,181 @@
-Date,Trip,Site,Block,Treatment,Diptera,Amphipods,Hymenoptera,Hymenoptera_per_trap,Amphipods_per_trap,Diptera_per_trap
-8/1/22,1,Dune,1,Control,13,0,2,1,0,12
-8/1/22,1,Dune,2,Control,20,0,6,0,0,21
-8/1/22,1,Dune,3,Control,35,0,6,6,0,33
-8/1/22,1,Dune,4,Control,22,2,1,0,0,23
-8/1/22,1,Dune,5,Control,68,20,9,5,11,50
-11/9/22,2,Dune,1,Control,123,0,0,0,0,135
-11/9/22,2,Dune,2,Control,142,0,0,0,0,146
-11/9/22,2,Dune,3,Control,88,0,0,0,0,75
-11/9/22,2,Dune,4,Control,89,0,0,0,0,97
-11/9/22,2,Dune,5,Control,161,0,2,1,0,162
-3/17/23,3,Dune,1,Control,32,0,3,0,0,25
-3/17/23,3,Dune,2,Control,53,0,5,3,0,65
-3/17/23,3,Dune,3,Control,56,0,2,2,0,44
-3/17/23,3,Dune,4,Control,69,0,6,1,0,44
-3/17/23,3,Dune,5,Control,67,0,15,9,0,110
-8/3/22,1,Jungle,1,Control,3,0,2,1,0,3
-8/3/22,1,Jungle,2,Control,1,0,3,2,0,1
-8/3/22,1,Jungle,3,Control,3,0,4,2,0,2
-8/3/22,1,Jungle,4,Control,10,0,2,0,0,5
-8/3/22,1,Jungle,5,Control,10,0,12,7,0,15
-11/13/22,2,Jungle,1,Control,6,0,4,2,0,8
-11/13/22,2,Jungle,2,Control,9,0,13,6,0,8
-11/13/22,2,Jungle,3,Control,15,0,2,1,0,13
-11/13/22,2,Jungle,4,Control,8,0,8,4,0,11
-11/13/22,2,Jungle,5,Control,4,0,14,6,0,4
-3/17/23,3,Jungle,1,Control,3,0,7,4,0,4
-3/17/23,3,Jungle,2,Control,3,0,3,2,0,2
-3/17/23,3,Jungle,3,Control,3,0,4,2,0,4
-3/17/23,3,Jungle,4,Control,2,0,13,3,0,1
-3/17/23,3,Jungle,5,Control,46,0,8,8,0,4
-8/1/22,1,Dune,1,Sargassum,241,63,4,2,16,153
-8/1/22,1,Dune,2,Sargassum,454,135,2,0,86,566
-8/1/22,1,Dune,3,Sargassum,229,34,7,4,17,219
-8/1/22,1,Dune,4,Sargassum,428,156,1,1,11,150
-8/1/22,1,Dune,5,Sargassum,1170,202,9,2,173,1335
-11/9/22,2,Dune,1,Sargassum,467,0,35,20,0,588
-11/9/22,2,Dune,2,Sargassum,190,0,0,0,0,193
-11/9/22,2,Dune,3,Sargassum,192,0,0,0,0,184
-11/9/22,2,Dune,4,Sargassum,363,0,0,0,0,377
-11/9/22,2,Dune,5,Sargassum,150,0,10,0,0,155
-3/17/23,3,Dune,1,Sargassum,10,0,103,54,0,11
-3/17/23,3,Dune,2,Sargassum,17,0,5,5,0,11
-3/17/23,3,Dune,3,Sargassum,34,0,2,0,0,28
-3/17/23,3,Dune,4,Sargassum,49,0,16,9,0,49
-3/17/23,3,Dune,5,Sargassum,43,0,8,4,0,55
-8/3/22,1,Jungle,1,Sargassum,6,0,1,0,0,8
-8/3/22,1,Jungle,2,Sargassum,7,0,1,1,0,4
-8/3/22,1,Jungle,3,Sargassum,9,0,2,1,0,9
-8/3/22,1,Jungle,4,Sargassum,12,0,4,2,0,10
-8/3/22,1,Jungle,5,Sargassum,14,0,6,2,0,10
-11/13/22,2,Jungle,1,Sargassum,43,0,2,2,0,44
-11/13/22,2,Jungle,2,Sargassum,21,0,20,8,0,26
-11/13/22,2,Jungle,3,Sargassum,20,0,22,12,0,16
-11/13/22,2,Jungle,4,Sargassum,22,0,38,19,0,15
-11/13/22,2,Jungle,5,Sargassum,22,0,49,24,0,34
-3/17/23,3,Jungle,1,Sargassum,2,0,7,3,0,2
-3/17/23,3,Jungle,2,Sargassum,4,0,20,10,0,3
-3/17/23,3,Jungle,3,Sargassum,3,0,5,4,0,2
-3/17/23,3,Jungle,4,Sargassum,1,0,38,8,0,2
-3/17/23,3,Jungle,5,Sargassum,12,0,37,30,0,12
+Date,Trip,Site,Survey,Block,Treatment,Side,Taxa,Count
+8/1/22,1,Beach,Aerial  ,1,Control,1,Amphipoda,0
+8/1/22,1,Beach,Aerial  ,4,Control,1,Amphipoda,0
+11/9/22,2,Beach,Aerial  ,1,Control,1,Amphipoda,0
+11/9/22,2,Beach,Aerial  ,2,Control,1,Amphipoda,0
+11/9/22,2,Beach,Aerial  ,3,Control,1,Amphipoda,0
+11/9/22,2,Beach,Aerial  ,4,Control,1,Amphipoda,0
+11/9/22,2,Beach,Aerial  ,5,Control,1,Amphipoda,0
+3/17/23,3,Beach,Aerial  ,1,Control,1,Amphipoda,0
+3/17/23,3,Beach,Aerial  ,2,Control,1,Amphipoda,0
+3/17/23,3,Beach,Aerial  ,3,Control,1,Amphipoda,0
+3/17/23,3,Beach,Aerial  ,4,Control,1,Amphipoda,0
+3/17/23,3,Beach,Aerial  ,5,Control,1,Amphipoda,0
+8/3/22,1,Forest,Aerial  ,1,Control,1,Amphipoda,0
+8/3/22,1,Forest,Aerial  ,2,Control,1,Amphipoda,0
+8/3/22,1,Forest,Aerial  ,3,Control,1,Amphipoda,0
+8/3/22,1,Forest,Aerial  ,4,Control,1,Amphipoda,0
+8/3/22,1,Forest,Aerial  ,5,Control,1,Amphipoda,0
+11/13/22,2,Forest,Aerial  ,1,Control,1,Amphipoda,0
+11/13/22,2,Forest,Aerial  ,2,Control,1,Amphipoda,0
+11/13/22,2,Forest,Aerial  ,3,Control,1,Amphipoda,0
+11/13/22,2,Forest,Aerial  ,4,Control,1,Amphipoda,0
+11/13/22,2,Forest,Aerial  ,5,Control,1,Amphipoda,0
+3/17/23,3,Forest,Aerial  ,1,Control,1,Amphipoda,0
+3/17/23,3,Forest,Aerial  ,2,Control,1,Amphipoda,0
+3/17/23,3,Forest,Aerial  ,3,Control,1,Amphipoda,0
+3/17/23,3,Forest,Aerial  ,4,Control,1,Amphipoda,0
+3/17/23,3,Forest,Aerial  ,5,Control,1,Amphipoda,0
+11/9/22,2,Beach,Aerial  ,1,Sargassum,1,Amphipoda,0
+11/9/22,2,Beach,Aerial  ,2,Sargassum,1,Amphipoda,0
+11/9/22,2,Beach,Aerial  ,3,Sargassum,1,Amphipoda,0
+11/9/22,2,Beach,Aerial  ,4,Sargassum,1,Amphipoda,0
+11/9/22,2,Beach,Aerial  ,5,Sargassum,1,Amphipoda,0
+3/17/23,3,Beach,Aerial  ,1,Sargassum,1,Amphipoda,0
+3/17/23,3,Beach,Aerial  ,2,Sargassum,1,Amphipoda,0
+3/17/23,3,Beach,Aerial  ,3,Sargassum,1,Amphipoda,0
+3/17/23,3,Beach,Aerial  ,4,Sargassum,1,Amphipoda,0
+3/17/23,3,Beach,Aerial  ,5,Sargassum,1,Amphipoda,0
+8/3/22,1,Forest,Aerial  ,1,Sargassum,1,Amphipoda,0
+8/3/22,1,Forest,Aerial  ,2,Sargassum,1,Amphipoda,0
+8/3/22,1,Forest,Aerial  ,4,Sargassum,1,Amphipoda,0
+8/3/22,1,Forest,Aerial  ,5,Sargassum,1,Amphipoda,0
+11/13/22,2,Forest,Aerial  ,1,Sargassum,1,Amphipoda,0
+11/13/22,2,Forest,Aerial  ,2,Sargassum,1,Amphipoda,0
+11/13/22,2,Forest,Aerial  ,3,Sargassum,1,Amphipoda,0
+11/13/22,2,Forest,Aerial  ,4,Sargassum,1,Amphipoda,0
+11/13/22,2,Forest,Aerial  ,5,Sargassum,1,Amphipoda,0
+3/17/23,3,Forest,Aerial  ,1,Sargassum,1,Amphipoda,0
+3/17/23,3,Forest,Aerial  ,2,Sargassum,1,Amphipoda,0
+3/17/23,3,Forest,Aerial  ,3,Sargassum,1,Amphipoda,0
+3/17/23,3,Forest,Aerial  ,4,Sargassum,1,Amphipoda,0
+3/17/23,3,Forest,Aerial  ,5,Sargassum,1,Amphipoda,0
+8/1/22,1,Beach,Aerial  ,3,Control,1,Amphipoda,0.25
+8/3/22,1,Forest,Aerial  ,3,Sargassum,1,Amphipoda,0.25
+8/1/22,1,Beach,Aerial  ,2,Control,1,Amphipoda,0.5
+8/1/22,1,Beach,Aerial  ,5,Control,1,Amphipoda,3.75
+8/1/22,1,Beach,Aerial  ,4,Sargassum,1,Amphipoda,3.75
+8/1/22,1,Beach,Aerial  ,1,Sargassum,1,Amphipoda,6.25
+8/1/22,1,Beach,Aerial  ,3,Sargassum,1,Amphipoda,9
+8/1/22,1,Beach,Aerial  ,2,Sargassum,1,Amphipoda,30.75
+8/1/22,1,Beach,Aerial  ,5,Sargassum,1,Amphipoda,55.25
+3/17/23,3,Forest,Aerial  ,1,Sargassum,1,Diptera,0.5
+8/3/22,1,Forest,Aerial  ,2,Control,1,Diptera,1
+3/17/23,3,Forest,Aerial  ,3,Sargassum,1,Diptera,1
+8/3/22,1,Forest,Aerial  ,1,Control,1,Diptera,1.25
+3/17/23,3,Forest,Aerial  ,4,Control,1,Diptera,1.25
+3/17/23,3,Forest,Aerial  ,4,Sargassum,1,Diptera,1.25
+3/17/23,3,Forest,Aerial  ,3,Control,1,Diptera,1.5
+3/17/23,3,Forest,Aerial  ,2,Sargassum,1,Diptera,1.75
+8/3/22,1,Forest,Aerial  ,3,Control,1,Diptera,2
+3/17/23,3,Forest,Aerial  ,2,Control,1,Diptera,2
+11/13/22,2,Forest,Aerial  ,1,Control,1,Diptera,2.5
+3/17/23,3,Forest,Aerial  ,5,Control,1,Diptera,2.5
+8/3/22,1,Forest,Aerial  ,2,Sargassum,1,Diptera,2.5
+11/13/22,2,Forest,Aerial  ,2,Control,1,Diptera,2.75
+11/13/22,2,Forest,Aerial  ,5,Control,1,Diptera,3
+8/3/22,1,Forest,Aerial  ,3,Sargassum,1,Diptera,3
+8/3/22,1,Forest,Aerial  ,4,Control,1,Diptera,3.25
+3/17/23,3,Forest,Aerial  ,1,Control,1,Diptera,3.25
+11/13/22,2,Forest,Aerial  ,4,Control,1,Diptera,4.5
+8/3/22,1,Forest,Aerial  ,5,Sargassum,1,Diptera,4.5
+8/3/22,1,Forest,Aerial  ,1,Sargassum,1,Diptera,5.25
+8/3/22,1,Forest,Aerial  ,4,Sargassum,1,Diptera,5.25
+8/1/22,1,Beach,Aerial  ,1,Control,1,Diptera,5.75
+11/13/22,2,Forest,Aerial  ,3,Control,1,Diptera,6.75
+3/17/23,3,Beach,Aerial  ,1,Sargassum,1,Diptera,6.75
+3/17/23,3,Beach,Aerial  ,2,Sargassum,1,Diptera,6.75
+8/1/22,1,Beach,Aerial  ,4,Control,1,Diptera,7.25
+8/3/22,1,Forest,Aerial  ,5,Control,1,Diptera,7.5
+11/13/22,2,Forest,Aerial  ,3,Sargassum,1,Diptera,8.5
+8/1/22,1,Beach,Aerial  ,2,Control,1,Diptera,9
+3/17/23,3,Beach,Aerial  ,3,Sargassum,1,Diptera,9
+3/17/23,3,Forest,Aerial  ,5,Sargassum,1,Diptera,9.75
+11/13/22,2,Forest,Aerial  ,4,Sargassum,1,Diptera,11.25
+8/1/22,1,Beach,Aerial  ,3,Control,1,Diptera,12.25
+11/13/22,2,Forest,Aerial  ,2,Sargassum,1,Diptera,12.75
+3/17/23,3,Beach,Aerial  ,1,Control,1,Diptera,14
+3/17/23,3,Beach,Aerial  ,3,Control,1,Diptera,16.75
+8/1/22,1,Beach,Aerial  ,5,Control,1,Diptera,17.5
+11/13/22,2,Forest,Aerial  ,5,Sargassum,1,Diptera,19
+3/17/23,3,Beach,Aerial  ,4,Sargassum,1,Diptera,21
+3/17/23,3,Beach,Aerial  ,5,Sargassum,1,Diptera,21
+3/17/23,3,Beach,Aerial  ,4,Control,1,Diptera,21.25
+11/13/22,2,Forest,Aerial  ,1,Sargassum,1,Diptera,23.25
+3/17/23,3,Beach,Aerial  ,2,Control,1,Diptera,24.25
+11/9/22,2,Beach,Aerial  ,3,Control,1,Diptera,32
+11/9/22,2,Beach,Aerial  ,4,Control,1,Diptera,46
+11/9/22,2,Beach,Aerial  ,1,Control,1,Diptera,48
+3/17/23,3,Beach,Aerial  ,5,Control,1,Diptera,49
+11/9/22,2,Beach,Aerial  ,2,Control,1,Diptera,55.5
+11/9/22,2,Beach,Aerial  ,3,Sargassum,1,Diptera,57.25
+11/9/22,2,Beach,Aerial  ,5,Sargassum,1,Diptera,60.75
+11/9/22,2,Beach,Aerial  ,5,Control,1,Diptera,63.25
+11/9/22,2,Beach,Aerial  ,2,Sargassum,1,Diptera,82.5
+8/1/22,1,Beach,Aerial  ,4,Sargassum,1,Diptera,95.75
+8/1/22,1,Beach,Aerial  ,1,Sargassum,1,Diptera,111.75
+8/1/22,1,Beach,Aerial  ,3,Sargassum,1,Diptera,113.25
+11/9/22,2,Beach,Aerial  ,4,Sargassum,1,Diptera,125
+11/9/22,2,Beach,Aerial  ,1,Sargassum,1,Diptera,156
+8/1/22,1,Beach,Aerial  ,2,Sargassum,1,Diptera,221.25
+8/1/22,1,Beach,Aerial  ,5,Sargassum,1,Diptera,576.75
+8/1/22,1,Beach,Aerial  ,4,Control,1,Hymenoptera,0
+11/9/22,2,Beach,Aerial  ,1,Control,1,Hymenoptera,0
+11/9/22,2,Beach,Aerial  ,2,Control,1,Hymenoptera,0
+11/9/22,2,Beach,Aerial  ,3,Control,1,Hymenoptera,0
+11/9/22,2,Beach,Aerial  ,4,Control,1,Hymenoptera,0
+3/17/23,3,Beach,Aerial  ,1,Control,1,Hymenoptera,0
+8/3/22,1,Forest,Aerial  ,4,Control,1,Hymenoptera,0
+11/9/22,2,Beach,Aerial  ,3,Sargassum,1,Hymenoptera,0
+11/9/22,2,Beach,Aerial  ,4,Sargassum,1,Hymenoptera,0
+8/3/22,1,Forest,Aerial  ,1,Sargassum,1,Hymenoptera,0
+8/1/22,1,Beach,Aerial  ,1,Control,1,Hymenoptera,0.25
+8/1/22,1,Beach,Aerial  ,2,Control,1,Hymenoptera,0.25
+11/9/22,2,Beach,Aerial  ,5,Control,1,Hymenoptera,0.25
+3/17/23,3,Beach,Aerial  ,4,Control,1,Hymenoptera,0.25
+8/1/22,1,Beach,Aerial  ,2,Sargassum,1,Hymenoptera,0.25
+11/9/22,2,Beach,Aerial  ,5,Sargassum,1,Hymenoptera,0.25
+3/17/23,3,Beach,Aerial  ,3,Control,1,Hymenoptera,0.5
+8/3/22,1,Forest,Aerial  ,1,Control,1,Hymenoptera,0.5
+8/3/22,1,Forest,Aerial  ,3,Control,1,Hymenoptera,0.5
+8/1/22,1,Beach,Aerial  ,5,Sargassum,1,Hymenoptera,0.5
+8/3/22,1,Forest,Aerial  ,4,Sargassum,1,Hymenoptera,0.5
+3/17/23,3,Beach,Aerial  ,2,Control,1,Hymenoptera,0.75
+8/3/22,1,Forest,Aerial  ,2,Control,1,Hymenoptera,0.75
+11/13/22,2,Forest,Aerial  ,3,Control,1,Hymenoptera,0.75
+8/1/22,1,Beach,Aerial  ,4,Sargassum,1,Hymenoptera,0.75
+3/17/23,3,Beach,Aerial  ,3,Sargassum,1,Hymenoptera,0.75
+8/3/22,1,Forest,Aerial  ,3,Sargassum,1,Hymenoptera,0.75
+3/17/23,3,Forest,Aerial  ,2,Control,1,Hymenoptera,1
+8/1/22,1,Beach,Aerial  ,1,Sargassum,1,Hymenoptera,1
+8/1/22,1,Beach,Aerial  ,3,Sargassum,1,Hymenoptera,1
+8/3/22,1,Forest,Aerial  ,2,Sargassum,1,Hymenoptera,1
+11/13/22,2,Forest,Aerial  ,1,Control,1,Hymenoptera,1.25
+11/9/22,2,Beach,Aerial  ,2,Sargassum,1,Hymenoptera,1.25
+3/17/23,3,Forest,Aerial  ,3,Control,1,Hymenoptera,1.75
+3/17/23,3,Forest,Aerial  ,3,Sargassum,1,Hymenoptera,1.75
+8/3/22,1,Forest,Aerial  ,5,Sargassum,1,Hymenoptera,2
+8/1/22,1,Beach,Aerial  ,5,Control,1,Hymenoptera,2.25
+11/13/22,2,Forest,Aerial  ,2,Control,1,Hymenoptera,2.25
+3/17/23,3,Forest,Aerial  ,1,Control,1,Hymenoptera,2.25
+11/13/22,2,Forest,Aerial  ,1,Sargassum,1,Hymenoptera,2.25
+8/1/22,1,Beach,Aerial  ,3,Control,1,Hymenoptera,2.5
+3/17/23,3,Beach,Aerial  ,2,Sargassum,1,Hymenoptera,2.75
+11/13/22,2,Forest,Aerial  ,2,Sargassum,1,Hymenoptera,2.75
+3/17/23,3,Forest,Aerial  ,1,Sargassum,1,Hymenoptera,2.75
+3/17/23,3,Beach,Aerial  ,5,Control,1,Hymenoptera,3
+11/13/22,2,Forest,Aerial  ,4,Control,1,Hymenoptera,3
+8/3/22,1,Forest,Aerial  ,5,Control,1,Hymenoptera,3.5
+3/17/23,3,Forest,Aerial  ,5,Control,1,Hymenoptera,3.5
+11/13/22,2,Forest,Aerial  ,5,Control,1,Hymenoptera,4
+3/17/23,3,Forest,Aerial  ,2,Sargassum,1,Hymenoptera,4
+11/13/22,2,Forest,Aerial  ,3,Sargassum,1,Hymenoptera,4.25
+3/17/23,3,Forest,Aerial  ,4,Control,1,Hymenoptera,4.75
+3/17/23,3,Beach,Aerial  ,4,Sargassum,1,Hymenoptera,4.75
+3/17/23,3,Beach,Aerial  ,5,Sargassum,1,Hymenoptera,4.75
+3/17/23,3,Forest,Aerial  ,4,Sargassum,1,Hymenoptera,9.25
+3/17/23,3,Forest,Aerial  ,5,Sargassum,1,Hymenoptera,10.25
+11/9/22,2,Beach,Aerial  ,1,Sargassum,1,Hymenoptera,10.75
+11/13/22,2,Forest,Aerial  ,4,Sargassum,1,Hymenoptera,14.5
+11/13/22,2,Forest,Aerial  ,5,Sargassum,1,Hymenoptera,14.5
+3/17/23,3,Beach,Aerial  ,1,Sargassum,1,Hymenoptera,27
