@@ -168,24 +168,24 @@ interior_sub_dune<-subset(interiorsurvey, Site == "Dunes")
 int_sub_dune_1<-subset(interior_sub_dune, Trip == "1")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-intdune_df_sargassum <- int_sub_dune_1[int_sub_dune_1$Treatment == "Sargassum", ]
-intdune_df_control <- int_sub_dune_1[int_sub_dune_1$Treatment == "Control", ]
+intdune_df_sargassum <- int_sub_dune_1[int_sub_dune_1$Treatment == "sargasso", ]
+intdune_df_control <- int_sub_dune_1[int_sub_dune_1$Treatment == "control", ]
 
 ### effect sizes for trip 1
 cohen.d(intdune_df_sargassum$bermuda,intdune_df_control$bermuda)
-cohen.d(intdune_df_sargassum$other_plant_cover,intdune_df_control$other_plant_cover)
+cohen.d(intdune_df_sargassum$other_plants,intdune_df_control$other_plants)
 
 
 #subset trip 2
 int_sub_dune_2<-subset(interior_sub_dune, Trip == "2")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-intdune_df_sargassum2 <- int_sub_dune_2[int_sub_dune_2$Treatment == "Sargassum", ]
-intdune_df_control2 <- int_sub_dune_2[int_sub_dune_2$Treatment == "Control", ]
+intdune_df_sargassum2 <- int_sub_dune_2[int_sub_dune_2$Treatment == "sargasso", ]
+intdune_df_control2 <- int_sub_dune_2[int_sub_dune_2$Treatment == "control", ]
 
 ### effect sizes for trip 2
 cohen.d(intdune_df_sargassum2$bermuda,intdune_df_control2$bermuda)
-cohen.d(intdune_df_sargassum2$total_plant_prc_cover,intdune_df_control2$total_plant_prc_cover)
+cohen.d(intdune_df_sargassum2$other_plants,intdune_df_control2$other_plants)
 cohen.d(intdune_df_sargassum2$bare_prc_cover,intdune_df_control2$bare_prc_cover)
 cohen.d(intdune_df_sargassum2$leaf_prc_cover,intdune_df_control2$leaf_prc_cover)
 cohen.d(intdune_df_sargassum2$other_plant_cover,intdune_df_control2$other_plant_cover)
@@ -195,12 +195,12 @@ cohen.d(intdune_df_sargassum2$other_plant_cover,intdune_df_control2$other_plant_
 int_sub_dune_3<-subset(interior_sub_dune, Trip == "3")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-intdune_df_sargassum3 <- int_sub_dune_3[int_sub_dune_3$Treatment == "Sargassum", ]
-intdune_df_control3 <- int_sub_dune_3[int_sub_dune_3$Treatment == "Control", ]
+intdune_df_sargassum3 <- int_sub_dune_3[int_sub_dune_3$Treatment == "sargasso", ]
+intdune_df_control3 <- int_sub_dune_3[int_sub_dune_3$Treatment == "control", ]
 
 ### effect sizes for trip 3
 cohen.d(intdune_df_sargassum3$bermuda,intdune_df_control3$bermuda)
-cohen.d(intdune_df_sargassum3$total_plant_prc_cover,intdune_df_control3$total_plant_prc_cover)
+cohen.d(intdune_df_sargassum3$other_plants,intdune_df_control3$other_plants)
 cohen.d(intdune_df_sargassum3$bare_prc_cover,intdune_df_control3$bare_prc_cover)
 cohen.d(intdune_df_sargassum3$leaf_prc_cover,intdune_df_control3$leaf_prc_cover)
 cohen.d(intdune_df_sargassum3$other_plant_cover,intdune_df_control3$other_plant_cover)
@@ -210,12 +210,12 @@ cohen.d(intdune_df_sargassum3$other_plant_cover,intdune_df_control3$other_plant_
 int_sub_dune_4<-subset(interior_sub_dune, Trip == "4")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-intdune_df_sargassum4 <- int_sub_dune_4[int_sub_dune_4$Treatment == "Sargassum", ]
-intdune_df_control4 <- int_sub_dune_4[int_sub_dune_4$Treatment == "Control", ]
+intdune_df_sargassum4 <- int_sub_dune_4[int_sub_dune_4$Treatment == "sargasso", ]
+intdune_df_control4 <- int_sub_dune_4[int_sub_dune_4$Treatment == "control", ]
 
 ### effect sizes for trip 4
 cohen.d(intdune_df_sargassum4$bermuda,intdune_df_control4$bermuda)
-cohen.d(intdune_df_sargassum4$total_plant_prc_cover,intdune_df_control4$total_plant_prc_cover)
+cohen.d(intdune_df_sargassum4$other_plants,intdune_df_control4$other_plants)
 cohen.d(intdune_df_sargassum4$bare_prc_cover,intdune_df_control4$bare_prc_cover)
 cohen.d(intdune_df_sargassum4$leaf_prc_cover,intdune_df_control4$leaf_prc_cover)
 cohen.d(intdune_df_sargassum4$other_plant_cover,intdune_df_control4$other_plant_cover)
@@ -228,44 +228,44 @@ interior_sub_Jungle<-subset(interiorsurvey, Site == "Jungle")
 int_sub_Jungle_1<-subset(interior_sub_Jungle, Trip == "1")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-intJungle_df_sargassum <- int_sub_Jungle_1[int_sub_Jungle_1$Treatment == "Sargassum", ]
-intJungle_df_control <- int_sub_Jungle_1[int_sub_Jungle_1$Treatment == "Control", ]
+intJungle_df_sargassum <- int_sub_Jungle_1[int_sub_Jungle_1$Treatment == "sargasso", ]
+intJungle_df_control <- int_sub_Jungle_1[int_sub_Jungle_1$Treatment == "control", ]
 
 ### effect sizes for trip 1
 cohen.d(intJungle_df_sargassum$bermuda,intJungle_df_control$bermuda)
 cohen.d(intJungle_df_sargassum$total_plant_prc_cover,intJungle_df_control$total_plant_prc_cover)
 cohen.d(intJungle_df_sargassum$bare_prc_cover,intJungle_df_control$bare_prc_cover)
 cohen.d(intJungle_df_sargassum$leaf_prc_cover,intJungle_df_control$leaf_prc_cover)
-cohen.d(intJungle_df_sargassum$other_plant_cover,intJungle_df_control$other_plant_cover)
+cohen.d(intJungle_df_sargassum$other_plants,intJungle_df_control$other_plants)
 
 
 #subset trip 2
 int_sub_Jungle_2<-subset(interior_sub_Jungle, Trip == "2")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-intJungle_df_sargassum2 <- int_sub_Jungle_2[int_sub_Jungle_2$Treatment == "Sargassum", ]
-intJungle_df_control2 <- int_sub_Jungle_2[int_sub_Jungle_2$Treatment == "Control", ]
+intJungle_df_sargassum2 <- int_sub_Jungle_2[int_sub_Jungle_2$Treatment == "sargasso", ]
+intJungle_df_control2 <- int_sub_Jungle_2[int_sub_Jungle_2$Treatment == "control", ]
 
 ### effect sizes for trip 2
 cohen.d(intJungle_df_sargassum2$bermuda,intJungle_df_control2$bermuda)
 cohen.d(intJungle_df_sargassum2$total_plant_prc_cover,intJungle_df_control2$total_plant_prc_cover)
 cohen.d(intJungle_df_sargassum2$bare_prc_cover,intJungle_df_control2$bare_prc_cover)
 cohen.d(intJungle_df_sargassum2$leaf_prc_cover,intJungle_df_control2$leaf_prc_cover)
-cohen.d(intJungle_df_sargassum2$other_plant_cover,intJungle_df_control2$other_plant_cover)
+cohen.d(intJungle_df_sargassum2$other_plants,intJungle_df_control2$other_plants)
 
 #subset trip 3
 int_sub_Jungle_3<-subset(interior_sub_Jungle, Trip == "3")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-intJungle_df_sargassum3 <- int_sub_Jungle_3[int_sub_Jungle_3$Treatment == "Sargassum", ]
-intJungle_df_control3 <- int_sub_Jungle_3[int_sub_Jungle_3$Treatment == "Control", ]
+intJungle_df_sargassum3 <- int_sub_Jungle_3[int_sub_Jungle_3$Treatment == "sargasso", ]
+intJungle_df_control3 <- int_sub_Jungle_3[int_sub_Jungle_3$Treatment == "control", ]
 
 ### effect sizes for trip 3
 cohen.d(intJungle_df_sargassum3$bermuda,intJungle_df_control3$bermuda)
 cohen.d(intJungle_df_sargassum3$total_plant_prc_cover,intJungle_df_control3$total_plant_prc_cover)
 cohen.d(intJungle_df_sargassum3$bare_prc_cover,intJungle_df_control3$bare_prc_cover)
 cohen.d(intJungle_df_sargassum3$leaf_prc_cover,intJungle_df_control3$leaf_prc_cover)
-cohen.d(intJungle_df_sargassum3$other_plant_cover,intJungle_df_control3$other_plant_cover)
+cohen.d(intJungle_df_sargassum3$other_plants,intJungle_df_control3$other_plants)
 
 
 
@@ -273,15 +273,15 @@ cohen.d(intJungle_df_sargassum3$other_plant_cover,intJungle_df_control3$other_pl
 int_sub_Jungle_4<-subset(interior_sub_Jungle, Trip == "4")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-intJungle_df_sargassum4 <- int_sub_Jungle_4[int_sub_Jungle_4$Treatment == "Sargassum", ]
-intJungle_df_control4 <- int_sub_Jungle_4[int_sub_Jungle_4$Treatment == "Control", ]
+intJungle_df_sargassum4 <- int_sub_Jungle_4[int_sub_Jungle_4$Treatment == "sargasso", ]
+intJungle_df_control4 <- int_sub_Jungle_4[int_sub_Jungle_4$Treatment == "control", ]
 
 ### effect sizes for trip 4
 cohen.d(intJungle_df_sargassum4$bermuda,intJungle_df_control4$bermuda)
 cohen.d(intJungle_df_sargassum4$total_plant_prc_cover,intJungle_df_control4$total_plant_prc_cover)
 cohen.d(intJungle_df_sargassum4$bare_prc_cover,intJungle_df_control4$bare_prc_cover)
 cohen.d(intJungle_df_sargassum4$leaf_prc_cover,intJungle_df_control4$leaf_prc_cover)
-cohen.d(intJungle_df_sargassum4$other_plant_cover,intJungle_df_control4$other_plant_cover)
+cohen.d(intJungle_df_sargassum4$other_plants,intJungle_df_control4$other_plants)
 
 
 ```
@@ -290,25 +290,20 @@ cohen.d(intJungle_df_sargassum4$other_plant_cover,intJungle_df_control4$other_pl
 ```{r}
 
 #import dataset
-interiorsurvey<-read.csv("interior_graphs.csv", header = TRUE)
+interiorrsurvey<-read.csv("interior_survey.csv", header = TRUE)
 
-#we are going to use a dotplot to graph means and SE of percent cover for grass and other plants
-#i made a long datasheet called interior_graphs.csv with effect sizes and means (of quadrats in each plot n=3 since we are not interested in between quadrat variability)
-
-interiorsurvey2<-subset(interiorsurvey, Data == "graph")
-#make sure we have factors 
-interiorsurvey2$Treatment<-as.factor(interiorsurvey2$Treatment)
-interiorsurvey2$Trip<-as.factor(interiorsurvey2$Trip)
-interiorsurvey2$means<-as.numeric(interiorsurvey2$means)
+interior_survey_long<- interiorsurvey %>%
+  gather(key = "cover_type", value = "percent_cover", c(57,60))
+interior_survey_long$Trip<-as.factor(interior_survey_long$Trip)
 
 
 #graph it
 
 
-interior_pc_cover<- ggplot(data = interiorsurvey2,
+interior_pc_cover<- ggplot(data = interior_survey_long,
             aes(
               x = Trip,
-              y = means,
+              y = percent_cover,
               shape = cover_type,
               color = Treatment
             )) +
@@ -336,6 +331,7 @@ interior_pc_cover<- ggplot(data = interiorsurvey2,
   )
 
 interior_pc_cover
+
 
 
 ```
@@ -399,59 +395,63 @@ perimeter_sub_dune<-subset(perimetersurvey, Site == "Dunes")
 per_sub_dune_1<-subset(perimeter_sub_dune, Trip == "1")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-perdune_df_sargassum <- per_sub_dune_1[per_sub_dune_1$Treatment == "Sargassum", ]
-perdune_df_control <- per_sub_dune_1[per_sub_dune_1$Treatment == "Control", ]
+perdune_df_sargassum <- per_sub_dune_1[per_sub_dune_1$Treatment == "sargasso", ]
+perdune_df_control <- per_sub_dune_1[per_sub_dune_1$Treatment == "control", ]
 
 ### effect sizes for trip 1
-cohen.d(perdune_df_sargassum$grass_prc_cover,perdune_df_control$grass_prc_cover)
+cohen.d(perdune_df_sargassum$bermuda,perdune_df_control$bermuda)
+cohen.d(perdune_df_sargassum$other_plants,perdune_df_control$other_plants)
 cohen.d(perdune_df_sargassum$total_plant_prc_cover,perdune_df_control$total_plant_prc_cover)
 cohen.d(perdune_df_sargassum$bare_prc_cover,perdune_df_control$bare_prc_cover)
 cohen.d(perdune_df_sargassum$dead_prc_cover,perdune_df_control$dead_prc_cover)
-cohen.d(perdune_df_sargassum$other_plant_prc_cover,perdune_df_control$other_plant_prc_cover)
+
 
 
 #subset trip 2
 per_sub_dune_2<-subset(perimeter_sub_dune, Trip == "2")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-perdune_df_sargassum2 <- per_sub_dune_2[per_sub_dune_2$Treatment == "Sargassum", ]
-perdune_df_control2 <- per_sub_dune_2[per_sub_dune_2$Treatment == "Control", ]
+perdune_df_sargassum2 <- per_sub_dune_2[per_sub_dune_2$Treatment == "sargasso", ]
+perdune_df_control2 <- per_sub_dune_2[per_sub_dune_2$Treatment == "control", ]
 
 ### effect sizes for trip 2
-cohen.d(perdune_df_sargassum2$grass_prc_cover,perdune_df_control2$grass_prc_cover)
+cohen.d(perdune_df_sargassum2$bermuda,perdune_df_control2$bermuda)
+cohen.d(perdune_df_sargassum2$other_plants,perdune_df_control2$other_plants)
 cohen.d(perdune_df_sargassum2$total_plant_prc_cover,perdune_df_control2$total_plant_prc_cover)
 cohen.d(perdune_df_sargassum2$bare_prc_cover,perdune_df_control2$bare_prc_cover)
 cohen.d(perdune_df_sargassum2$dead_prc_cover,perdune_df_control2$dead_prc_cover)
-cohen.d(perdune_df_sargassum2$other_plant_prc_cover,perdune_df_control2$other_plant_prc_cover)
+
 
 
 #subset trip 3
 per_sub_dune_3<-subset(perimeter_sub_dune, Trip == "3")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-perdune_df_sargassum3 <- per_sub_dune_3[per_sub_dune_3$Treatment == "Sargassum", ]
-perdune_df_control3 <- per_sub_dune_3[per_sub_dune_3$Treatment == "Control", ]
+perdune_df_sargassum3 <- per_sub_dune_3[per_sub_dune_3$Treatment == "sargasso", ]
+perdune_df_control3 <- per_sub_dune_3[per_sub_dune_3$Treatment == "control", ]
 
 ### effect sizes for trip 3
-cohen.d(perdune_df_sargassum3$grass_prc_cover,perdune_df_control3$grass_prc_cover)
+cohen.d(perdune_df_sargassum3$bermuda,perdune_df_control3$bermuda)
+cohen.d(perdune_df_sargassum3$other_plants,perdune_df_control3$other_plants)
 cohen.d(perdune_df_sargassum3$total_plant_prc_cover,perdune_df_control3$total_plant_prc_cover)
 cohen.d(perdune_df_sargassum3$bare_prc_cover,perdune_df_control3$bare_prc_cover)
 cohen.d(perdune_df_sargassum3$dead_prc_cover,perdune_df_control3$dead_prc_cover)
-cohen.d(perdune_df_sargassum3$other_plant_prc_cover,perdune_df_control3$other_plant_prc_cover)
+
 
 #subset trip 4
 per_sub_dune_4<-subset(perimeter_sub_dune, Trip == "4")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-perdune_df_sargassum4 <- per_sub_dune_4[per_sub_dune_4$Treatment == "Sargassum", ]
-perdune_df_control4 <- per_sub_dune_4[per_sub_dune_4$Treatment == "Control", ]
+perdune_df_sargassum4 <- per_sub_dune_4[per_sub_dune_4$Treatment == "sargassum", ]
+perdune_df_control4 <- per_sub_dune_4[per_sub_dune_4$Treatment == "control", ]
 
 ### effect sizes for trip 4
-cohen.d(perdune_df_sargassum4$grass_prc_cover,perdune_df_control4$grass_prc_cover)
+cohen.d(perdune_df_sargassum4$bermuda,perdune_df_control4$bermuda)
+cohen.d(perdune_df_sargassum$other_plants,perdune_df_control4$other_plants)
 cohen.d(perdune_df_sargassum4$total_plant_prc_cover,perdune_df_control4$total_plant_prc_cover)
 cohen.d(perdune_df_sargassum4$bare_prc_cover,perdune_df_control4$bare_prc_cover)
 cohen.d(perdune_df_sargassum4$dead_prc_cover,perdune_df_control4$dead_prc_cover)
-cohen.d(perdune_df_sargassum$other_plant_prc_cover,perdune_df_control4$other_plant_prc_cover)
+
 
 ###########subset out the Jungle
 perimeter_sub_Jungle<-subset(perimetersurvey, Site == "Jungle")
@@ -460,57 +460,61 @@ perimeter_sub_Jungle<-subset(perimetersurvey, Site == "Jungle")
 per_sub_Jungle_1<-subset(perimeter_sub_Jungle, Trip == "1")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-perJungle_df_sargassum <- per_sub_Jungle_1[per_sub_Jungle_1$Treatment == "Sargassum", ]
-perJungle_df_control <- per_sub_Jungle_1[per_sub_Jungle_1$Treatment == "Control", ]
+perJungle_df_sargassum <- per_sub_Jungle_1[per_sub_Jungle_1$Treatment == "sargasso", ]
+perJungle_df_control <- per_sub_Jungle_1[per_sub_Jungle_1$Treatment == "control", ]
 
 ### effect sizes for trip 1
-cohen.d(perJungle_df_sargassum$grass_prc_cover,perJungle_df_control$grass_prc_cover)
+cohen.d(perJungle_df_sargassum$bermuda,perJungle_df_control$bermuda)
+cohen.d(perJungle_df_sargassum$other_plants,perJungle_df_control$other_plants)
 cohen.d(perJungle_df_sargassum$total_plant_prc_cover,perJungle_df_control$total_plant_prc_cover)
 cohen.d(perJungle_df_sargassum$bare_prc_cover,perJungle_df_control$bare_prc_cover)
 cohen.d(perJungle_df_sargassum$dead_prc_cover,perJungle_df_control$dead_prc_cover)
-cohen.d(perJungle_df_sargassum$other_plant_prc_cover,perJungle_df_control$other_plant_prc_cover)
+
 
 #subset trip 2
 per_sub_Jungle_2<-subset(perimeter_sub_Jungle, Trip == "2")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-perJungle_df_sargassum2 <- per_sub_Jungle_2[per_sub_Jungle_2$Treatment == "Sargassum", ]
-perJungle_df_control2 <- per_sub_Jungle_2[per_sub_Jungle_2$Treatment == "Control", ]
+perJungle_df_sargassum2 <- per_sub_Jungle_2[per_sub_Jungle_2$Treatment == "sargasso", ]
+perJungle_df_control2 <- per_sub_Jungle_2[per_sub_Jungle_2$Treatment == "control", ]
 
 ### effect sizes for trip 2
-cohen.d(perJungle_df_sargassum2$grass_prc_cover,perJungle_df_control2$grass_prc_cover)
+cohen.d(perJungle_df_sargassum2$bermuda,perJungle_df_control2$bermuda)
+cohen.d(perJungle_df_sargassum2$other_plants,perJungle_df_control2$other_plants)
 cohen.d(perJungle_df_sargassum2$total_plant_prc_cover,perJungle_df_control2$total_plant_prc_cover)
 cohen.d(perJungle_df_sargassum2$bare_prc_cover,perJungle_df_control2$bare_prc_cover)
 cohen.d(perJungle_df_sargassum2$dead_prc_cover,perJungle_df_control2$dead_prc_cover)
-cohen.d(perJungle_df_sargassum2$other_plant_prc_cover,perJungle_df_control2$other_plant_prc_cover)
+
 
 #subset trip 3
 per_sub_Jungle_3<-subset(perimeter_sub_Jungle, Trip == "3")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-perJungle_df_sargassum3 <- per_sub_Jungle_3[per_sub_Jungle_3$Treatment == "Sargassum", ]
-perJungle_df_control3 <- per_sub_Jungle_3[per_sub_Jungle_3$Treatment == "Control", ]
+perJungle_df_sargassum3 <- per_sub_Jungle_3[per_sub_Jungle_3$Treatment == "sargasso", ]
+perJungle_df_control3 <- per_sub_Jungle_3[per_sub_Jungle_3$Treatment == "control", ]
 
 ### effect sizes for trip 3
-cohen.d(perJungle_df_sargassum3$grass_prc_cover,perJungle_df_control3$grass_prc_cover)
+cohen.d(perJungle_df_sargassum3$bermuda,perJungle_df_control3$bermuda)
+cohen.d(perJungle_df_sargassum3$other_plants,perJungle_df_control3$other_plants)
 cohen.d(perJungle_df_sargassum3$total_plant_prc_cover,perJungle_df_control3$total_plant_prc_cover)
 cohen.d(perJungle_df_sargassum3$bare_prc_cover,perJungle_df_control3$bare_prc_cover)
 cohen.d(perJungle_df_sargassum3$dead_prc_cover,perJungle_df_control3$dead_prc_cover)
-cohen.d(perJungle_df_sargassum3$other_plant_prc_cover,perJungle_df_control3$other_plant_prc_cover)
+
 
 #subset trip 4
 per_sub_Jungle_4<-subset(perimeter_sub_Jungle, Trip == "4")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-perJungle_df_sargassum4 <- per_sub_Jungle_4[per_sub_Jungle_4$Treatment == "Sargassum", ]
-perJungle_df_control4 <- per_sub_Jungle_4[per_sub_Jungle_4$Treatment == "Control", ]
+perJungle_df_sargassum4 <- per_sub_Jungle_4[per_sub_Jungle_4$Treatment == "sargasso", ]
+perJungle_df_control4 <- per_sub_Jungle_4[per_sub_Jungle_4$Treatment == "control", ]
 
 ### effect sizes for trip 4
-cohen.d(perJungle_df_sargassum4$grass_prc_cover,perJungle_df_control4$grass_prc_cover)
+cohen.d(perJungle_df_sargassum4$bermuda,perJungle_df_control4$bermuda)
+cohen.d(perJungle_df_sargassum4$other_plants,perJungle_df_control4$other_plants)
 cohen.d(perJungle_df_sargassum4$total_plant_prc_cover,perJungle_df_control4$total_plant_prc_cover)
 cohen.d(perJungle_df_sargassum4$bare_prc_cover,perJungle_df_control4$bare_prc_cover)
 cohen.d(perJungle_df_sargassum4$dead_prc_cover,perJungle_df_control4$dead_prc_cover)
-cohen.d(perJungle_df_sargassum4$other_plant_prc_cover,perJungle_df_control4$other_plant_prc_cover)
+
 
 
 ```
@@ -521,25 +525,20 @@ cohen.d(perJungle_df_sargassum4$other_plant_prc_cover,perJungle_df_control4$othe
 ```{r}
 
 #import dataset
-perimetersurvey<-read.csv("perimeter_graphs.csv", header = TRUE)
+perimetersurvey<-read.csv("perimeter_survey.csv", header = TRUE)
 
-#we are going to use a dotplot to graph means and SE of percent cover for grass and other plants
-#i made a long datasheet called perimeter_graphs.csv with effect sizes and means (of quadrats in each plot n=3 since we are not interested in between quadrat variability)
-
-perimetersurvey2<-subset(perimetersurvey, Data == "graph")
-#make sure we have factors 
-perimetersurvey2$Treatment<-as.factor(perimetersurvey2$Treatment)
-perimetersurvey2$Trip<-as.factor(perimetersurvey2$Trip)
-perimetersurvey2$means<-as.numeric(perimetersurvey2$means)
+perimeter_survey_long<- perimetersurvey %>%
+  gather(key = "cover_type", value = "percent_cover", c(63,64))
+perimeter_survey_long$Trip<-as.factor(perimeter_survey_long$Trip)
 
 
 #graph it
 
 
-perimeter_pc_cover<- ggplot(data = perimetersurvey2,
+perimeter_pc_cover<- ggplot(data = perimeter_survey_long,
             aes(
               x = Trip,
-              y = means,
+              y = percent_cover,
               shape = cover_type,
               color = Treatment
             )) +
@@ -1704,10 +1703,10 @@ combined_CO2 <- grid.arrange(CO2plot1, CO2plot2, ncol = 1)
 ##interior percent cover
 ```{r}
 ##############################interior percent cover##################################
-interior_pc_cover<- ggplot(data = interiorsurvey2,
+interior_pc_cover <- ggplot(data = interior_survey_long,
             aes(
               x = Trip,
-              y = means,
+              y = percent_cover,
               shape = cover_type,
               color = Treatment
             )) +
@@ -1717,35 +1716,33 @@ interior_pc_cover<- ggplot(data = interiorsurvey2,
                width = 0.2) +  # Adjust the width of the error bars as needed
   labs(
     x = " ",
-    y = "Mean percent cover",
-    title = "Interior Mean Percent Cover and Effect Sizes",
-    shape = "Cover type"
-  ) +
-   scale_shape_discrete(
-    labels = c("grass", "other plants"),
-    name = "Cover"  # Change the legend title to "Cover"
+    y = "Mean Percent Cover",
+    title = "Interior Mean Percent Cover"
   ) +
   scale_x_discrete(
     limits = c("1", "2", "3", "4"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
   ) +
-  facet_grid(vars(), vars(Site)) +
+  facet_grid(vars(), vars(Site), labeller = labeller(Site = c(Dunes = "Beach", Jungle = "Forest"))) +  # Set facet titles
   theme_minimal() +
+  scale_fill_manual(values = c("grey44", "black")) +
+  scale_color_manual(values = c("grey44", "black")) +
   theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
     text = element_text(size = 14),
-    axis.title = element_text(size = 16),
+    axis.title = element_text(size = 16, margin = margin(t = 0, r = 10, b = 0, l = 0)), # Adjust the margin
     axis.text = element_text(size = 14),
     axis.text.x = element_text(size = 14),
     plot.title = element_text(size = 12),
-    legend.title = element_text(size = 16),
-    legend.text = element_text(size = 14),
-    strip.text = element_blank()  # Remove facet labels
+    legend.title = element_text(size = 16),  # Set the size of the legend title
+    legend.text = element_text(size = 14)  # Set the size of the legend text
   ) +
-  scale_fill_manual(values = c("grey44", "black")) +
-  scale_color_manual(values = c("grey44", "black")) 
-  
+  scale_shape_manual(
+    values = c("circle",  "triangle"),  # Change these to the desired shapes
+    labels = c("grass", "other plants")  # Change these labels
+  ) +
+  labs(shape = "Cover type")  # Change the legend title here
   
 
 interior_pc_cover
@@ -1786,10 +1783,10 @@ combined_int_effgraphs <- grid.arrange(interior_pc_cover, int_eff_plot, ncol = 1
 ##perimeter percent cover
 ```{r}
 #################################perimeter percent cover#########################
-perimeter_pc_cover<- ggplot(data = perimetersurvey2,
+perimeter_pc_cover <- ggplot(data = perimeter_survey_long,
             aes(
               x = Trip,
-              y = means,
+              y = percent_cover,
               shape = cover_type,
               color = Treatment
             )) +
@@ -1799,39 +1796,38 @@ perimeter_pc_cover<- ggplot(data = perimetersurvey2,
                width = 0.2) +  # Adjust the width of the error bars as needed
   labs(
     x = " ",
-    y = "Mean percent cover",
-    title = "perimeter Mean Percent Cover and Effect Sizes",
-    shape = "Cover type"
+    y = "Mean Percent Cover",
+    title = "Perimeter Mean Percent Cover"
   ) +
   scale_x_discrete(
     limits = c("1", "2", "3", "4"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
   ) +
-    scale_shape_discrete(
-    labels = c("grass", "other plants"),
-    name = "Cover"  # Change the legend title to "Cover"
-  ) +
-theme_minimal() +
-  theme(
-    panel.border = element_rect(color = "black", fill = NA, size = 1),
-    panel.spacing = unit(0.2, "lines"),
-    text = element_text(size = 14),
-    axis.title = element_text(size = 16),
-    axis.text = element_text(size = 14),
-    axis.text.x = element_text(size = 14),
-    plot.title = element_text(size = 12),
-    legend.title = element_text(size = 16),
-    legend.text = element_text(size = 14)
-  ) +
-  facet_grid(vars(), vars(Site), scales = "free_y") +
+  facet_grid(vars(), vars(Site), labeller = labeller(Site = c(Dunes = "Beach", Jungle = "Forest"))) +  # Set facet titles
+  theme_minimal() +
   scale_fill_manual(values = c("grey44", "black")) +
   scale_color_manual(values = c("grey44", "black")) +
   theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
-    panel.spacing = unit(0.2, "lines")
-  )
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16, margin = margin(t = 0, r = 10, b = 0, l = 0)), # Adjust the margin
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),  # Set the size of the legend title
+    legend.text = element_text(size = 14)  # Set the size of the legend text
+  ) +
+  scale_shape_manual(
+    values = c("circle",  "triangle"),  # Change these to the desired shapes
+    labels = c("grass", "other plants")  # Change these labels
+  ) +
+  labs(shape = "Cover type")  # Change the legend title here
+
+
 
 perimeter_pc_cover
+
 
 #eff sizes 
 per_eff_plot <- ggplot(perimetereffsize, aes(x = Trip, y = Effect_size, shape = Cover)) +
@@ -2037,13 +2033,15 @@ all_arthropod_graphs <- grid.arrange(combined_pitfall_graphs,combined_stickies_g
 
 ```
 #Supplementary graphs
-## Full ladder survey
-
+## full ladder survey
 ```{r}
+ladder_survey_full <-read.csv("ladder.csv",header=T)  
 
-laddersurvey_long_sarg<-subset(laddersurvey_long, Treatment == "Sargassum")
+ladder_survey_long<- ladder_survey_full %>%
+  gather(key = "cover_type", value = "percent_cover", c(9,10))
+ladder_survey_long$Trip<-as.factor(ladder_survey_long$Trip)
 
-ggplot(laddersurvey_long_sarg) +
+ggplot(ladder_survey_long) +
   aes(x = Trip, fill = cover_type, y = percent_cover) +
     stat_summary(
     fun.y = "mean",
@@ -2087,9 +2085,8 @@ ggplot(laddersurvey_long_sarg) +
   facet_grid(vars(Quadrat), vars(Site))
 
 ```
-## Full perimeter percent cover
 
-
+##full perimeter percent cover
 ```{r}
 #import dataset
 perimetersurvey_full<-read.csv("perimeter_survey.csv", header = TRUE)
@@ -2098,74 +2095,72 @@ perimeter_prc_long<-perimetersurvey_full %>%
   gather(key = "cover_type", value = "prc_cover", c(7:58))
 
 perimeter_prc_long$Trip<-as.factor(perimeter_prc_long$Trip) 
+perimeter_prc_long$Block<-as.factor(perimeter_prc_long$Block) 
+
+#select only relevant columns
+perimeter_prc_long <- perimeter_prc_long %>% select( c(1:5,15,16))
 #remove zeros so the data is not so cluttered
-# Remove rows where B is zero
+# Remove rows where prc_cover is zero
 perimeter_prc_long <- subset(perimeter_prc_long, prc_cover != 0)
 
-view(perimeter_prc_long)
-esquisse::esquisser(perimeter_prc_long)
 
+perimeter_prc_long %>%
+ filter(Site %in% "Jungle") %>%
+ ggplot() +
+ aes(x = Trip, fill = cover_type, weight = prc_cover) +
+ geom_bar(position = "fill") +
+ theme_minimal() +
+ facet_grid(vars(Block), vars(Treatment))
 
-# Create a heatmap
-ggplot(perimeter_prc_long, aes(x = Trip, y = cover_type, fill = prc_cover)) +
-  geom_tile() +
-  scale_fill_gradient(low = "white", high = "blue") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-
-
-
-
-perimetersurvey2<-subset(perimetersurvey, Data == "graph")
-perimeter_total_pc_cover<- ggplot(data = perimetersurvey2,
-            aes(
-              x = Trip,
-              y = means,
-              shape = cover_type,
-              color = Treatment
-            )) +
-  stat_summary(geom = "point", fun = mean, position = position_dodge(width = 1),
-               size = 2L, stroke = 1) +
-  stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
-               width = 0.2) +  # Adjust the width of the error bars as needed
-  labs(
-    x = " ",
-    y = "Mean percent cover",
-    title = "perimeter Mean Percent Cover and Effect Sizes",
-    shape = "Cover type"
-  ) +
-  scale_x_discrete(
-    limits = c("1", "2", "3", "4"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
-  ) +
-    scale_shape_discrete(
-    labels = c("grass", "other plants"),
-    name = "Cover"  # Change the legend title to "Cover"
-  ) +
-theme_minimal() +
-  theme(
-    panel.border = element_rect(color = "black", fill = NA, size = 1),
-    panel.spacing = unit(0.2, "lines"),
-    text = element_text(size = 14),
-    axis.title = element_text(size = 16),
-    axis.text = element_text(size = 14),
-    axis.text.x = element_text(size = 14),
-    plot.title = element_text(size = 12),
-    legend.title = element_text(size = 16),
-    legend.text = element_text(size = 14)
-  ) +
-  facet_grid(vars(), vars(Site), scales = "free_y") +
-  scale_fill_manual(values = c("grey44", "black")) +
-  scale_color_manual(values = c("grey44", "black")) +
-  theme(
-    panel.border = element_rect(color = "black", fill = NA, size = 1),
-    panel.spacing = unit(0.2, "lines")
-  )
-
-
+perimeter_prc_long %>%
+ filter(Site %in% "Dunes") %>%
+ ggplot() +
+ aes(x = Trip, fill = cover_type, weight = prc_cover) +
+ geom_bar(position = "fill") +
+ theme_minimal() +
+ facet_grid(vars(Block), vars(Treatment))
 
 ```
+
+##full interior percent cover
+```{r}
+interiorsurvey_full<-read.csv("interior_survey.csv", header = TRUE)
+
+#make data long with species types all stacked
+interior_prc_long<-interiorsurvey_full %>%
+  gather(key = "cover_type", value = "prc_cover", c(6:55))
+
+interior_prc_long$Trip<-as.factor(interior_prc_long$Trip) 
+interior_prc_long$Block<-as.factor(interior_prc_long$Block) 
+#remove zeros so the data is not so cluttered
+# Remove rows where prc_cover is zero
+interior_prc_long <- subset(interior_prc_long, prc_cover != 0)
+#select only relevant columns
+interior_prc_long <- interior_prc_long %>% select( c(1:5,14,15))
+  
+
+interior_prc_long %>%
+ filter(Site %in% "Dunes") %>%
+ ggplot() +
+  aes(x = Trip, fill = cover_type, weight = prc_cover) +
+  geom_bar(position = "fill") +
+  scale_fill_hue(direction = 1) +
+  theme_minimal() +
+  facet_grid(vars(Block), vars(Treatment))
+
+interior_prc_long %>%
+ filter(Site %in% "Jungle") %>%
+ ggplot() +
+  aes(x = Trip, fill = cover_type, weight = prc_cover) +
+  geom_bar(position = "fill") +
+  scale_fill_hue(direction = 1) +
+  theme_minimal() +
+  facet_grid(vars(Block), vars(Treatment))
+
+```
+
+
+
 
 ```{r}
 sargman<-read.csv("nmec.csv",header=T)
