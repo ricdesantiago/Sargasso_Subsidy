@@ -1,9 +1,10 @@
 ---
 title: "Sargasso_Subisidy_Code"
 output:
-  word_document: default
+  pdf_document: default
   html_document: default
-editor_options: 
+  word_document: default
+editor_options:
   chunk_output_type: console
 ---
 
@@ -39,6 +40,9 @@ library(performance)
 library(DHARMa)
 library(glmmTMB)
 library(emmeans)
+library(kableExtra)
+
+setwd("~/Documents/GitHub/Sargasso_Subsidy")
 
 ```
 
@@ -51,20 +55,38 @@ piles2<-subset(piles, Treatment== "Sargassum")
 piles2$Trip<-as.factor(piles2$Trip)
 piles2$Block<-as.factor(piles2$Block)
 
-# Create the scatter plot with jittered points and add a trendline
-ggplot(piles2, aes(x = Trip, y = Ellipsoid_prc_D, color = Location)) +
-  geom_boxplot() +
-  geom_smooth(method = "lm", se = FALSE)
-  
+# Create the box plot
+ggplot(piles2, aes(x = Trip, y = ellipsoid_vol, color = Location)) +
+  geom_boxplot() 
+
+#histogram
+hist(piles2$ellipsoid_vol, main = "Histogram of Variable", xlab = "Variable Values")
+
+# Create a Q-Q plot to assess normality
+qqnorm(piles2$ellipsoid_vol)
+qqline(piles2$ellipsoid_vol)
+
+
+# Perform Levene's test for homogeneity of variances
+levene_test <- leveneTest(ellipsoid_vol ~ Location, data = piles2)
+
+# Print the results
+print(levene_test)
 
 #Potential model:  repeated measures ANOVA (as in Spiller et al 2010)
 #Pile volume as the response, site as the main between-subjects factor, sampling date as the repeated within-subject 
 #factor, and starting volume as a random factor.
 
 # Perform the repeated measures ANOVA with original_vol as a covariate
-piles_rm_anova <- aov(ellipsoid_vol ~ Location * Trip + Error(Block / Trip) + (1|OG_ellipsoid_Vol), data = piles2)
+piles_rm_anova <- aov(ellipsoid_vol ~ Location * Trip + Error(Block / Trip), data = piles2)
 
 summary(piles_rm_anova)
+
+# Perform post hoc pairwise comparisons 
+lsmeans_results <- lsmeans(piles_rm_anova, pairwise ~ Trip:Location)
+
+# View the results
+print(lsmeans_results)
 
 ```
 
@@ -834,119 +856,326 @@ ladder
 
 
 #Arthropods
-##sticky trapexploration
+
+##pitfalls
+
+```{r}
+#load data
+pitfalls <-read.csv("Pitfalls.csv",header=T)
+pitfalls_long<- pitfalls %>%
+  gather(key = "Taxa", value = "Count", c(8,13,15))
+pitfalls_long$Trip<-as.factor(pitfalls_long$Trip)
+
+
+#fix names and calculate Mean and SE
+
+pitfalls_data <- pitfalls_long %>%
+  mutate(
+    Site = ifelse(Site == "Dune", "Beach", ifelse(Site == "Jungle", "Forest", Site)),
+    Trip = case_when(
+      Trip == 1 ~ "Aug. 22",
+      Trip == 2 ~ "Nov. 22",
+      Trip == 3 ~ "Mar. 23",
+      TRUE ~ as.character(Trip)  
+    ),
+    Treatment = case_when(
+      Treatment == "Control" ~ "control",
+      Treatment == "Sargassum" ~ "sargasso",
+      TRUE ~ as.character(Treatment)  
+    )
+  ) %>%
+  group_by(Site, Trip, Treatment, Taxa) %>%
+  summarize(
+    Mean = round(mean(Count), digits = 2), 
+    SE = round(sd(Count) / sqrt(n()), digits = 2)  
+  )
+
+view(pitfalls_data)
+
+#make data wide by "Site"
+pit_wide_data <- pitfalls_data %>%
+  pivot_wider(
+    id_cols = c("Trip", "Treatment", "Taxa"),
+    names_from = Site,
+    values_from = c(Mean, SE),
+    names_glue = "{Site}_{.value}")
+
+View(pit_wide_data)
+
+
+#make wider by Trip
+pit_wide_data2 <- pit_wide_data %>%
+  pivot_wider(
+    id_cols = c( "Treatment", "Taxa"),
+    names_from = Trip,
+    values_from = c(Beach_Mean, Beach_SE,
+    Forest_Mean, Forest_SE),
+    names_glue = "{Trip}_{.value}" )
+
+view(pit_wide_data2)
+
+#make sure Means are next to related SEs
+pit_wide_data3 <- pit_wide_data2 %>%
+  select(
+    # List the columns in order
+    "Taxa", "Treatment",
+    "Aug. 22_Beach_Mean", "Aug. 22_Beach_SE",
+    "Nov. 22_Beach_Mean", "Nov. 22_Beach_SE",
+    "Mar. 23_Beach_Mean", "Mar. 23_Beach_SE",
+    "Aug. 22_Forest_Mean", "Aug. 22_Forest_SE",
+    "Nov. 22_Forest_Mean", "Nov. 22_Forest_SE",
+    "Mar. 23_Forest_Mean", "Mar. 23_Forest_SE",)
+
+View(pit_wide_data3)
+
+# Rename the Orders in Taxa
+pit_wide_data3 <- pit_wide_data3 %>%
+  mutate(
+    Taxa = case_when(
+      Taxa == "Amphipods" ~ "Amphipoda",
+      Taxa == "Arachnid" ~ "Arachnida",
+      Taxa == "Hymenoptera" ~ "Hymenoptera",
+      TRUE ~ Taxa  # Keep other values as is
+    )
+  )
+#order by Taxa
+pit_wide_data3 <- pit_wide_data3 %>%
+  arrange(Taxa)
+
+#Rename columns to just show Mean and SE
+### !!!!important!!!! notice i staggered spaces in the name so that i can use the same column names for all Means and SEs
+pit_wide_data4 <- pit_wide_data3 %>%
+  rename(
+     "Mean" = "Aug. 22_Beach_Mean", "SE   " = "Aug. 22_Beach_SE",
+     " Mean" = "Nov. 22_Beach_Mean", "SE  " = "Nov. 22_Beach_SE",
+     "  Mean" = "Mar. 23_Beach_Mean", "SE " = "Mar. 23_Beach_SE",
+     "Mean " = "Aug. 22_Forest_Mean", "  SE"  = "Aug. 22_Forest_SE",
+     "Mean  " = "Nov. 22_Forest_Mean", " SE" = "Nov. 22_Forest_SE",
+     "Mean   " = "Mar. 23_Forest_Mean", "SE" = "Mar. 23_Forest_SE")
+
+
+kbl(pit_wide_data4) %>%
+  kable_classic("striped", full_width = T)%>%
+  add_header_above(c(" " = 2, "Aug. 22" = 2, "Nov. 22" = 2, "Mar. 23" = 2, "Aug. 22" = 2, "Nov. 22" = 2, "Mar. 23" = 2)) %>%
+  add_header_above(c(" " = 2, "Beach" = 6, "Forest" = 6)) 
+
+
+
+
+
+```
+####pitfalls analysis
+
+```{r}
+
+pitfallsmod1 <-read.csv("Pitfalls.csv",header=T)
+
+############################################dunes############################################
+#subset out the dunes
+piteff_sub_dune<-subset(pitfallsmod1, Site == "Dune")
+
+#subset trip 1
+piteff_sub_dune_1<-subset(piteff_sub_dune, Trip == "1")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitdune_df_sargassum <- piteff_sub_dune_1[piteff_sub_dune_1$Treatment == "Sargassum", ]
+pitdune_df_control <- piteff_sub_dune_1[piteff_sub_dune_1$Treatment == "Control", ]
+
+### effect sizes for trip 1
+cohen.d(pitdune_df_sargassum$Amphipods,pitdune_df_control$Amphipods)
+cohen.d(pitdune_df_sargassum$Arachnid,pitdune_df_control$Arachnid)
+cohen.d(pitdune_df_sargassum$Hymenoptera,pitdune_df_control$Hymenoptera)
+
+
+#subset trip 2
+piteff_sub_dune_2<-subset(piteff_sub_dune, Trip == "2")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitdune_df_sargassum2 <- piteff_sub_dune_2[piteff_sub_dune_2$Treatment == "Sargassum", ]
+pitdune_df_control2 <- piteff_sub_dune_2[piteff_sub_dune_2$Treatment == "Control", ]
+
+### effect sizes for trip 2
+cohen.d(pitdune_df_sargassum2$Amphipods,pitdune_df_control2$Amphipods)
+cohen.d(pitdune_df_sargassum2$Arachnid,pitdune_df_control2$Arachnid)
+cohen.d(pitdune_df_sargassum2$Hymenoptera,pitdune_df_control2$Hymenoptera)
+
+#subset trip 3
+piteff_sub_dune_3<-subset(piteff_sub_dune, Trip == "3")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitdune_df_sargassum3 <- piteff_sub_dune_3[piteff_sub_dune_3$Treatment == "Sargassum", ]
+pitdune_df_control3 <- piteff_sub_dune_3[piteff_sub_dune_3$Treatment == "Control", ]
+
+### effect sizes for trip 3
+cohen.d(pitdune_df_sargassum3$Amphipods,pitdune_df_control3$Amphipods)
+cohen.d(pitdune_df_sargassum3$Arachnid,pitdune_df_control3$Arachnid)
+cohen.d(pitdune_df_sargassum3$Hymenoptera,pitdune_df_control3$Hymenoptera)
+
+
+############################################jungle############################################
+#subset out the dunes
+piteff_sub_jungle<-subset(pitfallsmod1, Site == "Jungle")
+
+#subset trip 1
+piteff_sub_jungle_1<-subset(piteff_sub_jungle, Trip == "1")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitjungle_df_sargassum <- piteff_sub_jungle_1[piteff_sub_jungle_1$Treatment == "Sargassum", ]
+pitjungle_df_control <- piteff_sub_jungle_1[piteff_sub_jungle_1$Treatment == "Control", ]
+
+### effect sizes for trip 1
+cohen.d(pitjungle_df_sargassum$Amphipods,pitjungle_df_control$Amphipods)
+cohen.d(pitjungle_df_sargassum$Arachnid,pitjungle_df_control$Arachnid)
+cohen.d(pitjungle_df_sargassum$Hymenoptera,pitjungle_df_control$Hymenoptera)
+
+#subset trip 2
+piteff_sub_jungle_2<-subset(piteff_sub_jungle, Trip == "2")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitjungle_df_sargassum2 <- piteff_sub_jungle_2[piteff_sub_jungle_2$Treatment == "Sargassum", ]
+pitjungle_df_control2 <- piteff_sub_jungle_2[piteff_sub_jungle_2$Treatment == "Control", ]
+
+### effect sizes for trip 2
+cohen.d(pitjungle_df_sargassum2$Amphipods,pitjungle_df_control2$Amphipods)
+cohen.d(pitjungle_df_sargassum2$Arachnid,pitjungle_df_control2$Arachnid)
+cohen.d(pitjungle_df_sargassum2$Hymenoptera,pitjungle_df_control2$Hymenoptera)
+
+#subset trip 3
+piteff_sub_jungle_3<-subset(piteff_sub_jungle, Trip == "3")
+
+# Subset the data for 'Sargassum' and 'Control' treatments
+pitjungle_df_sargassum3 <- piteff_sub_jungle_3[piteff_sub_jungle_3$Treatment == "Sargassum", ]
+pitjungle_df_control3 <- piteff_sub_jungle_3[piteff_sub_jungle_3$Treatment == "Control", ]
+
+### effect sizes for trip 3
+cohen.d(pitjungle_df_sargassum3$Amphipods,pitjungle_df_control3$Amphipods)
+cohen.d(pitjungle_df_sargassum3$Arachnid,pitjungle_df_control3$Arachnid)
+cohen.d(pitjungle_df_sargassum3$Hymenoptera,pitjungle_df_control3$Hymenoptera)
+
+
+
+#####Effect sizes#####
+#I manually input the effect sizes, lower and upper limits to a file called pitfalls_effsize.csv
+pitfallseffsize <-read.csv("pitfalls_effsize.csv",header=T)
+
+
+sticky_eff_plot <- ggplot(pitfallseffsize) +
+  aes(x = Trip, y = Effect_size, shape = Order) +
+  geom_jitter(size = 1.2) +
+  labs(y = "Effect size ", shape = "Taxa") +
+  theme_bw() +
+  facet_wrap(vars(Site), ncol = 2L)
+
+sticky_eff_plot
+
+
+
+
+```
+
+##sticky traps
 
 ```{r}
 
 stickies <-read.csv("stickies.csv",header=T)
-#remove total column
+#load data
+stickies <-read.csv("Stickies.csv",header=T)
+stickies_long<- stickies %>%
+  gather(key = "Taxa", value = "Count", c(9,16,15))
+stickies_long$Trip<-as.factor(stickies_long$Trip)
 
-stickies <- subset(stickies, select = -Total)
+#fix names and calculate Mean and SE
 
-#subset dunes 
-stickies_dunes<- subset(stickies_data_long, Site == "Dune")
+stickies_data <- stickies_long %>%
+  mutate(
+    Site = ifelse(Site == "Dune", "Beach", ifelse(Site == "Jungle", "Forest", Site)),
+    Trip = case_when(
+      Trip == 1 ~ "Aug. 22",
+      Trip == 2 ~ "Nov. 22",
+      Trip == 3 ~ "Mar. 23",
+      TRUE ~ as.character(Trip)  
+    ),
+    Treatment = case_when(
+      Treatment == "Control" ~ "control",
+      Treatment == "Sargassum" ~ "sargasso",
+      TRUE ~ as.character(Treatment)  
+    )
+  ) %>%
+  group_by(Site, Trip, Treatment, Taxa) %>%
+  summarize(
+    Mean = round(mean(Count), digits = 2), 
+    SE = round(sd(Count) / sqrt(n()), digits = 2)  
+  )
 
-ggplot(stickies_dunes) +
- aes(x = Order, fill = Treatment, weight = Count) +
- geom_bar(position = "dodge") +
- scale_fill_hue(direction = 1) +
- theme_minimal() +
- facet_wrap(vars(Trip), scales = "free", nrow = 4L) +
-    labs(title = "Aerial Arthropod Counts at Beach")
+view(stickies_data)
 
-#subset jungle
-stickies_jungle<- subset(stickies_data_long, Site == "Jungle")
+#make data wide by "Site"
+stic_wide_data <- stickies_data %>%
+  pivot_wider(
+    id_cols = c("Trip", "Treatment", "Taxa"),
+    names_from = Site,
+    values_from = c(Mean, SE),
+    names_glue = "{Site}_{.value}")
 
-ggplot(stickies_jungle) +
- aes(x = Order, fill = Treatment, weight = Count) +
- geom_bar(position = "dodge") +
- scale_fill_hue(direction = 1) +
- theme_minimal() +
- facet_wrap(vars(Trip), scales = "free", nrow = 4L) +
-    labs(title = "Aerial Arthropod Counts at Jungle")
+View(stic_wide_data)
 
-#explore Jungle Data
-#total counts bar graph
 
-stickies_jungle %>%
- filter(Order %in% c("Orthoptera", "Hemiptera", "Arachnid", "Diptera", "Hymenoptera", 
-"Lepidoptera", "Empicoris", "Odonata")) %>%
- ggplot() +
-  aes(x = Order, fill = Treatment, weight = Count) +
-  geom_bar(position = "dodge") +
-  scale_fill_hue(direction = 1) +
-  theme_minimal() +
-  facet_wrap(vars(Trip), scales = "free", nrow = 4L) +
-    labs(title = "Main contributors to flying arthropods counts in Jungle")
+#make wider by Trip
+stic_wide_data2 <- stic_wide_data %>%
+  pivot_wider(
+    id_cols = c( "Treatment", "Taxa"),
+    names_from = Trip,
+    values_from = c(Beach_Mean, Beach_SE,
+    Forest_Mean, Forest_SE),
+    names_glue = "{Trip}_{.value}" )
 
-#the three main contributors to variability 
-stickies_jungle %>%
- filter(Order %in% c("Hemiptera", "Diptera", "Hymenoptera")) %>%
- ggplot() +
-  aes(x = Order, fill = Treatment, weight = Count) +
-  geom_bar(position = "dodge") +
-  scale_fill_hue(direction = 1) +
-  theme_minimal() +
-  facet_wrap(vars(Trip), scales = "free", nrow = 4L) 
+view(stic_wide_data2)
 
-#now as a box plot 
+#make sure Means are next to related SEs
+stic_wide_data3 <- stic_wide_data2 %>%
+  select(
+    # List the columns in order
+    "Taxa", "Treatment",
+    "Aug. 22_Beach_Mean", "Aug. 22_Beach_SE",
+    "Nov. 22_Beach_Mean", "Nov. 22_Beach_SE",
+    "Mar. 23_Beach_Mean", "Mar. 23_Beach_SE",
+    "Aug. 22_Forest_Mean", "Aug. 22_Forest_SE",
+    "Nov. 22_Forest_Mean", "Nov. 22_Forest_SE",
+    "Mar. 23_Forest_Mean", "Mar. 23_Forest_SE",)
 
-stickies_jungle %>%
- filter(Order %in% c("Hemiptera", "Diptera", "Hymenoptera")) %>%
- ggplot() +
-  aes(x = Order, y = Count, fill = Treatment) +
-  geom_boxplot() +
-  scale_fill_hue(direction = 1) +
-  theme_minimal() +
-  facet_wrap(vars(Trip), scales = "free", nrow = 4L)
-#explore Dune Data
-#total counts bar graph with free scales after removing arthropods that are crawlers, don’t add much to the graphs, or pollinators.
-stickies_dunes %>%
- filter(Order %in% c("Amphipods", "Coleoptera", "Hemiptera", "Diptera", "Hymenoptera"
-)) %>%
- ggplot() +
-  aes(x = Order, fill = Treatment, weight = Count) +
-  geom_bar(position = "dodge") +
-  scale_fill_hue(direction = 1) +
-  theme_minimal() +
-  facet_wrap(vars(Trip), scales = "free", nrow = 4L)
+View(stic_wide_data3)
 
-# the pattern looks more pronounced and maybe reads easiest with fixed scales
+# Rename the Orders in Taxa
+stic_wide_data3 <- stic_wide_data3 %>%
+  mutate(
+    Taxa = case_when(
+      Taxa == "Amphipods" ~ "Amphipoda",
+      Taxa == "Diptera" ~ "Diptera",
+      Taxa == "Hymenoptera" ~ "Hymenoptera",
+      TRUE ~ Taxa  # Keep other values as is
+    )
+  )
+#order by Taxa
+stic_wide_data3 <- stic_wide_data3 %>%
+  arrange(Taxa)
 
-stickies_dunes %>%
- filter(Order %in% c("Amphipods", "Coleoptera", "Hemiptera", "Diptera", "Hymenoptera"
-)) %>%
- ggplot() +
-  aes(x = Order, fill = Treatment, weight = Count) +
-  geom_bar(position = "dodge") +
-  scale_fill_hue(direction = 1) +
-  theme_minimal() +
-  facet_wrap(vars(Trip), nrow = 4L) +
-    labs(title = "Main contributors to flying arthropods counts on Dunes")
-#the fly pattern is so interesting! No doubt of a subsidy effect there. 
+#Rename columns to just show Mean and SE
+### !!!!important!!!! notice i staggered spaces in the name so that i can use the same column names for all Means and SEs
+stic_wide_data4 <- stic_wide_data3 %>%
+  rename(
+     "Mean" = "Aug. 22_Beach_Mean", "SE   " = "Aug. 22_Beach_SE",
+     " Mean" = "Nov. 22_Beach_Mean", "SE  " = "Nov. 22_Beach_SE",
+     "  Mean" = "Mar. 23_Beach_Mean", "SE " = "Mar. 23_Beach_SE",
+     "Mean " = "Aug. 22_Forest_Mean", "  SE"  = "Aug. 22_Forest_SE",
+     "Mean  " = "Nov. 22_Forest_Mean", " SE" = "Nov. 22_Forest_SE",
+     "Mean   " = "Mar. 23_Forest_Mean", "SE" = "Mar. 23_Forest_SE")
 
-#now as a boxplot
-stickies_dunes %>%
- filter(Order %in% c("Amphipods", "Coleoptera", "Hemiptera", "Diptera", "Hymenoptera"
-)) %>%
- ggplot() +
-  aes(x = Order, y = Count, fill = Treatment) +
-  geom_boxplot() +
-  scale_fill_hue(direction = 1) +
-  theme_minimal() +
-  facet_wrap(vars(Trip), nrow = 4L) +
-    labs(title = "Main contributors to flying arthropods counts on Dunes")
 
-#pods only… as expected, we see a surge on initial day and nothing much after
+kbl(stic_wide_data4) %>%
+  kable_classic("striped", full_width = T)%>%
+  add_header_above(c(" " = 2, "Aug. 22" = 2, "Nov. 22" = 2, "Mar. 23" = 2, "Aug. 22" = 2, "Nov. 22" = 2, "Mar. 23" = 2)) %>%
+  add_header_above(c(" " = 2, "Beach" = 6, "Forest" = 6)) 
 
-stickies_dunes %>%
- filter(Order %in% "Amphipods") %>%
- ggplot() +
-  aes(x = Order, y = Count, fill = Treatment) +
-  geom_boxplot() +
-  scale_fill_hue(direction = 1) +
-  theme_minimal() +
-  facet_wrap(vars(Trip), scales = "free", nrow = 4L)
 
 
 
@@ -956,9 +1185,9 @@ stickies_dunes %>%
 ### sticky trap analysis
 
 ```{r}
-#load data from stickies1.csv, i curated that data sheet to only include the 3 orders we are interested in, added side 1 to side 2 of each trap, and simple averaged averaged "hi" and "lo" for each block/treatment. I decided to do this in excel in the interest of time.
 
-stickiesmod1 <-read.csv("stickies1.csv",header=T)
+
+stickiesmod1 <-read.csv("stickies.csv",header=T)
 
 ############################################dunes############################################
 #subset out the dunes
@@ -1072,249 +1301,7 @@ sticky_eff_plot
 
 ```
 
-###sticky trap figures
 
-```{r}
-
-
-#load data
-stickies <-read.csv("stickies1.csv",header=T)  
-stickies$Trip<-as.factor(stickies$Trip)
-
-# Calculate means and standard errors for each combination of Trip, Taxa, and Treatment
-stickies_data <- stickies %>%
-  group_by(Trip, Site, Treatment, Taxa) %>%
-  summarize(mean_count = mean(Count), 
-            std_error = sd(Count) / sqrt(n()))
-
-# Create the bar plot with means and error bars
-ggplot(stickies_data) +
-  aes(x = Trip, y = mean_count, fill = Taxa) +
-  geom_bar(stat = "identity", position = "dodge", color = "black", size = 0.5) +
-  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error), 
-                position = position_dodge(width = 0.9), width = 0.25, color = "black") +
-  scale_fill_manual(values = c("white", "gray60", "gray40")) +
-  theme_bw() + 
-   scale_x_discrete(
-    limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
-  ) +
-  theme(
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 12),
-    plot.title = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
-    strip.background = element_blank() )+
-  xlab("") +
-  facet_grid(vars(Treatment), vars(Site), scales = "free_y")
-
-
-#####Effect sizes Graph#####
-#I manually input the effect sizes, lower and upper limits to a file called pitfall_effsize.csv
-stickieseffsize <-read.csv("sticky_effsize.csv",header=T)
-
-stickieseffsize$Trip<-as.factor(stickieseffsize$Trip)
-
-stickies_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
-  labs(y = "Effect size", shape = "Taxa", title = "stickie traps") +
-  geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
-  theme_bw() +
-  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
-  geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
-  scale_x_discrete(
-    limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
-  ) +
-  theme(
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 12),
-    plot.title = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
-    strip.text = element_blank(),  # Remove facet title
-    strip.background = element_blank()  # Remove facet boxes
-    # geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = "gray") +
-  ) +
-  xlab("")
-
-stickies_eff_plot
-
-
-```
-
-#pitfalls
-####pitfalls analysis
-
-```{r}
-
-pitfallsmod1 <-read.csv("Pitfalls.csv",header=T)
-
-############################################dunes############################################
-#subset out the dunes
-piteff_sub_dune<-subset(pitfallsmod1, Site == "Dune")
-
-#subset trip 1
-piteff_sub_dune_1<-subset(piteff_sub_dune, Trip == "1")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitdune_df_sargassum <- piteff_sub_dune_1[piteff_sub_dune_1$Treatment == "Sargassum", ]
-pitdune_df_control <- piteff_sub_dune_1[piteff_sub_dune_1$Treatment == "Control", ]
-
-### effect sizes for trip 1
-cohen.d(pitdune_df_sargassum$Amphipods,pitdune_df_control$Amphipods)
-cohen.d(pitdune_df_sargassum$Arachnid,pitdune_df_control$Arachnid)
-cohen.d(pitdune_df_sargassum$Hymenoptera,pitdune_df_control$Hymenoptera)
-
-#subset trip 2
-piteff_sub_dune_2<-subset(eff_sub_dune, Trip == "2")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitdune_df_sargassum2 <- piteff_sub_dune_2[piteff_sub_dune_2$Treatment == "Sargassum", ]
-pitdune_df_control2 <- piteff_sub_dune_2[piteff_sub_dune_2$Treatment == "Control", ]
-
-### effect sizes for trip 2
-cohen.d(pitdune_df_sargassum2$Amphipods,pitdune_df_control2$Amphipods)
-cohen.d(pitdune_df_sargassum2$Arachnid,pitdune_df_control2$Arachnid)
-cohen.d(pitdune_df_sargassum2$Hymenoptera,pitdune_df_control2$Hymenoptera)
-
-#subset trip 3
-piteff_sub_dune_3<-subset(piteff_sub_dune, Trip == "3")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitdune_df_sargassum3 <- piteff_sub_dune_3[piteff_sub_dune_3$Treatment == "Sargassum", ]
-pitdune_df_control3 <- piteff_sub_dune_3[piteff_sub_dune_3$Treatment == "Control", ]
-
-### effect sizes for trip 3
-cohen.d(pitdune_df_sargassum3$Amphipods,pitdune_df_control3$Amphipods)
-cohen.d(pitdune_df_sargassum3$Arachnid,pitdune_df_control3$Arachnid)
-cohen.d(pitdune_df_sargassum3$Hymenoptera,pitdune_df_control3$Hymenoptera)
-
-
-############################################jungle############################################
-#subset out the dunes
-piteff_sub_jungle<-subset(pitfallsmod1, Site == "Jungle")
-
-#subset trip 1
-piteff_sub_jungle_1<-subset(piteff_sub_jungle, Trip == "1")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitjungle_df_sargassum <- piteff_sub_jungle_1[piteff_sub_jungle_1$Treatment == "Sargassum", ]
-pitjungle_df_control <- piteff_sub_jungle_1[piteff_sub_jungle_1$Treatment == "Control", ]
-
-### effect sizes for trip 1
-cohen.d(pitjungle_df_sargassum$Amphipods,pitjungle_df_control$Amphipods)
-cohen.d(pitjungle_df_sargassum$Arachnid,pitjungle_df_control$Arachnid)
-cohen.d(pitjungle_df_sargassum$Hymenoptera,pitjungle_df_control$Hymenoptera)
-
-#subset trip 2
-piteff_sub_jungle_2<-subset(piteff_sub_jungle, Trip == "2")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitjungle_df_sargassum2 <- piteff_sub_jungle_2[piteff_sub_jungle_2$Treatment == "Sargassum", ]
-pitjungle_df_control2 <- piteff_sub_jungle_2[piteff_sub_jungle_2$Treatment == "Control", ]
-
-### effect sizes for trip 2
-cohen.d(pitjungle_df_sargassum2$Amphipods,pitjungle_df_control2$Amphipods)
-cohen.d(pitjungle_df_sargassum2$Arachnid,pitjungle_df_control2$Arachnid)
-cohen.d(pitjungle_df_sargassum2$Hymenoptera,pitjungle_df_control2$Hymenoptera)
-
-#subset trip 3
-piteff_sub_jungle_3<-subset(piteff_sub_jungle, Trip == "3")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitjungle_df_sargassum3 <- piteff_sub_jungle_3[piteff_sub_jungle_3$Treatment == "Sargassum", ]
-pitjungle_df_control3 <- piteff_sub_jungle_3[piteff_sub_jungle_3$Treatment == "Control", ]
-
-### effect sizes for trip 3
-cohen.d(pitjungle_df_sargassum3$Amphipods,pitjungle_df_control3$Amphipods)
-cohen.d(pitjungle_df_sargassum3$Arachnid,pitjungle_df_control3$Arachnid)
-cohen.d(pitjungle_df_sargassum3$Hymenoptera,pitjungle_df_control3$Hymenoptera)
-
-
-
-#####Effect sizes#####
-#I manually input the effect sizes, lower and upper limits to a file called pitfalls_effsize.csv
-pitfallseffsize <-read.csv("pitfalls_effsize.csv",header=T)
-
-
-sticky_eff_plot <- ggplot(pitfallseffsize) +
-  aes(x = Trip, y = Effect_size, shape = Order) +
-  geom_jitter(size = 1.2) +
-  labs(y = "Effect size ", shape = "Taxa") +
-  theme_bw() +
-  facet_wrap(vars(Site), ncol = 2L)
-
-sticky_eff_plot
-
-```
-
-
-###pitfall trap figures
-
-```{r}
-#load data
-pitfalls <-read.csv("Pitfalls1.csv",header=T)  
-pitfalls$Trip<-as.factor(pitfalls$Trip)
-
-# Calculate means and standard errors for each combination of Trip, Taxa, and Treatment
-pitfalls_data <- pitfalls %>%
-  group_by(Trip, Site, Treatment, Taxa) %>%
-  summarize(mean_count = mean(Count), 
-            std_error = sd(Count) / sqrt(n()))
-
-# Create the bar plot with means and error bars
-ggplot(pitfalls_data) +
-  aes(x = Trip, y = mean_count, fill = Taxa) +
-  geom_bar(stat = "identity", position = "dodge", color = "black", size = 0.5) +
-  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error), 
-                position = position_dodge(width = 0.9), width = 0.25, color = "black") +
-  scale_fill_manual(values = c("white", "gray60", "gray40")) +
-  theme_bw() + 
-   scale_x_discrete(
-    limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
-  ) +
-  theme(
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 12),
-    plot.title = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
-    strip.background = element_blank() )+
-  xlab("") +
-  facet_grid(vars(Treatment), vars(Site), scales = "free_y")
-
-
-#####Effect sizes Graph#####
-#I manually input the effect sizes, lower and upper limits to a file called pitfall_effsize.csv
-pitfalleffsize <-read.csv("pitfalls_effsize.csv",header=T)
-
-pitfalleffsize$Trip<-as.factor(pitfalleffsize$Trip)
-
-pitfall_eff_plot <- ggplot(pitfalleffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
-  labs(y = "Effect size", shape = "Taxa", title = "Pitfall traps") +
-  geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
-  theme_bw() +
-  facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
-  geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
-  scale_x_discrete(
-    limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
-  ) +
-  theme(
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 12),
-    plot.title = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
-    strip.text = element_blank(),  # Remove facet title
-    strip.background = element_blank()  # Remove facet boxes
-    # geom_pointrange(aes(ymin = lower_ci, ymax = upper_ci), position = position_dodge(0.5), color = "gray") +
-  ) +
-  xlab("")
-
-pitfall_eff_plot
-
-
-
-```
 
 #Chemicals and gases
 ##nutrients
@@ -1326,7 +1313,9 @@ pitfall_eff_plot
 chemicals<-read.csv("Soil_Chemicals2.csv",header=T)
 
 #subset experiment
-pile_chem<-subset(chemicals, Exp == "Sargasso Manipulation")
+SM_chem_sub<-subset(chemicals, Exp == "Sargasso Manipulation")
+SG_chem<-subset(SM_chem_sub, Type == "Sargassum")
+pile_chem<-subset(SG_chem, Trt == "Sediment")
 pile_chem$Block<-as.factor(pile_chem$Block)
 pile_chem$Trip<-as.factor(pile_chem$Trip)
 pile_chem$pH<-as.numeric(pile_chem$pH)
@@ -1372,8 +1361,8 @@ pile_chem %>%
                 position = position_dodge(width = 0.9), width = 0.25) +
   scale_fill_hue(direction = 1) +
     scale_x_discrete(
-    limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23") ) +
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2024") ) +
   labs(
     x = " ",
     y = "Nitrate content (mg/L)",
@@ -1386,6 +1375,19 @@ pile_chem %>%
     panel.spacing = unit(0.2, "lines"))
 
 
+
+
+# Calculate the mean and standard error of Nitrate for each Site and Trip combination
+nitrate_summary <- pile_chem %>%
+  group_by(Site, Trip) %>%
+  summarize(
+    Mean_Nitrate = mean(Nitrate),
+    SE_Nitrate = sd(Nitrate) / sqrt(n())
+  )
+
+# View the summary table
+print(nitrate_summary)
+
 ```
 
 ##gasses
@@ -1394,16 +1396,17 @@ CO2<-read.csv("gas_readings.csv",header=T)
 
 #subset experiment
 gas_CO2<-subset(CO2, !Treatment == "na")
-gas_CO2$Carbon_dioxide<-as.numeric(gas_CO2$Carbon_dioxide)
-gas_CO2$Trip<-is.factor(gas_CO2$Carbon_dioxide)
+gas_CO2$CO2<-as.numeric(gas_CO2$CO2)
+gas_CO2$Trip<-is.factor(gas_CO2$CO2)
 
 
 
 #gas collectors
 gas_CO2 %>%
   filter(Experiment %in% "collectors") %>%
+  filter(Time %in% "T1") %>%
   ggplot() +
-  aes(x = Treatment, y = Carbon_dioxide, fill = Time) +
+  aes(x = Treatment, y = CO2, fill = Time) +
   stat_summary(
     fun = "mean",
     geom = "bar",
@@ -1562,6 +1565,19 @@ decomp %>%
 
 ```{r}
 #############################nutrients##############################################
+
+chemicals<-read.csv("Soil_Chemicals2.csv",header=T)
+
+#subset experiment
+SM_chem_sub<-subset(chemicals, Exp == "Sargasso Manipulation")
+SG_chem<-subset(SM_chem_sub, Type == "Sargassum")
+pile_chem<-subset(SG_chem, Trt == "Sediment")
+pile_chem$Block<-as.factor(pile_chem$Block)
+pile_chem$Trip<-as.factor(pile_chem$Trip)
+pile_chem$pH<-as.numeric(pile_chem$pH)
+pile_chem$KH<-as.numeric(pile_chem$KH)
+
+
 pile_chem %>%
   filter(Type %in% "Sargassum") %>%
   filter(Trt %in% "Sediment") %>%
@@ -1573,10 +1589,9 @@ pile_chem %>%
   geom_errorbar(aes(ymin = mean_Nitrate - se, ymax = mean_Nitrate + se), 
                 position = position_dodge(width = 0.9), width = 0.25) +
   scale_fill_manual(values = c("lightgray", "white")) +
-  scale_x_discrete(
-    limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
-  ) +
+   scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23") ) +
   labs(
     x = " ",
     y = "Nitrate content (mg/L)",
@@ -1702,6 +1717,14 @@ combined_CO2 <- grid.arrange(CO2plot1, CO2plot2, ncol = 1)
 
 ##interior percent cover
 ```{r}
+#import dataset
+interiorrsurvey<-read.csv("interior_survey.csv", header = TRUE)
+
+interior_survey_long<- interiorsurvey %>%
+  gather(key = "cover_type", value = "percent_cover", c(57,60))
+interior_survey_long$Trip<-as.factor(interior_survey_long$Trip)
+
+
 ##############################interior percent cover##################################
 interior_pc_cover <- ggplot(data = interior_survey_long,
             aes(
@@ -1746,6 +1769,21 @@ interior_pc_cover <- ggplot(data = interior_survey_long,
   
 
 interior_pc_cover
+
+
+
+
+#effect size graph
+
+interioreffsize1 <-read.csv("interior_graphs.csv",header=T)
+interioreffsize <-subset(interioreffsize1, Data == "eff_size")
+
+interioreffsize<-subset(interioreffsize, !Cover == "all_plants")
+interioreffsize<-subset(interioreffsize, !Cover ==  "bare" ) 
+interioreffsize<-subset(interioreffsize, !Cover == "leaf_litter")
+interioreffsize$Trip<-as.factor(interioreffsize$Trip)
+interioreffsize$Effect_size<-as.numeric(interioreffsize$Effect_size)
+
 
 #interior effect size graph
 int_eff_plot <- ggplot(interioreffsize, aes(x = Trip, y = Effect_size, shape = Cover)) +
@@ -1854,8 +1892,7 @@ theme(
     axis.text.x = element_text(size = 14),
     plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
-    legend.text = element_text(size = 14),
-    strip.text = element_blank()  # Remove facet labels
+    legend.text = element_text(size = 14)
   ) +
   facet_grid(vars(), vars(Site), scales = "free_y") +
 xlab("") 
@@ -1876,27 +1913,30 @@ combined_perimeter_graph<- grid.arrange(perimeter_pc_cover, per_eff_plot, ncol =
 
 #pitfalls
 #load data
-pitfalls <-read.csv("Pitfalls1.csv",header=T)  
-pitfalls$Trip<-as.factor(pitfalls$Trip)
+pitfalls <-read.csv("Pitfalls.csv",header=T)
+pitfalls_long<- pitfalls %>%
+  gather(key = "Taxa", value = "Count", c(8,13,15))
+pitfalls_long$Trip<-as.factor(pitfalls_long$Trip)
+
 
 # Calculate means and standard errors for each combination of Trip, Taxa, and Treatment
-pitfalls_data <- pitfalls %>%
-  group_by(Trip, Site, Treatment, Taxa) %>%
+pitfalls_data <- pitfalls_long %>%
+  group_by(Site, Trip, Treatment, Taxa) %>%
   summarize(mean_count = mean(Count), 
             std_error = sd(Count) / sqrt(n()))
 
-# Create the bar plot with means and error bars
-pitfall_prc_cover<-ggplot(pitfalls_data) +
-  aes(x = Trip, y = mean_count, fill = Taxa) +
-  geom_bar(stat = "identity", position = "dodge", color = "black", size = 0.5) +
-  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error), 
-                position = position_dodge(width = 0.9), width = 0.25, color = "black") +
-  scale_fill_manual(values = c("white", "gray60", "gray40")) +
-  theme_bw() + 
-   scale_x_discrete(
+# Create the plot with jittered dots and error bars
+pitfall_count <- ggplot(pitfalls_data) +
+  aes(x = Trip, y = mean_count, shape = Taxa) +  # shape by Site
+  geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +  # Jittered dots
+  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error),
+                position = position_dodge(width = 0.5), width = 0.2) +  # Error bars
+  theme_minimal() +
+  scale_x_discrete(
     limits = c("1", "2", "3"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
   ) +
+theme_minimal() +
 theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
@@ -1907,13 +1947,16 @@ theme(
     plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14),
-    strip.text = element_blank()  # Remove facet labels
+    strip.text = element_blank()
   ) +
   xlab("") +
   ylab("Crawling arthropod count") +
-  facet_grid(vars(Treatment), vars(Site), scales = "free_y")
+  facet_grid(vars(Treatment), vars(Site), scales = "fixed", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
+    guides(shape = FALSE)  # Hide the legend
 
-pitfall_prc_cover
+
+pitfall_count
+
 
 #####Effect sizes Graph#####
 #I manually input the effect sizes, lower and upper limits to a file called pitfall_effsize.csv
@@ -1922,7 +1965,7 @@ pitfalleffsize <-read.csv("pitfalls_effsize.csv",header=T)
 pitfalleffsize$Trip<-as.factor(pitfalleffsize$Trip)
 
 pitfall_eff_plot <- ggplot(pitfalleffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
-  labs(y = "Effect size", shape = "Taxa", title = "Pitfall traps") +
+  labs(y = "Effect size", shape = "Taxa") +
   geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
   theme_bw() +
   facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
@@ -1941,8 +1984,8 @@ theme(
     plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14),
-    strip.text = element_blank()  # Remove facet labels
-  ) +
+    strip.text = element_blank(),
+      legend.position = "bottom") +
   xlab("")
 
 pitfall_eff_plot
@@ -1950,33 +1993,49 @@ pitfall_eff_plot
 combined_pitfall_graphs <- grid.arrange(pitfall_prc_cover, pitfall_eff_plot, ncol = 1)
 
 
+# combine
+
+combined_pitfall_graphs <- grid.arrange(
+  pitfall_prc_cover,
+  pitfall_eff_plot,
+  ncol = 1,
+  heights = c(3, 2)  # Adjust the relative heights here (e.g., 3 for the top plot and 1 for the bottom plot)
+)
+
+# Print or display the combined plot
+print(combined_pitfall_graphs)
 
 
-#aerial traps
+
+###################################3#aerial traps#############################
 
 
 #load data
-stickies <-read.csv("stickies1.csv",header=T)  
-stickies$Trip<-as.factor(stickies$Trip)
+stickies <-read.csv("Stickies.csv",header=T)
+stickies_long<- stickies %>%
+  gather(key = "Taxa", value = "Count", c(9,16,15))
+stickies_long$Trip<-as.factor(stickies_long$Trip)
+
 
 # Calculate means and standard errors for each combination of Trip, Taxa, and Treatment
-stickies_data <- stickies %>%
+stickies_data <- stickies_long %>%
   group_by(Trip, Site, Treatment, Taxa) %>%
   summarize(mean_count = mean(Count), 
             std_error = sd(Count) / sqrt(n()))
 
-# Create the bar plot with means and error bars
-stickies_prc_cover<-ggplot(stickies_data) +
-  aes(x = Trip, y = mean_count, fill = Taxa) +
-  geom_bar(stat = "identity", position = "dodge", color = "black", size = 0.5) +
-  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error), 
-                position = position_dodge(width = 0.9), width = 0.25, color = "black") +
-  scale_fill_manual(values = c("white", "gray60", "gray40")) +
-  theme_bw() + 
-   scale_x_discrete(
+
+# Create the plot with jittered dots and error bars
+stickies_prc_cover <-ggplot(stickies_data) +
+  aes(x = Trip, y = mean_count, shape = Taxa) +  # Color by Treatment, shape by Site
+  geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +  # Jittered dots
+  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error),
+                position = position_dodge(width = 0.5), width = 0.2) +  # Error bars
+  theme_minimal() +
+  scale_x_discrete(
     limits = c("1", "2", "3"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
   ) +
+theme_minimal() +
 theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
@@ -1987,15 +2046,20 @@ theme(
     plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14),
-    strip.text = element_blank()  # Remove facet labels
+    strip.text = element_blank()
   ) +
   xlab("") +
-    ylab("Flying arthropod count") +
-  facet_grid(vars(Treatment), vars(Site), scales = "free_y")
+  ylab("Flying arthropod count") +
+  facet_grid(vars(Treatment), vars(Site), scales = "free", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
+    guides(shape = FALSE)  # Hide the legend
 stickies_prc_cover
 
+
+
+
+
 #####Effect sizes Graph#####
-#I manually input the effect sizes, lower and upper limits to a file called pitfall_effsize.csv
+#I manually input the effect sizes, lower and upper limits to a file called sticky_effsize.csv
 stickieseffsize <-read.csv("sticky_effsize.csv",header=T)
 
 stickieseffsize$Trip<-as.factor(stickieseffsize$Trip)
@@ -2020,16 +2084,22 @@ stickies_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shap
     plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14),
-    strip.text = element_blank()  # Remove facet labels
-  ) +
-  xlab("")
+  strip.text = element_blank(),
+      legend.position = "bottom") 
 
 stickies_eff_plot
 
+# combine
 
-combined_stickies_graphs <- grid.arrange(stickies_prc_cover, stickies_eff_plot, ncol = 1)
+combined_sticky_graphs <- grid.arrange(
+  stickies_prc_cover,
+  stickies_eff_plot,
+  ncol = 1,
+  heights = c(3, 2.5)  # Adjust the relative heights here (e.g., 3 for the top plot and 1 for the bottom plot)
+)
 
-all_arthropod_graphs <- grid.arrange(combined_pitfall_graphs,combined_stickies_graphs, ncol = 2)
+# Print or display the combined plot
+print(combined_sticky_graphs)
 
 ```
 #Supplementary graphs
