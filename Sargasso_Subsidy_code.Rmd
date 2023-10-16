@@ -70,7 +70,6 @@ qqline(piles2$ellipsoid_vol)
 # Perform Levene's test for homogeneity of variances
 levene_test <- leveneTest(ellipsoid_vol ~ Location, data = piles2)
 
-# Print the results
 print(levene_test)
 
 #Potential model:  repeated measures ANOVA (as in Spiller et al 2010)
@@ -78,15 +77,16 @@ print(levene_test)
 #factor, and starting volume as a random factor.
 
 # Perform the repeated measures ANOVA with original_vol as a covariate
-piles_rm_anova <- aov(ellipsoid_vol ~ Location * Trip + Error(Block / Trip), data = piles2)
+piles_rm_anova <- lmer(ellipsoid_vol ~ Location * Trip + (1|Block), data = piles2)
 
 summary(piles_rm_anova)
 
-# Perform post hoc pairwise comparisons 
+#  post hoc pairwise comparisons 
 lsmeans_results <- lsmeans(piles_rm_anova, pairwise ~ Trip:Location)
 
-# View the results
 print(lsmeans_results)
+
+
 
 ```
 
@@ -96,6 +96,7 @@ piles <-read.csv("Sargassum_piles.csv",header=T)
 piles2<-subset(piles, Treatment== "Sargassum")
 piles2$Trip<-as.factor(piles2$Trip)
 piles2$Block<-as.factor(piles2$Block)
+
 # Calculate the means by month and location
 
 mean_data <- piles2 %>%
@@ -108,7 +109,7 @@ vol_scatterplot <- ggplot(data = piles2, aes(x = Trip, y = Ellipsoid_prc_D, fill
   geom_point(size = 2, shape = 21, aes(fill = Location)) +
   geom_line(data = mean_data, aes(x = Trip, y = mean_ellipsoid_vol, group = Location), color = "gray")
 
-# Customize the plot appearance
+# Customize the plot a
 vol_x_time<- vol_scatterplot + 
   labs(x = "", y = "Pile volume (%)") +
   scale_color_manual(values = c("black", "white")) +
@@ -172,8 +173,7 @@ decomp %>%
 ## Interior survey
 
 ```{r}
-#upload and subset data for interior surveys 
-#import dataset
+
 interiorsurvey<-read.csv("interior_survey.csv", header = TRUE)
 
 is.factor(interiorsurvey$Treatment)
@@ -183,7 +183,7 @@ interiorsurvey$Block<-as.factor(interiorsurvey$Block)
 interiorsurvey$Trip<-as.factor(interiorsurvey$Trip)
 
 
-###########subset out the dunes
+###############################subset out the dunes############################
 interior_sub_dune<-subset(interiorsurvey, Site == "Dunes")
 
 #subset trip 1
@@ -318,10 +318,13 @@ interior_survey_long<- interiorsurvey %>%
   gather(key = "cover_type", value = "percent_cover", c(57,60))
 interior_survey_long$Trip<-as.factor(interior_survey_long$Trip)
 
+plant_int_data <- interior_survey_long %>%
+  group_by(Trip,Site,Treatment,cover_type) %>%
+  summarize(mean_cover = mean(percent_cover), se = sd(percent_cover) / sqrt(n()))
+view(plant_int_data)
+
 
 #graph it
-
-
 interior_pc_cover<- ggplot(data = interior_survey_long,
             aes(
               x = Trip,
@@ -402,8 +405,7 @@ int_eff_plot
 
 ## Perimeter Survey
 ```{r}
-#upload and subset data for perimeter surveys 
-#import dataset
+
 perimetersurvey<-read.csv("perimeter_survey.csv", header = TRUE)
 
 perimetersurvey$Treatment<-as.factor(perimetersurvey$Treatment)
@@ -464,7 +466,7 @@ cohen.d(perdune_df_sargassum3$dead_prc_cover,perdune_df_control3$dead_prc_cover)
 per_sub_dune_4<-subset(perimeter_sub_dune, Trip == "4")
 
 # Subset the data for 'Sargassum' and 'Control' treatments
-perdune_df_sargassum4 <- per_sub_dune_4[per_sub_dune_4$Treatment == "sargassum", ]
+perdune_df_sargassum4 <- per_sub_dune_4[per_sub_dune_4$Treatment == "sargasso", ]
 perdune_df_control4 <- per_sub_dune_4[per_sub_dune_4$Treatment == "control", ]
 
 ### effect sizes for trip 4
@@ -550,9 +552,14 @@ cohen.d(perJungle_df_sargassum4$dead_prc_cover,perJungle_df_control4$dead_prc_co
 perimetersurvey<-read.csv("perimeter_survey.csv", header = TRUE)
 
 perimeter_survey_long<- perimetersurvey %>%
-  gather(key = "cover_type", value = "percent_cover", c(63,64))
+  gather(key = "cover_type", value = "percent_cover", c(60,61))
 perimeter_survey_long$Trip<-as.factor(perimeter_survey_long$Trip)
 
+
+plant_per_data <- perimeter_survey_long %>%
+  group_by(Trip,Site,Treatment,cover_type) %>%
+  summarize(mean_cover = mean(percent_cover), se = sd(percent_cover) / sqrt(n()))
+view(plant_per_data)
 
 #graph it
 
@@ -567,7 +574,7 @@ perimeter_pc_cover<- ggplot(data = perimeter_survey_long,
   stat_summary(geom = "point", fun = mean, position = position_dodge(width = 1),
                size = 2L, stroke = 1) +
   stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
-               width = 0.2) +  # Adjust the width of the error bars as needed
+               width = 0.2) +  # error bars
   labs(
     x = " ",
     y = "Mean Percent Cover",
@@ -811,7 +818,6 @@ Jungle_permanova_result
 ##Ladder
 
 ```{r}
-#import dataset
 ladder<-read.csv("ladder.csv", header = TRUE)
 ladder$Trip<-as.factor(ladder$Trip)
 ladder$Quadrat<-as.factor(ladder$Quadrat)
@@ -928,7 +934,7 @@ pit_wide_data3 <- pit_wide_data2 %>%
 
 View(pit_wide_data3)
 
-# Rename the Orders in Taxa
+# Rename the orders in Taxa
 pit_wide_data3 <- pit_wide_data3 %>%
   mutate(
     Taxa = case_when(
@@ -1145,14 +1151,14 @@ stic_wide_data3 <- stic_wide_data2 %>%
 
 View(stic_wide_data3)
 
-# Rename the Orders in Taxa
+# Rename the orders in Taxa
 stic_wide_data3 <- stic_wide_data3 %>%
   mutate(
     Taxa = case_when(
       Taxa == "Amphipods" ~ "Amphipoda",
       Taxa == "Diptera" ~ "Diptera",
       Taxa == "Hymenoptera" ~ "Hymenoptera",
-      TRUE ~ Taxa  # Keep other values as is
+      TRUE ~ Taxa  
     )
   )
 #order by Taxa
@@ -1382,10 +1388,8 @@ nitrate_summary <- pile_chem %>%
   group_by(Site, Trip) %>%
   summarize(
     Mean_Nitrate = mean(Nitrate),
-    SE_Nitrate = sd(Nitrate) / sqrt(n())
-  )
+    SE_Nitrate = sd(Nitrate) / sqrt(n()))
 
-# View the summary table
 print(nitrate_summary)
 
 ```
@@ -1398,8 +1402,6 @@ CO2<-read.csv("gas_readings.csv",header=T)
 gas_CO2<-subset(CO2, !Treatment == "na")
 gas_CO2$CO2<-as.numeric(gas_CO2$CO2)
 gas_CO2$Trip<-is.factor(gas_CO2$CO2)
-
-
 
 #gas collectors
 gas_CO2 %>%
@@ -1430,17 +1432,78 @@ gas_CO2 %>%
   theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
-    axis.title = element_text(size = 16),   # Adjust the size of axis titles
-    axis.text = element_text(size = 14),    # Adjust the size of axis labels
-    axis.text.x = element_text(size = 14),  # Adjust the size of x-axis labels
-    plot.title = element_text(size = 18),   # Adjust the size of the plot title (if needed)
-    legend.title = element_text(size = 16), # Adjust the size of the legend title
-    legend.text = element_text(size = 14)   # Adjust the size of legend labels
+    axis.title = element_text(size = 16),   # axis titles
+    axis.text = element_text(size = 14),    # axis labels
+    axis.text.x = element_text(size = 14),  # x-axis labels
+    plot.title = element_text(size = 18),   # plot title (if needed)
+    legend.title = element_text(size = 16), # legend title
+    legend.text = element_text(size = 14)   # legend labels
   ) +
   facet_grid(vars(), vars(Site), scales = "free_y")
 
-#respirometer
 
+co2_data <- gas_CO2 %>%
+  group_by(Site, Treatment, Time) %>%
+  summarize(mean_CO2 = mean(CO2), se = sd(CO2) / sqrt(n()))
+co2_data
+
+# two-way ANOVA
+CO2_anova <- aov(CO2 ~ Treatment * Site, data = gas_CO2)
+
+summary(CO2_anova)
+
+
+#################################################respirometer##################################3##
+
+CO2<-read.csv("gas_readings.csv",header=T)
+
+#subset experiment
+respirometer<-subset(CO2, Experiment == "respirometer") 
+
+
+# hree-way ANOVA
+CO2_resp_anova <- aov(Carbon_dioxide ~ Treatment * Position * Site, data = respirometer)
+
+summary(CO2_resp_anova)
+
+#analyze separately by site
+##first look at beach
+resp_beach<- subset(respirometer, Site == "Beach")
+# Perform the three-way ANOVA
+CO2_resp_anova_Beach <- aov(Carbon_dioxide ~ Treatment * Position, data = resp_beach)
+
+summary(CO2_resp_anova_Beach)
+
+CO2_resp_anova_Beach_tukeys<- HSD.test(CO2_resp_anova_Beach, "Treatment")
+print(CO2_resp_anova_Beach_tukeys)
+plot(CO2_resp_anova_Beach_tukeys)
+
+#lets see the means and SE
+co2_data_resp <- resp_beach %>%
+  group_by(Treatment, Position) %>%
+  summarize(mean_CO2 = mean(Carbon_dioxide), se = sd(Carbon_dioxide) / sqrt(n()))
+co2_data_resp
+
+
+#now lets do it for the the forest
+resp_forest<- subset(respirometer, Site == "Forest")
+# Perform the three-way ANOVA
+CO2_resp_anova_forest <- aov(Carbon_dioxide ~ Treatment * Position, data = resp_forest)
+
+summary(CO2_resp_anova_forest)
+
+CO2_resp_anova_forest_tukeys<- HSD.test(CO2_resp_anova_forest, "Treatment")
+print(CO2_resp_anova_forest_tukeys)
+plot(CO2_resp_anova_forest_tukeys)
+
+#lets see the means and SE
+co2_data_resp2 <- resp_forest %>%
+  group_by(Treatment, Position) %>%
+  summarize(mean_CO2 = mean(Carbon_dioxide), se = sd(Carbon_dioxide) / sqrt(n()))
+co2_data_resp2
+
+
+#graph it
 gas_CO2 %>%
   filter(Experiment %in% "respirometer") %>%
   ggplot() +
@@ -1468,12 +1531,12 @@ gas_CO2 %>%
   theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
-    axis.title = element_text(size = 16),   # Adjust the size of axis titles
-    axis.text = element_text(size = 14),    # Adjust the size of axis labels
-    axis.text.x = element_text(size = 14),  # Adjust the size of x-axis labels
-    plot.title = element_text(size = 18),   # Adjust the size of the plot title (if needed)
-    legend.title = element_text(size = 16), # Adjust the size of the legend title
-    legend.text = element_text(size = 14)   # Adjust the size of legend labels
+    axis.title = element_text(size = 16),   # axis titles
+    axis.text = element_text(size = 14),    # axis labels
+    axis.text.x = element_text(size = 14),  # x-axis labels
+    plot.title = element_text(size = 18),   
+    legend.title = element_text(size = 16), 
+    legend.text = element_text(size = 14)   
   ) +
   facet_grid(vars(), vars(Site))
 
@@ -1517,12 +1580,12 @@ vol_x_time <- scatterplot +
   theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
-    axis.title = element_text(size = 16),   # Adjust the size of axis titles
-    axis.text = element_text(size = 14),    # Adjust the size of axis labels
-    axis.text.x = element_text(size = 14),  # Adjust the size of x-axis labels
-    plot.title = element_text(size = 18),   # Adjust the size of the plot title (if needed)
-    legend.title = element_text(size = 16), # Adjust the size of the legend title
-    legend.text = element_text(size = 14)   # Adjust the size of legend labels
+    axis.title = element_text(size = 16),    
+    axis.text = element_text(size = 14),     
+    axis.text.x = element_text(size = 14),   
+    plot.title = element_text(size = 18),    
+    legend.title = element_text(size = 16),  
+    legend.text = element_text(size = 14) 
   )
 
 vol_x_time
@@ -1539,11 +1602,11 @@ decomp %>%
   filter(!(ratio %in% "")) %>%
   ggplot() +
   scale_fill_manual(name = "Mesh size", 
-                    values = c("large" = "light gray", "small" = "white")) +  # Set bars to white
+                    values = c("large" = "light gray", "small" = "white")) +  
   scale_color_manual(name = "Mesh size",
-                     values = c("large" = "black", "small" = "black")) +  # Set outline color to black
-  aes(x = Site, fill = Treatment, weight = prc_means) +  # Add color aesthetic
-  geom_bar(position = "dodge", color = "black") +  # Specify outline color
+                     values = c("large" = "black", "small" = "black")) +  
+  aes(x = Site, fill = Treatment, weight = prc_means) + 
+  geom_bar(position = "dodge", color = "black") +   
   geom_errorbar(aes(ymin = prc_means - prc_SE, ymax = prc_means + prc_SE), 
                 position = position_dodge(width = 0.9), 
                 width = 0.25) +  
@@ -1553,12 +1616,12 @@ decomp %>%
     theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
-    axis.title = element_text(size = 16),   # Adjust the size of axis titles
-    axis.text = element_text(size = 14),    # Adjust the size of axis labels
-    axis.text.x = element_text(size = 14),  # Adjust the size of x-axis labels
-    plot.title = element_text(size = 18),   # Adjust the size of the plot title (if needed)
-    legend.title = element_text(size = 16), # Adjust the size of the legend title
-    legend.text = element_text(size = 14)   # Adjust the size of legend labels
+    axis.title = element_text(size = 16),   
+    axis.text = element_text(size = 14),     
+    axis.text.x = element_text(size = 14),   
+    plot.title = element_text(size = 18),   
+    legend.title = element_text(size = 16), 
+    legend.text = element_text(size = 14)   
   )
 ```
 ## nutrients 
@@ -1569,26 +1632,23 @@ decomp %>%
 chemicals<-read.csv("Soil_Chemicals2.csv",header=T)
 
 #subset experiment
-SM_chem_sub<-subset(chemicals, Exp == "Sargasso Manipulation")
-SG_chem<-subset(SM_chem_sub, Type == "Sargassum")
-pile_chem<-subset(SG_chem, Trt == "Sediment")
+pile_chem<-subset(chemicals, Exp == "Sargasso Manipulation")
+#SG_chem<-subset(SM_chem_sub, Type == "Sargassum")
+#pile_chem<-subset(SG_chem, Trt == "Sediment")
 pile_chem$Block<-as.factor(pile_chem$Block)
 pile_chem$Trip<-as.factor(pile_chem$Trip)
 pile_chem$pH<-as.numeric(pile_chem$pH)
 pile_chem$KH<-as.numeric(pile_chem$KH)
 
-
 pile_chem %>%
-  filter(Type %in% "Sargassum") %>%
-  filter(Trt %in% "Sediment") %>%
-  group_by(Trip, Site) %>%
+  group_by(Trip, Site, Type, Trt ) %>%
   summarize(mean_Nitrate = mean(Nitrate), se = sd(Nitrate) / sqrt(n())) %>%
   ggplot() +
-  aes(x = Trip, y = mean_Nitrate, fill = Site) +
+  aes(x = Trip, y = mean_Nitrate, fill = Type) +
   geom_bar(stat = "identity", position = "dodge", color = "black") +
   geom_errorbar(aes(ymin = mean_Nitrate - se, ymax = mean_Nitrate + se), 
                 position = position_dodge(width = 0.9), width = 0.25) +
-  scale_fill_manual(values = c("lightgray", "white")) +
+   scale_fill_manual(values = c( "black","lightgray")) +
    scale_x_discrete(
     limits = c("1", "2", "3", "4"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23") ) +
@@ -1596,7 +1656,7 @@ pile_chem %>%
     x = " ",
     y = "Nitrate content (mg/L)",
     title = "",
-    fill = "Sample"
+    fill = "Treatment"
   ) +
   theme_minimal() +
  theme(
@@ -1609,7 +1669,11 @@ pile_chem %>%
     plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14),
-    strip.text = element_blank()) # Remove facet labels
+    strip.text = element_text(size = 14))  +
+    facet_grid(vars(Trt), vars(Site))
+
+
+
 
 ```
 
@@ -1623,25 +1687,23 @@ CO2<-read.csv("gas_readings.csv",header=T)
 #subset experiment
 collectors<-subset(CO2, Experiment == "collectors") 
 collectors<-subset(collectors, !Site == "Calibrate")
+collectors<-subset(collectors, !Time == "T0")
 
 
 CO2plot1 <- collectors %>%
   group_by(Site, Treatment, Time) %>%
-  summarize(mean_CO2 = mean(Carbon_dioxide), se = sd(Carbon_dioxide) / sqrt(n())) %>%
+  summarize(mean_CO2 = mean(CO2), se = sd(CO2) / sqrt(n())) %>%
   ggplot() +
-  aes(x = Treatment, y = mean_CO2, fill = Time) +
+  aes(x = Treatment, y = mean_CO2) +  
   geom_bar(stat = "identity", position = "dodge", color = "black") +
   geom_errorbar(aes(ymin = mean_CO2 - se, ymax = mean_CO2 + se), 
                 position = position_dodge(width = 0.9), width = 0.25) +
-  scale_fill_manual(values = c("lightgray", "white")) +
- 
   labs(
     x = " ",
-    y = "CO2 UNITS",
-    title = "",
+    y = "gCO2/m2/h",
+    title = "Gas collectors",
     fill = "Sample"
   ) +
-  scale_x_discrete(labels = NULL) +  # Remove x-axis labels
   theme_minimal() +
   theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
@@ -1650,21 +1712,39 @@ CO2plot1 <- collectors %>%
     axis.title = element_text(size = 16),
     axis.text = element_text(size = 14),
     axis.text.x = element_text(size = 14),
-    plot.title = element_text(size = 18),
+    plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14)
   ) +
-   facet_grid(vars(), vars(Site), scales = "free_y")
+  scale_x_discrete(labels = c("Control", "Sargasso")) +
+  facet_grid(vars(), vars(Site), scales = "free_y")
 
-
+#removed the legend from the plot but this is the code to re add it
+ # "labs(
+  #  x = " ",
+  #  y = "gCO2/m2/h",
+  #  title = "Gas collectors",
+ #   fill = "Sample"
+ # ) +
+ # scale_x_discrete(labels = NULL) +  # Remove x-axis labels
+ # scale_fill_manual(
+ #   values = c("lightgray", "white"),  # Define the colors
+  #  labels = c("Control", "Sargasso")) +  # Define the labels for the legend
+  
 
 CO2plot1
 
+CO2plot1 <- CO2plot1 +
+  theme(
+    axis.title.y = element_text(margin = margin(r = 0)),   
+  )
+
+CO2plot2
 
 
 
 
-#respirometer
+#################################3respirometer##########################3
 
 CO2<-read.csv("gas_readings.csv",header=T)
 
@@ -1684,7 +1764,7 @@ CO2plot2 <- respirometer %>%
   labs(
     x = " ",
     y = "CO2 UNITS",
-    title = "",
+    title = "Respirometer",
     fill = "Position"
   ) +
   theme_minimal() +
@@ -1697,21 +1777,22 @@ CO2plot2 <- respirometer %>%
     axis.text.x = element_text(size = 14),
     plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
-    legend.text = element_text(size = 14)
-  ) +
-  facet_grid(vars(), vars(Site), scales = "free_y")
+    legend.text = element_text(size = 14),
+    legend.position = "bottom",  
+    legend.box = "horizontal"  ) +
+  facet_grid(vars(), vars(Site), scales = "free_y") +
+  scale_x_discrete(labels = c("Control", "Sargasso"))  # Update x-axis labels
+
 
 
 CO2plot2 <- CO2plot2 +
   theme(
-    axis.title.y = element_text(margin = margin(r = 25)),  # Adjust the margin
-    # Other theme settings...
-  )
+    axis.title.y = element_text(margin = margin(r = )), )
 
 CO2plot2
 
 
-combined_CO2 <- grid.arrange(CO2plot1, CO2plot2, ncol = 1)
+combined_CO2 <- grid.arrange(CO2plot1, CO2plot2)
 
 ```
 
@@ -1736,17 +1817,17 @@ interior_pc_cover <- ggplot(data = interior_survey_long,
   stat_summary(geom = "point", fun = mean, position = position_dodge(width = 1),
                size = 2L, stroke = 1) +
   stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
-               width = 0.2) +  # Adjust the width of the error bars as needed
+               width = 0.2) +   
   labs(
     x = " ",
-    y = "Mean Percent Cover",
-    title = "Interior Mean Percent Cover"
+    y = "Mean percent cover",
+    title = "Interior mean percent cover"
   ) +
   scale_x_discrete(
     limits = c("1", "2", "3", "4"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
   ) +
-  facet_grid(vars(), vars(Site), labeller = labeller(Site = c(Dunes = "Beach", Jungle = "Forest"))) +  # Set facet titles
+  facet_grid(vars(), vars(Site), labeller = labeller(Site = c(Dunes = "Beach", Jungle = "Forest"))) +   
   theme_minimal() +
   scale_fill_manual(values = c("grey44", "black")) +
   scale_color_manual(values = c("grey44", "black")) +
@@ -1754,18 +1835,16 @@ interior_pc_cover <- ggplot(data = interior_survey_long,
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
     text = element_text(size = 14),
-    axis.title = element_text(size = 16, margin = margin(t = 0, r = 10, b = 0, l = 0)), # Adjust the margin
+    axis.title = element_text(size = 16, margin = margin(t = 0, r = 10, b = 0, l = 0)),  
     axis.text = element_text(size = 14),
     axis.text.x = element_text(size = 14),
     plot.title = element_text(size = 12),
-    legend.title = element_text(size = 16),  # Set the size of the legend title
-    legend.text = element_text(size = 14)  # Set the size of the legend text
-  ) +
+    legend.title = element_text(size = 16),  
+    legend.text = element_text(size = 14) ) +
   scale_shape_manual(
-    values = c("circle",  "triangle"),  # Change these to the desired shapes
-    labels = c("grass", "other plants")  # Change these labels
-  ) +
-  labs(shape = "Cover type")  # Change the legend title here
+    values = c("circle",  "triangle"),
+    labels = c("grass", "other plants")  ) +
+  labs(shape = "Cover type")   
   
 
 interior_pc_cover
@@ -1794,7 +1873,7 @@ int_eff_plot <- ggplot(interioreffsize, aes(x = Trip, y = Effect_size, shape = C
   geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
   scale_x_discrete(
     limits = c("1", "2", "3", "4"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23", "4" = "Aug.23")
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
   ) +
     scale_shape_discrete(labels = c("grass", "other plants")) +
  theme(
@@ -1807,8 +1886,7 @@ int_eff_plot <- ggplot(interioreffsize, aes(x = Trip, y = Effect_size, shape = C
     plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14),
-    strip.text = element_blank()  # Remove facet labels
-  ) +
+    strip.text = element_blank() ) +
   xlab("") 
 
 int_eff_plot
@@ -1831,17 +1909,17 @@ perimeter_pc_cover <- ggplot(data = perimeter_survey_long,
   stat_summary(geom = "point", fun = mean, position = position_dodge(width = 1),
                size = 2L, stroke = 1) +
   stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
-               width = 0.2) +  # Adjust the width of the error bars as needed
+               width = 0.2) +  
   labs(
     x = " ",
-    y = "Mean Percent Cover",
-    title = "Perimeter Mean Percent Cover"
+    y = "Mean percent cover",
+    title = "Perimeter mean percent cover"
   ) +
   scale_x_discrete(
     limits = c("1", "2", "3", "4"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
   ) +
-  facet_grid(vars(), vars(Site), labeller = labeller(Site = c(Dunes = "Beach", Jungle = "Forest"))) +  # Set facet titles
+  facet_grid(vars(), vars(Site), labeller = labeller(Site = c(Dunes = "Beach", Jungle = "Forest"))) + 
   theme_minimal() +
   scale_fill_manual(values = c("grey44", "black")) +
   scale_color_manual(values = c("grey44", "black")) +
@@ -1849,18 +1927,18 @@ perimeter_pc_cover <- ggplot(data = perimeter_survey_long,
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
     text = element_text(size = 14),
-    axis.title = element_text(size = 16, margin = margin(t = 0, r = 10, b = 0, l = 0)), # Adjust the margin
+    axis.title = element_text(size = 16, margin = margin(t = 0, r = 10, b = 0, l = 0)),  
     axis.text = element_text(size = 14),
     axis.text.x = element_text(size = 14),
     plot.title = element_text(size = 12),
-    legend.title = element_text(size = 16),  # Set the size of the legend title
-    legend.text = element_text(size = 14)  # Set the size of the legend text
+    legend.title = element_text(size = 16),   
+    legend.text = element_text(size = 14)   
   ) +
   scale_shape_manual(
-    values = c("circle",  "triangle"),  # Change these to the desired shapes
-    labels = c("grass", "other plants")  # Change these labels
+    values = c("circle",  "triangle"),   
+    labels = c("grass", "other plants")   
   ) +
-  labs(shape = "Cover type")  # Change the legend title here
+  labs(shape = "Cover type")  
 
 
 
@@ -1880,7 +1958,7 @@ per_eff_plot <- ggplot(perimetereffsize, aes(x = Trip, y = Effect_size, shape = 
   ) +
   scale_shape_discrete(
     labels = c("grass", "other plants"),
-    name = "Cover"  # Change the legend title to "Cover"
+    name = "Cover"   
   ) +
 theme_minimal() +
 theme(
@@ -1928,14 +2006,13 @@ pitfalls_data <- pitfalls_long %>%
 # Create the plot with jittered dots and error bars
 pitfall_count <- ggplot(pitfalls_data) +
   aes(x = Trip, y = mean_count, shape = Taxa) +  # shape by Site
-  geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +  # Jittered dots
+  geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +   
   geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error),
-                position = position_dodge(width = 0.5), width = 0.2) +  # Error bars
+                position = position_dodge(width = 0.5), width = 0.2) +  
   theme_minimal() +
   scale_x_discrete(
     limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
-  ) +
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
 theme_minimal() +
 theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
@@ -1947,12 +2024,13 @@ theme(
     plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14),
-    strip.text = element_blank()
-  ) +
+    strip.text = element_blank(),
+      legend.position = "bottom") +
   xlab("") +
-  ylab("Crawling arthropod count") +
-  facet_grid(vars(Treatment), vars(Site), scales = "fixed", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
-    guides(shape = FALSE)  # Hide the legend
+  ylab("Crawling arthropod abundance") +
+  
+  facet_grid(vars(Treatment), vars(Site), scales = "free", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
+    guides(shape = FALSE)  
 
 
 pitfall_count
@@ -1990,17 +2068,16 @@ theme(
 
 pitfall_eff_plot
 
-combined_pitfall_graphs <- grid.arrange(pitfall_prc_cover, pitfall_eff_plot, ncol = 1)
+combined_pitfall_graphs <- grid.arrange(pitfall_count, pitfall_eff_plot, ncol = 1)
 
 
 # combine
 
 combined_pitfall_graphs <- grid.arrange(
-  pitfall_prc_cover,
+  pitfall_count,
   pitfall_eff_plot,
   ncol = 1,
-  heights = c(3, 2)  # Adjust the relative heights here (e.g., 3 for the top plot and 1 for the bottom plot)
-)
+  heights = c(3, 2))
 
 # Print or display the combined plot
 print(combined_pitfall_graphs)
@@ -2026,15 +2103,14 @@ stickies_data <- stickies_long %>%
 
 # Create the plot with jittered dots and error bars
 stickies_prc_cover <-ggplot(stickies_data) +
-  aes(x = Trip, y = mean_count, shape = Taxa) +  # Color by Treatment, shape by Site
-  geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +  # Jittered dots
+  aes(x = Trip, y = mean_count, shape = Taxa) +  
+  geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +   
   geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error),
-                position = position_dodge(width = 0.5), width = 0.2) +  # Error bars
+                position = position_dodge(width = 0.5), width = 0.2) +   
   theme_minimal() +
   scale_x_discrete(
     limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
-  ) +
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
 theme_minimal() +
 theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
@@ -2049,9 +2125,9 @@ theme(
     strip.text = element_blank()
   ) +
   xlab("") +
-  ylab("Flying arthropod count") +
+  ylab("Flying arthropod abundance") +
   facet_grid(vars(Treatment), vars(Site), scales = "free", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
-    guides(shape = FALSE)  # Hide the legend
+    guides(shape = FALSE)   
 stickies_prc_cover
 
 
@@ -2065,16 +2141,15 @@ stickieseffsize <-read.csv("sticky_effsize.csv",header=T)
 stickieseffsize$Trip<-as.factor(stickieseffsize$Trip)
 
 stickies_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shape = Order)) +
-  labs(y = "Effect size", shape = "Taxa", title = "stickie traps") +
+  labs(y = "Effect size", shape = "Taxa", title = "") +
   geom_path(aes(group = Order), position = position_dodge(0.5), color = "dark gray") +
   theme_bw() +
   facet_wrap(vars(Site), ncol = 2L, labeller = as_labeller(c("Dune" = "Beach", "Jungle" = "Forest"))) +
   geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
   scale_x_discrete(
     limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
-  ) +
-  theme(
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
+theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
     text = element_text(size = 14),
@@ -2084,8 +2159,9 @@ stickies_eff_plot <- ggplot(stickieseffsize, aes(x = Trip, y = Effect_size, shap
     plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14),
-  strip.text = element_blank(),
-      legend.position = "bottom") 
+    strip.text = element_blank(),
+      legend.position = "bottom") +
+  xlab("")
 
 stickies_eff_plot
 
@@ -2095,10 +2171,9 @@ combined_sticky_graphs <- grid.arrange(
   stickies_prc_cover,
   stickies_eff_plot,
   ncol = 1,
-  heights = c(3, 2.5)  # Adjust the relative heights here (e.g., 3 for the top plot and 1 for the bottom plot)
-)
+  heights = c(3, 2.5))
 
-# Print or display the combined plot
+ 
 print(combined_sticky_graphs)
 
 ```
@@ -2111,48 +2186,101 @@ ladder_survey_long<- ladder_survey_full %>%
   gather(key = "cover_type", value = "percent_cover", c(9,10))
 ladder_survey_long$Trip<-as.factor(ladder_survey_long$Trip)
 
-ggplot(ladder_survey_long) +
-  aes(x = Trip, fill = cover_type, y = percent_cover) +
-    stat_summary(
-    fun.y = "mean",
-    geom = "bar",
-    position = "dodge",
-    width = 0.7   ) +
-     scale_fill_manual(values = c("lightgray", "darkgray"),  # Specify custom colors
-                    labels = c("grass", "other plants")) +     # Specify custom labels
-  stat_summary(
-    fun.data = mean_se,
-    geom = "errorbar",
-    position = position_dodge(width = 0.7),
-    width = 0.25
-  ) +
+#make graphs for sargasso plots
+
+ladder_long_sarg<-subset(ladder_survey_long, Treatment == "Sargassum")
+
+
+ladder_sargasso <- ladder_long_sarg %>%
+  group_by(Site, Trip, Quadrat, cover_type) %>%
+  summarize(mean_cover = mean(percent_cover),
+            mean_se = sd(percent_cover) / sqrt(n()))
+
+ladder_sargasso_graph <- ggplot(ladder_sargasso) +
+  aes(x = Trip, y = mean_cover, fill = cover_type) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  geom_errorbar(aes(ymin = mean_cover - mean_se, ymax = mean_cover + mean_se), 
+                position = position_dodge(width = 0.7), width = 0.2) +
+  scale_fill_manual(values = c("lightgray", "darkgray"),
+                    labels = c("grass", "other plants")) +
   labs(
-    x = "Distance from plot (m)",
+    x = "",
     y = "Percent cover",
-    fill = "Cover type") +
-    scale_x_discrete(
+    fill = "Cover type",
+    title = "Sargasso plots"
+  ) +
+  scale_x_discrete(
     limits = c("1", "2", "3"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
   ) +
-   labs(
-    x = "",
-    y = "Percent cover",
-    fill = "Cover type") +
   theme_minimal() +
-   theme(
+ theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
-    text = element_text(size = 24),
-    axis.title = element_text(size = 26),
-    axis.text = element_text(size = 24),
-    axis.text.x = element_text(size = 24),
-    plot.title = element_text(size = 22),
-    legend.title = element_text(size = 26),
-    legend.text = element_text(size = 24)
+    text = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10),
+    strip.text = element_text(size = 10),  
+    legend.position = "bottom"
   ) +
-
-  
   facet_grid(vars(Quadrat), vars(Site))
+
+print(ladder_sargasso_graph)
+
+
+#make graphs for control plots
+
+ladder_long_con<-subset(ladder_survey_long, Treatment == "Control")
+
+
+ladder_control <- ladder_long_con %>%
+  group_by(Site, Trip, Quadrat, cover_type) %>%
+  summarize(mean_cover = mean(percent_cover),
+            mean_se = sd(percent_cover) / sqrt(n()))
+
+ladder_control_graph <- ggplot(ladder_control) +
+  aes(x = Trip, y = mean_cover, fill = cover_type) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  geom_errorbar(aes(ymin = mean_cover - mean_se, ymax = mean_cover + mean_se), 
+                position = position_dodge(width = 0.7), width = 0.2) +
+  scale_fill_manual(values = c("lightgray", "darkgray"),
+                    labels = c("grass", "other plants")) +
+  labs(
+    x = "",
+    y = "Percent cover",
+    fill = "Cover type",
+    title = "Control plots"
+  ) +
+  scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
+  ) +
+  theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10),
+    strip.text = element_text(size = 10),  
+    legend.position = "bottom"
+  ) +
+  facet_grid(vars(Quadrat), vars(Site))
+
+print(ladder_control_graph)
+  
+
+
+combined_ladder_graphs <- grid.arrange(ladder_sargasso_graph, ladder_control_graph, ncol = 1)
+  
 
 ```
 
@@ -2174,13 +2302,16 @@ perimeter_prc_long <- perimeter_prc_long %>% select( c(1:5,15,16))
 perimeter_prc_long <- subset(perimeter_prc_long, prc_cover != 0)
 
 
+
 perimeter_prc_long %>%
- filter(Site %in% "Jungle") %>%
- ggplot() +
- aes(x = Trip, fill = cover_type, weight = prc_cover) +
- geom_bar(position = "fill") +
- theme_minimal() +
- facet_grid(vars(Block), vars(Treatment))
+  filter(Site %in% "Jungle") %>%
+  ggplot() +
+  aes(x = Trip, fill = cover_type, weight = prc_cover) +
+  geom_bar(position = "fill") +
+  theme_minimal() +
+  facet_grid(vars(Block), vars(Treatment)) +
+  labs(y = "Proportion")
+
 
 perimeter_prc_long %>%
  filter(Site %in% "Dunes") %>%
@@ -2188,7 +2319,8 @@ perimeter_prc_long %>%
  aes(x = Trip, fill = cover_type, weight = prc_cover) +
  geom_bar(position = "fill") +
  theme_minimal() +
- facet_grid(vars(Block), vars(Treatment))
+ facet_grid(vars(Block), vars(Treatment)) +
+  labs(y = "Proportion")
 
 ```
 
@@ -2216,7 +2348,8 @@ interior_prc_long %>%
   geom_bar(position = "fill") +
   scale_fill_hue(direction = 1) +
   theme_minimal() +
-  facet_grid(vars(Block), vars(Treatment))
+  facet_grid(vars(Block), vars(Treatment))+
+  labs(y = "Proportion")
 
 interior_prc_long %>%
  filter(Site %in% "Jungle") %>%
@@ -2225,13 +2358,14 @@ interior_prc_long %>%
   geom_bar(position = "fill") +
   scale_fill_hue(direction = 1) +
   theme_minimal() +
-  facet_grid(vars(Block), vars(Treatment))
+  facet_grid(vars(Block), vars(Treatment)) +
+   labs(y = "Proportion")
 
 ```
 
 
 
-
+##practice
 ```{r}
 sargman<-read.csv("nmec.csv",header=T)
 
