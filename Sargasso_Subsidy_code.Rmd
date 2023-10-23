@@ -1549,6 +1549,8 @@ gas_CO2 %>%
 ##pile vol
 ```{r}
 
+
+####################may need to cut this graph for publication due to too many figures
 #####################################pile volumes#####################################
 
 piles <-read.csv("Sargassum_piles.csv",header=T)
@@ -2003,9 +2005,11 @@ pitfalls_data <- pitfalls_long %>%
   summarize(mean_count = mean(Count), 
             std_error = sd(Count) / sqrt(n()))
 
-# Create the plot with jittered dots and error bars
-pitfall_count <- ggplot(pitfalls_data) +
-  aes(x = Trip, y = mean_count, shape = Taxa) +  # shape by Site
+#########graph for beach######
+beach_pitfalls_data<-subset(pitfalls_data, Site == 'Dune')
+
+beach_pitfall_count <- ggplot(beach_pitfalls_data) +
+  aes(x = Trip, y = mean_count, shape = Taxa) + 
   geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +   
   geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error),
                 position = position_dodge(width = 0.5), width = 0.2) +  
@@ -2013,8 +2017,8 @@ pitfall_count <- ggplot(pitfalls_data) +
   scale_x_discrete(
     limits = c("1", "2", "3"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
-theme_minimal() +
-theme(
+  theme_minimal() +
+  theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
     text = element_text(size = 14),
@@ -2025,15 +2029,54 @@ theme(
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14),
     strip.text = element_blank(),
-      legend.position = "bottom") +
+    legend.position = "bottom") +
   xlab("") +
   ylab("Crawling arthropod abundance") +
-  
-  facet_grid(vars(Treatment), vars(Site), scales = "free", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
-    guides(shape = FALSE)  
+  facet_grid(vars(Treatment), vars(), scales = "fixed", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
+  theme(strip.text = element_text(size = 12)) +
+  labs(title = "") +
+  labs(subtitle = "Beach") +
+  labs(caption = "") +
+  theme(plot.title = element_text(size = 16))
+
+print(beach_pitfall_count)
 
 
-pitfall_count
+#########graph for forest######
+forest_pitfalls_data<-subset(pitfalls_data, Site == 'Jungle')
+
+forest_pitfall_count <- ggplot(forest_pitfalls_data) +
+  aes(x = Trip, y = mean_count, shape = Taxa) + 
+  geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +   
+  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error),
+                position = position_dodge(width = 0.5), width = 0.2) +  
+  theme_minimal() +
+  scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
+  theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank(),
+    legend.position = "bottom") +
+  xlab("") +
+  ylab("Crawling arthropod abundance") +
+  facet_grid(vars(Treatment), vars(), scales = "fixed", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
+  theme(strip.text = element_text(size = 12)) +
+  labs(title = "") +
+  labs(subtitle = "Forest") +
+  labs(caption = "") +
+  theme(plot.title = element_text(size = 16))
+
+print(forest_pitfall_count)
 
 
 #####Effect sizes Graph#####
@@ -2068,23 +2111,8 @@ theme(
 
 pitfall_eff_plot
 
-combined_pitfall_graphs <- grid.arrange(pitfall_count, pitfall_eff_plot, ncol = 1)
 
-
-# combine
-
-combined_pitfall_graphs <- grid.arrange(
-  pitfall_count,
-  pitfall_eff_plot,
-  ncol = 1,
-  heights = c(3, 2))
-
-# Print or display the combined plot
-print(combined_pitfall_graphs)
-
-
-
-###################################3#aerial traps#############################
+####################################aerial traps#############################
 
 
 #load data
@@ -2101,8 +2129,12 @@ stickies_data <- stickies_long %>%
             std_error = sd(Count) / sqrt(n()))
 
 
+##############subset the beach treatment
+beach_stickies_data<-subset(stickies_data, Site == 'Dune')
+
+
 # Create the plot with jittered dots and error bars
-stickies_prc_cover <-ggplot(stickies_data) +
+stickies_beach_cover <-ggplot(beach_stickies_data) +
   aes(x = Trip, y = mean_count, shape = Taxa) +  
   geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +   
   geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error),
@@ -2112,7 +2144,7 @@ stickies_prc_cover <-ggplot(stickies_data) +
     limits = c("1", "2", "3"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
 theme_minimal() +
-theme(
+  theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
     text = element_text(size = 14),
@@ -2122,13 +2154,60 @@ theme(
     plot.title = element_text(size = 12),
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14),
-    strip.text = element_blank()
-  ) +
+    strip.text = element_blank(),
+    legend.position = "bottom") +
   xlab("") +
   ylab("Flying arthropod abundance") +
-  facet_grid(vars(Treatment), vars(Site), scales = "free", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
-    guides(shape = FALSE)   
-stickies_prc_cover
+  facet_grid(vars(Treatment), vars(), scales = "fixed", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
+  theme(strip.text = element_text(size = 12)) +
+  labs(title = "") +
+  labs(subtitle = "Beach") +
+  labs(caption = "") +
+  theme(plot.title = element_text(size = 16))
+ 
+stickies_beach_cover
+
+
+
+##########subset forest treatment
+forest_stickies_data<-subset(stickies_data, Site == 'Jungle')
+
+
+# Create the plot with jittered dots and error bars
+stickies_forest_cover <-ggplot(forest_stickies_data) +
+  aes(x = Trip, y = mean_count, shape = Taxa) +  
+  geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +   
+  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error),
+                position = position_dodge(width = 0.5), width = 0.2) +   
+  theme_minimal() +
+  scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
+theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank(),
+    legend.position = "bottom") +
+  xlab("") +
+  ylab("Flying arthropod abundance") +
+  facet_grid(vars(Treatment), vars(), scales = "fixed", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
+  theme(strip.text = element_text(size = 12)) +
+  labs(title = "") +
+  labs(subtitle = "Forest") +
+  labs(caption = "") +
+  theme(plot.title = element_text(size = 16))
+ 
+stickies_forest_cover
+
+
 
 
 
@@ -2367,6 +2446,114 @@ interior_prc_long %>%
 
 ##practice
 ```{r}
+
+
+# Create the plot with jittered dots and error bars
+pitfall_count <- ggplot(pitfalls_data) +
+  aes(x = Trip, y = mean_count, shape = Taxa) +  # shape by Site
+  geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +   
+  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error),
+                position = position_dodge(width = 0.5), width = 0.2) +  
+  theme_minimal() +
+  scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
+theme_minimal() +
+theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank(),
+      legend.position = "bottom") +
+  xlab("") +
+  ylab("Crawling arthropod abundance") +
+  
+  facet_grid(vars(Treatment), vars(Site), scales = "fixed", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
+    guides(shape = FALSE)  
+
+
+pitfall_count
+
+
+# combine
+
+combined_pitfall_graphs <- grid.arrange(
+  pitfall_count,
+  pitfall_eff_plot,
+  ncol = 1,
+  heights = c(3, 2))
+
+# Print or display the combined plot
+print(combined_pitfall_graphs)
+
+
+
+# Create the plot with jittered dots and error bars
+stickies_prc_cover <-ggplot(stickies_data) +
+  aes(x = Trip, y = mean_count, shape = Taxa) +  
+  geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +   
+  geom_errorbar(aes(ymin = mean_count - std_error, ymax = mean_count + std_error),
+                position = position_dodge(width = 0.5), width = 0.2) +   
+  theme_minimal() +
+  scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
+theme_minimal() +
+theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    axis.text.x = element_text(size = 14),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    strip.text = element_blank()
+  ) +
+  xlab("") +
+  ylab("Flying arthropod abundance") +
+  facet_grid(vars(Treatment), vars(Site), scales = "free", space = "fixed", labeller = labeller(Treatment = c(Control = "control", Sargassum = "sargasso"))) +
+    guides(shape = FALSE)   
+stickies_prc_cover
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 sargman<-read.csv("nmec.csv",header=T)
 
 # Assuming your_data is your original data frame
