@@ -133,10 +133,39 @@ vol_x_time
 
 ```{r}
 
-decomp<-read.csv("mesh_bag_exp.csv",header = T )
+decomp<-read.csv("mesh_bag_inverts.csv",header = T )
 decomp$Rep_no.<-as.factor(decomp$Rep_no.)
 decomp$Trip<-as.factor(decomp$Trip)
-decomp$prc_Delta<-as.numeric(decomp$prc_Delta)
+
+view(decomp)
+
+decomp_inverts<- decomp %>%
+  gather(key = "inverts", value = "count", c(5,6,11))
+
+view(decomp_inverts)
+
+
+invert_plot <- ggplot(data = decomp_inverts,
+                      aes(
+                        x = inverts,
+                        y = count,
+                      )) +
+  stat_summary(geom = "bar", fun = mean, position = position_dodge(width = 1),
+               size = 2L, stroke = 1) +
+  stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
+               width = 0.2) +  # error bars
+  theme_minimal() +
+  facet_grid(vars(Trip), vars(Site)) +
+  theme(axis.title.x = element_blank(),  # Remove x-axis title
+        text = element_text(size = 16),  # Increase font size for all text
+        panel.border = element_rect(color = "black", fill = NA, size = 0.5)) +  # Add a thin black line around the graph
+  labs(y = "Arthroopod counts")
+
+invert_plot
+
+
+
+
 
 #quick view counts of percent
 ggplot(decomp) +
@@ -165,7 +194,7 @@ decomp %>%
   facet_grid(Trip ~ ., labeller = labeller(Trip = function(x) ifelse(x == "2", "Nov. 22", ifelse(x == "3", "Mar. 23", x)))) 
 
 
-
+esquisse::esquisser()
 ```
 
 
