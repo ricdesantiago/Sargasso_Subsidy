@@ -129,7 +129,7 @@ vol_x_time
 ```
 
 
-#Decomposer experiment
+#Decomposer experiment 
 
 ```{r}
 
@@ -165,10 +165,15 @@ invert_plot
 
 
 
+decomp_bags<-read.csv("mesh_bag_exp.csv",header = T )
+decomp_bags$Rep_no.<-as.factor(decomp_bags$Rep_no.)
+decomp_bags$Trip<-as.factor(decomp_bags$Trip)
+
+view(decomp_bags)
 
 
 #quick view counts of percent
-ggplot(decomp) +
+ggplot(decomp_bags) +
  aes(x = Trip, fill = Treatment, weight = prc_means) +
  geom_bar(position = "dodge") +
  scale_fill_hue(direction = 1) +
@@ -178,7 +183,7 @@ ggplot(decomp) +
 
 #now lets look at mean values and SE
 #subset out trip 1 since its only going to show initial mass which is 100%
-decomp %>%
+decomp_bags %>%
   filter(!(Trip %in% "1")) %>%
   filter(!(ratio %in% "")) %>%
   ggplot() +
@@ -194,7 +199,7 @@ decomp %>%
   facet_grid(Trip ~ ., labeller = labeller(Trip = function(x) ifelse(x == "2", "Nov. 22", ifelse(x == "3", "Mar. 23", x)))) 
 
 
-esquisse::esquisser()
+
 ```
 
 
@@ -1622,15 +1627,28 @@ vol_x_time <- scatterplot +
 vol_x_time
 ```
 
-##decomp 
+##decomp bags
 ```{r}
+decomp_bags<-read.csv("mesh_bag_exp.csv",header = T )
+decomp_bags$Rep_no.<-as.factor(decomp_bags$Rep_no.)
+decomp_bags$Trip<-as.factor(decomp_bags$Trip)
 
+view(decomp_bags)
+
+
+#quick view counts of percent
+ggplot(decomp_bags) +
+ aes(x = Trip, fill = Treatment, weight = prc_means) +
+ geom_bar(position = "dodge") +
+ scale_fill_hue(direction = 1) +
+ theme_minimal() +
+ facet_grid(vars(Site), vars())
 ##############################decomposer experiment##################################
 #now lets look at mean values and SE
 #subset out trip 1 since its only going to show initial mass which is 100%
-decomp %>%
+
+decomp_bags %>%
   filter(!(Trip %in% "1")) %>%
-  filter(!(ratio %in% "")) %>%
   ggplot() +
   scale_fill_manual(name = "Mesh size", 
                     values = c("large" = "light gray", "small" = "white")) +  
@@ -1644,7 +1662,7 @@ decomp %>%
   labs(y = "Decomposition (% of initial dry biomass)", x = "") +
   theme_minimal() +
   facet_grid(Trip ~ ., labeller = labeller(Trip = function(x) ifelse(x == "2", "Nov. 22", ifelse(x == "3", "Mar. 23", x)))) + 
-    theme(
+  theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
     axis.title = element_text(size = 16),   
@@ -1652,9 +1670,48 @@ decomp %>%
     axis.text.x = element_text(size = 14),   
     plot.title = element_text(size = 18),   
     legend.title = element_text(size = 16), 
-    legend.text = element_text(size = 14)   
+    legend.text = element_text(size = 14),
+    legend.position = "bottom"  # Add this line to move the legend to the bottom
   )
+
+
 ```
+
+
+##decomp inverts
+```{r}
+decomp<-read.csv("mesh_bag_inverts.csv",header = T )
+decomp$Rep_no.<-as.factor(decomp$Rep_no.)
+decomp$Trip<-as.factor(decomp$Trip)
+
+view(decomp)
+
+decomp_inverts<- decomp %>%
+  gather(key = "inverts", value = "count", c(5,6,11))
+
+view(decomp_inverts)
+
+
+invert_plot <- ggplot(data = decomp_inverts,
+                      aes(
+                        x = inverts,
+                        y = count,
+                      )) +
+  stat_summary(geom = "bar", fun = mean, position = position_dodge(width = 1),
+               size = 2L, stroke = 1) +
+  stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
+               width = 0.2) +  # error bars
+  theme_minimal() +
+  facet_grid(vars(Trip), vars(Site)) +
+  theme(axis.title.x = element_blank(),  # Remove x-axis title
+        text = element_text(size = 16),  # Increase font size for all text
+        panel.border = element_rect(color = "black", fill = NA, size = 1)) +  # Add a thin black line around the graph
+  labs(y = "Arthroopod counts")
+
+invert_plot
+
+```
+
 ## nutrients 
 
 ```{r}
@@ -1929,28 +1986,38 @@ combined_int_effgraphs <- grid.arrange(interior_pc_cover, int_eff_plot, ncol = 1
 
 ##perimeter percent cover
 ```{r}
+
+perimetersurvey<-read.csv("perimeter_survey.csv", header = TRUE)
+
+perimetersurvey$Treatment<-as.factor(perimetersurvey$Treatment)
+perimetersurvey$Block<-as.factor(perimetersurvey$Block)
+perimetersurvey$Trip<-as.factor(perimetersurvey$Trip)
+
+view(perimeter_short)
+perimeter_short <- subset(perimeter_survey_long, !(Trip %in% c("2", "3")))
+
 #################################perimeter percent cover#########################
-perimeter_pc_cover <- ggplot(data = perimeter_survey_long,
-            aes(
-              x = Trip,
-              y = percent_cover,
-              shape = cover_type,
-              color = Treatment
-            )) +
+perimeter_pc_cover<-ggplot(data = perimeter_short,
+       aes(
+         x = Trip,
+         y = percent_cover,
+         shape = cover_type,
+         color = Treatment
+       )) +
   stat_summary(geom = "point", fun = mean, position = position_dodge(width = 1),
                size = 2L, stroke = 1) +
   stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
-               width = 0.2) +  
+               width = 0.2) +
   labs(
     x = " ",
     y = "Mean percent cover",
     title = "Perimeter mean percent cover"
   ) +
   scale_x_discrete(
-    limits = c("1", "2", "3", "4"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 23")
+    limits = c("1", "4"),
+    labels = c("1" = "Aug. 22", "4" = "Aug. 23")
   ) +
-  facet_grid(vars(), vars(Site), labeller = labeller(Site = c(Dunes = "Beach", Jungle = "Forest"))) + 
+  facet_grid(vars(), vars(Site), scales = "fixed", labeller = labeller(Site = c(Dunes = "Beach", Jungle = "Forest"))) +
   theme_minimal() +
   scale_fill_manual(values = c("grey44", "black")) +
   scale_color_manual(values = c("grey44", "black")) +
@@ -1958,34 +2025,45 @@ perimeter_pc_cover <- ggplot(data = perimeter_survey_long,
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
     text = element_text(size = 14),
-    axis.title = element_text(size = 16, margin = margin(t = 0, r = 10, b = 0, l = 0)),  
+    axis.title = element_text(size = 16, margin = margin(t = 0, r = 10, b = 0, l = 0)),
     axis.text = element_text(size = 14),
     axis.text.x = element_text(size = 14),
     plot.title = element_text(size = 12),
-    legend.title = element_text(size = 16),   
-    legend.text = element_text(size = 14)   
+    legend.title = element_text(size = 16),
+    legend.text = element_text(size = 14)
   ) +
   scale_shape_manual(
-    values = c("circle",  "triangle"),   
-    labels = c("grass", "other plants")   
+    values = c("circle",  "triangle"),
+    labels = c("grass", "other plants")
   ) +
-  labs(shape = "Cover type")  
-
+  labs(shape = "Cover type")
 
 
 perimeter_pc_cover
 
 
-#eff sizes 
-per_eff_plot <- ggplot(perimetereffsize, aes(x = Trip, y = Effect_size, shape = Cover)) +
+#############################################3eff sizes###############################
+
+perimetereffsize1 <-read.csv("perimeter_graphs.csv",header=T)
+perimetereffsize <-subset(perimetereffsize1, Data == "eff_size")
+
+perimetereffsize<-subset(perimetereffsize, !Cover == "all_plants")
+perimetereffsize<-subset(perimetereffsize, !Cover ==  "dead" ) 
+perimetereffsize<-subset(perimetereffsize, !Cover ==  "bare" ) 
+perimetereffsize$Trip<-as.factor(perimetereffsize$Trip)
+perimetereffsize$Effect_size<-as.numeric(perimetereffsize$Effect_size)
+
+perimeter_short_effsize <- subset(perimetereffsize, !(Trip %in% c("2", "3")))
+
+per_eff_plot <- ggplot(perimeter_short_effsize, aes(x = Trip, y = Effect_size, shape = Cover)) +
   labs(y = "Effect size", title = "") +
   geom_path(aes(group = Cover), position = position_dodge(0.5), color = "dark gray") +
   theme_bw() +
   facet_wrap(vars(Site), ncol = 2L) +
   geom_point(color = "black", size = 3, position = position_dodge(0.5)) +
   scale_x_discrete(
-    limits = c("1", "2", "3", "4"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23", "4" = "Aug.23")
+    limits = c("1", "4"),
+    labels = c("1" = "Aug. 22", "4" = "Aug. 23")
   ) +
   scale_shape_discrete(
     labels = c("grass", "other plants"),
@@ -2003,7 +2081,7 @@ theme(
     legend.title = element_text(size = 16),
     legend.text = element_text(size = 14)
   ) +
-  facet_grid(vars(), vars(Site), scales = "free_y") +
+  facet_grid(vars(), vars(Site), scales = "fixed") +
 xlab("") 
 
 per_eff_plot
@@ -2293,6 +2371,55 @@ ladder_survey_full <-read.csv("ladder.csv",header=T)
 ladder_survey_long<- ladder_survey_full %>%
   gather(key = "cover_type", value = "percent_cover", c(9,10))
 ladder_survey_long$Trip<-as.factor(ladder_survey_long$Trip)
+ladder_survey_long$Quadrat<-as.factor(ladder_survey_long$Quadrat)
+
+ladder_survey_short1 <- subset(ladder_survey_long, !(Trip %in% c("1", "2")))
+ladder_survey_short2 <- subset(ladder_survey_short1,!(Quadrat %in% c("0")))
+
+
+ladder_survey_summed <- ladder_survey_short2 %>%
+  group_by(Site, Trip, Quadrat, Treatment, cover_type) %>%
+  summarize(mean_cover = mean(percent_cover),
+            mean_se = sd(percent_cover) / sqrt(n()))
+
+library(ggplot2)
+
+# Assuming ladder_survey_short and ladder_survey_summed are loaded and available
+
+ladder_sargasso_graph <- ggplot(ladder_survey_summed) +
+  aes(x = cover_type, y = mean_cover, fill = Treatment) +  
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  geom_errorbar(aes(ymin = mean_cover - mean_se, ymax = mean_cover + mean_se), 
+                position = position_dodge(width = 0.7), width = 0.2) +
+  scale_fill_manual(values = c("lightgray", "darkgray"),
+                    labels = c("Control", "Sargasso")) +
+  labs(
+    x = "",
+    y = "Percent cover",
+    fill = "Treatment",
+  ) +
+  theme_minimal() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 12),
+    axis.text.x = element_text(size = 12),
+    plot.title = element_text(size = 12),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10),
+    strip.text = element_text(size = 10),
+    legend.position = "bottom"
+  ) +
+  facet_grid(vars(Quadrat), vars(Site))
+
+print(ladder_sargasso_graph)
+
+
+
+
+
 
 #make graphs for sargasso plots
 

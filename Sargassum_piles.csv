@@ -1,4 +1,4 @@
-﻿Date,Trip,Location,Treatment,Block,Height,D2,D1,Diameter,r,Cone_Vol,OG_cone_Vol,Cone_prc_D,ellipsoid_vol,OG_ellipsoid_Vol,Ellipsoid_prc_D,delta,Area,GPS_Lat ,GPS_Lon,mean_A,mean_A_SE,mean_D1,mean_r,mean_pile_Vol,pile_vol_SE,
+﻿Date,Trip,Location,Treatment,Block,Height,D2,D1,Diameter,r,Cone_Vol,OG_cone_Vol,Cone_prc_D,ellipsoid_vol,OG_ellipsoid_Vol,Ellipsoid_prc_D,delta,Area,GPS_Lat ,GPS_Lon,mean_A,,mean_D1,mean_r,mean_pile_Vol,pile_vol_SE,
 8/3/22,1,Forest,Control,1,0,0,0,0,0,0,0,0,0,0,0,0,,86°54.240,20°50.700,,,3.755,1.8775,4.28,0.364895723,this is pile volume of all 10 
 8/3/22,1,Forest,Control,2,0,0,0,0,0,0,0,0,0,0,0,0,,86°54.246,20°50.663,,,,,,,
 8/3/22,1,Forest,Control,3,0,0,0,0,0,0,0,0,0,0,0,0,,86°54.243,20°50.657,,,,,,,
