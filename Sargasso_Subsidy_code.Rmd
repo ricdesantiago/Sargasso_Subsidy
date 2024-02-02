@@ -12,6 +12,7 @@ editor_options:
 
 ```{r}
 library(knitr)
+library(patchwork)
 library(tidyverse)
 library(tidyr)
 library(ggplot2)
@@ -82,14 +83,15 @@ piles3<-subset(piles2, Trip == "1")
 
 t.test(ellipsoid_vol~Location, piles3)
 
-#Potential model:  repeated measures ANOVA (as in Spiller et al 2010)
 #Pile volume as the response, site as the main between-subjects factor, sampling date as the repeated within-subject 
-#factor, and starting volume as a random factor.
 
 # Perform the repeated measures ANOVA with original_vol as a covariate
-piles_rm_anova <- lmer(ellipsoid_vol ~ Location * Trip + (1|Block), data = piles2)
 
-summary(piles_rm_anova)
+piles_model <- lmer(Ellipsoid_prc_D ~ Trip * Location  + (1|Block), data = piles2)
+
+summary(piles_model)
+
+anova(piles_rm_anova)
 
 #  post hoc pairwise comparisons 
 lsmeans_results <- lsmeans(piles_rm_anova, pairwise ~ Trip:Location)
@@ -98,7 +100,7 @@ print(lsmeans_results)
 
 
 
-
+view(piles2)
 
 ```
 
@@ -142,6 +144,7 @@ vol_x_time
 
 
 #Decomposer experiment 
+##inverts
 
 ```{r}
 
@@ -154,32 +157,85 @@ view(decomp)
 decomp_inverts<- decomp %>%
   gather(key = "inverts", value = "count", c(5,6,11))
 
-view(decomp_inverts)
+#remove small bags 
+decomp_inverts2<-subset(decomp_inverts, Treatment == "large")
 
 
-invert_plot <- ggplot(data = decomp_inverts,
-                      aes(
-                        x = inverts,
-                        y = count,
-                      )) +
-  stat_summary(geom = "bar", fun = mean, position = position_dodge(width = 1),
-               size = 2L, stroke = 1) +
-  stat_summary(geom = "errorbar", fun.data = mean_se, position = position_dodge(width = 1),
-               width = 0.2) +  # error bars
-  theme_minimal() +
+#figure out means and SE for graph
+
+decomp_inverts2 %>%
+  group_by(Trip, Site, Treatment, inverts) %>%
+  summarize(mean_count = mean(count), count_se = sd(count) / sqrt(n())) %>%
+  ggplot() +
+  aes(x =inverts, y = mean_count, fill = Treatment) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean_count - count_se, ymax = mean_count + count_se), 
+                position = position_dodge(width = 0.9), width = 0.25) +
+  scale_fill_hue(direction = 1) +
+ theme_classic() +
   facet_grid(vars(Trip), vars(Site)) +
-  theme(axis.title.x = element_blank(),  # Remove x-axis title
-        text = element_text(size = 16),  # Increase font size for all text
-        panel.border = element_rect(color = "black", fill = NA, size = 0.5)) +  # Add a thin black line around the graph
-  labs(y = "Arthroopod counts")
+   theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    text = element_text(size = 14, color = "black"),
+    axis.title = element_text(size = 16, color = "black"),
+    axis.text = element_text(size = 14, color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),
+    plot.title = element_text(size = 12, color = "black"),
+    legend.title = element_text(size = 16, color = "black"),
+    legend.text = element_text(size = 14, color = "black"),
+    strip.text = element_text(size = 14, color = "black")) +  
+  labs(y = "Arthroopod counts", x = "", title = "Mesh bag inverts")
 
-invert_plot
+
+# Calculate the total counts for each group to see how much higher amphipod counts are compared to others at beach on aug 2022
+#subset aug 2022
+decomp_inverts_aug<-subset(decomp, Trip == "Aug. 22")
+#beach
+decomp_inverts_aug_beach<- subset(decomp_inverts_aug, Site == "Beach")
+
+total_amphipods <- sum(decomp_inverts_aug_beach$Amphipoda, na.rm = TRUE)
+total_arachnids <- sum(decomp_inverts_aug_beach$Arachnida, na.rm = TRUE)
+total_hymenopterans <- sum(decomp_inverts_aug_beach$Hymenoptera, na.rm = TRUE)
+
+# Calculate the percentage difference for Amphipods compared to others
+percent_difference <- ((total_amphipods - (total_arachnids + total_hymenopterans )) / (total_arachnids + total_hymenopterans )) * 100
+
+# Print the results
+cat("percent_difference:", percent_difference, "%\n")
 
 
 
-decomp_bags<-read.csv("mesh_bag_exp.csv",header = T )
+# Fit linear mixed-effects model
+decomp_inverts_model<- lm(count ~  inverts + Site * Trip + inverts, data = decomp_inverts2)
+
+
+# Print model summary
+summary(decomp_inverts_model)
+
+
+
+# Obtain estimated marginal means
+means <- emmeans(decomp_inverts_model, ~ inverts + Site * Trip)
+
+# Perform pairwise comparisons for November 22
+pairwise_comparisons <- pairs(means, by = "Site:Trip", infer = c(TRUE, TRUE))
+
+# Print the comparisons
+print(pairwise_comparisons)
+
+
+```
+
+##mesh bags
+```{r}
+
+#load data
+decomp_bags<-read.csv("mesh_bag_exp.csv",header =T )
 decomp_bags$Rep_no.<-as.factor(decomp_bags$Rep_no.)
 decomp_bags$Trip<-as.factor(decomp_bags$Trip)
+decomp_bags$prc_Delta <- as.numeric(decomp_bags$prc_Delta)
+
 
 view(decomp_bags)
 
@@ -210,6 +266,15 @@ decomp_bags %>%
   theme_minimal() +
   facet_grid(Trip ~ ., labeller = labeller(Trip = function(x) ifelse(x == "2", "Nov. 22", ifelse(x == "3", "Mar. 23", x)))) 
 
+view(decomp_bags)
+
+
+# Fit linear mixed-effects model
+decomp_model<- lmer(prc_Delta ~ Site * Treatment * Trip + (1|Bag_ID), data = decomp_bags, na.action = na.exclude)
+
+
+# Print model summary
+summary(decomp_model)
 
 
 ```
@@ -873,6 +938,7 @@ laddersurvey_long <- gather(ladder, key = "cover_type", value = "percent_cover",
 #use this for graphing purposes
 laddersurvey_long$percent_cover<-as.numeric(laddersurvey_long$percent_cover)
 laddersurvey_long$Trip<-as.factor(laddersurvey_long$Trip)
+laddersurvey_long$Quadrat <- as.factor(laddersurvey_long$Quadrat)
 
 #graph it
 #lets look at the distance effect of sargassum on percent cover of grass and all other plants in the jungle 
@@ -903,9 +969,41 @@ ladder<- laddersurvey_long %>%
 
 ladder
 
+ 
 
-esquisse::esquisser()
+laddersurvey_long %>%
+filter(Quadrat != "0") %>%
+  ggplot(aes(x = Quadrat, fill = Treatment, y = percent_cover)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  stat_summary(
+    fun.data = "mean_se",
+    geom = "errorbar",
+    position = position_dodge(width = 0.7),
+    width = 0.25
+  ) +
+  theme_minimal() +
+  facet_grid(vars(Trip), vars(Site))
 
+
+# Convert Quadrat to a factor to ensure correct grouping
+laddersurvey_long$Quadrat <- as.factor(laddersurvey_long$Quadrat)
+# remove the "0" treatment since those data are used toward the perimieter surveys and we are now interested in seeing if there is a treatment effect BEYOND those
+
+laddersurvey_dist<-subset(laddersurvey_long, !Quadrat == "0")
+
+# Fit a linear mixed-effects model
+ladder_lm <- lm(percent_cover ~ Treatment + Site * Quadrat * Trip , data = laddersurvey_dist)
+
+# Print model summary
+summary(ladder_lm)
+
+# Perform an analysis of variance (ANOVA) to test the significance of the Treatment term
+ladder_anova_result <- anova(ladder_lm)
+
+# Print the ANOVA table
+print(ladder_anova_result)
+
+   
 ```
 
 
@@ -1618,51 +1716,6 @@ gas_CO2 %>%
 
 
 #Manuscript figures
-##pile vol
-```{r}
-
-
-####################may need to cut this graph for publication due to too many figures
-#####################################pile volumes#####################################
-
-piles <-read.csv("Sargassum_piles.csv",header=T)
-piles2<-subset(piles, Treatment== "Sargassum")
-piles2$Trip<-as.factor(piles2$Trip)
-piles2$Block<-as.factor(piles2$Block)
-# Calculate the means by month and location
-
-mean_data <- piles2 %>%
-  group_by(Trip, Location) %>%
-  summarize(mean_ellipsoid_vol = mean(Ellipsoid_prc_D))
-
-
-# Create the scatter plot with mean points connected by a line
-scatterplot <- ggplot(data = piles2, aes(x = Trip, y = Ellipsoid_prc_D, fill = Location)) +
-  geom_point(size = 2, shape = 21, aes(fill = Location)) +
-  geom_line(data = mean_data, aes(x = Trip, y = mean_ellipsoid_vol, group = Location), color = "gray")
-
-# Customize the plot appearance
-vol_x_time <- scatterplot +
-  labs(x = "", y = "Pile volume (%)") +
-  scale_color_manual(values = c("black", "white")) +
-  scale_fill_manual(values = c("black", "white")) +
-  scale_x_discrete(
-    limits = c("1", "2", "3", "4"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23", "4" = "Aug.23")
-  ) +
-  theme_classic() +
-  theme(
-    panel.border = element_rect(color = "black", fill = NA, size = 1),
-    panel.spacing = unit(0.2, "lines"),
-    axis.title = element_text(size = 16, color = "black"),    
-    axis.text = element_text(size = 14, color = "black"),     
-    axis.text.x = element_text(size = 14, color = "black"),   
-    plot.title = element_text(size = 18, color = "black"),    
-    legend.title = element_text(size = 16, color = "black"),  
-    legend.text = element_text(size = 14, color = "black")  )
-
-vol_x_time
-```
 
 ##decomp bags
 ```{r}
@@ -1729,10 +1782,11 @@ view(decomp)
 decomp_inverts<- decomp %>%
   gather(key = "inverts", value = "count", c(5,6,11))
 
-view(decomp_inverts)
+#remove small bags 
+decomp_inverts2<-subset(decomp_inverts, Treatment == "large")
 
 
-invert_plot <- ggplot(data = decomp_inverts,
+invert_plot <- ggplot(data = decomp_inverts2,
                       aes(
                         x = inverts,
                         y = count,
@@ -1758,26 +1812,28 @@ invert_plot <- ggplot(data = decomp_inverts,
 
 invert_plot
 
-
-
 ```
 
-##nitrogen
+##chemistry
 ```{r}
-nitrogen<-read.csv("sargasso_nitrates.csv",header=T)
 
-nitrogen$block<-as.factor(nitrogen$block)
-nitrogen$trip<-as.factor(nitrogen$trip)
 
-nitrogen %>%
+
+#ammonium
+ammonium<-read.csv("sargasso_nitrates.csv",header=T)
+
+ammonium$block<-as.factor(ammonium$block)
+ammonium$trip<-as.factor(ammonium$trip)
+
+NH4<-ammonium %>%
  filter(!(site %in% "")) %>%
  filter(!(treatment %in% "")) %>%
   group_by(trip, site, treatment) %>%
-  summarize(mean_N = mean(N), N_se = sd(N) / sqrt(n())) %>%
+  summarize(mean_NH4 = mean(NH4), NH4_se = sd(NH4) / sqrt(n())) %>%
   ggplot() +
-  aes(x =trip, y = mean_N, fill = treatment) +
+  aes(x =trip, y = mean_NH4, fill = treatment) +
   geom_bar(stat = "identity", position = "dodge") +
-  geom_errorbar(aes(ymin = mean_N - N_se, ymax = mean_N + N_se), 
+  geom_errorbar(aes(ymin = mean_NH4 - NH4_se, ymax = mean_NH4 + NH4_se), 
                 position = position_dodge(width = 0.9), width = 0.25) +
    scale_fill_manual(values = c("lightgray", "dark gray")) +
     scale_x_discrete(
@@ -1785,20 +1841,115 @@ nitrogen %>%
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2024") ) +
   labs(
     x = " ",
-    y = "Nitrogen in sediment (ugN/g)",
+    y = expression("Ammonium (mg) sediment (kg"^{-1} * ")"),
     title = "",
     fill = "Treatment") +
   theme_classic()  +
    theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
-   axis.title = element_text(size = 16, color = "black"),   
-    axis.text = element_text(size = 14, color = "black"),     
-    axis.text.x = element_text(size = 14, color = "black"),   
-    plot.title = element_text(size = 18, color = "black"),   
-    legend.title = element_text(size = 16, color = "black"), 
-    legend.text = element_text(size = 14, color = "black"), 
-   strip.text = element_text(size = 16, color = "black"),  
+   axis.title = element_text(size = 14, color = "black"),   
+    axis.text = element_text(size = 12, color = "black"),     
+    axis.text.x = element_text(size = 12, color = "black"),   
+    plot.title = element_text(size = 16, color = "black"),   
+    legend.title = element_text(size = 14, color = "black"), 
+    legend.text = element_text(size = 12, color = "black"), 
+   strip.text = element_text(size = 14, color = "black"), 
+    legend.position = "",
+     legend.box = "horizontal",
+    plot.background = element_rect(fill = "white"))  +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines")) +
+    facet_grid(vars(), vars(site),scales = "fixed")
+
+NH4
+
+#nitrate
+nitrogen<-read.csv("sargasso_nitrates.csv",header=T)
+
+nitrogen$block<-as.factor(nitrogen$block)
+nitrogen$trip<-as.factor(nitrogen$trip)
+
+N <- nitrogen %>%
+  filter(!(site %in% "")) %>%
+  filter(!(treatment %in% "")) %>%
+  group_by(trip, site, treatment) %>%
+  summarize(mean_N = mean(N), N_se = sd(N) / sqrt(n())) %>%
+  ggplot() +
+  aes(x = trip, y = mean_N, fill = treatment) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean_N - N_se, ymax = mean_N + N_se), 
+                position = position_dodge(width = 0.9), width = 0.25) +
+  scale_fill_manual(values = c("lightgray", "dark gray")) +
+  scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2024")) +
+  labs(
+    x = " ",
+    y = expression("Nitrate (mg) sediment (kg"^{-1} * ")"),
+    title = "",
+    fill = "Treatment") +
+  theme_classic() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+   axis.title = element_text(size = 14, color = "black"),   
+    axis.text = element_text(size = 12, color = "black"),     
+    axis.text.x = element_text(size = 12, color = "black"),   
+    plot.title = element_text(size = 16, color = "black"),   
+    legend.title = element_text(size = 14, color = "black"), 
+    legend.text = element_text(size = 12, color = "black"), 
+   strip.text = element_text(size = 14, color = "black"), 
+      strip.text.x = element_blank(), 
+    legend.position = "",
+    legend.box = "horizontal",
+    plot.background = element_rect(fill = "white")) +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines")) +
+  facet_grid(vars(), vars(site), scales = "fixed")
+  
+print(N)
+
+
+#carbon
+carbon<-read.csv("sargasso_nitrates.csv",header=T)
+
+carbon$block<-as.factor(carbon$block)
+carbon$trip<-as.factor(carbon$trip)
+
+C<-carbon %>%
+ filter(!(site %in% "")) %>%
+ filter(!(treatment %in% "")) %>%
+  group_by(trip, site, treatment) %>%
+  summarize(mean_C = mean(C), C_se = sd(C) / sqrt(n())) %>%
+  ggplot() +
+  aes(x =trip, y = mean_C, fill = treatment) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean_C - C_se, ymax = mean_C + C_se), 
+                position = position_dodge(width = 0.9), width = 0.25) +
+   scale_fill_manual(values = c("lightgray", "dark gray")) +
+    scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2024") ) +
+  labs(
+    x = " ",
+    y = expression("DOC (mg) sediment (kg"^{-1} * ")"),
+    title = "",
+    fill = "Treatment") +
+  theme_classic()  +
+   theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+   axis.title = element_text(size = 14, color = "black"),   
+    axis.text = element_text(size = 12, color = "black"),     
+    axis.text.x = element_text(size = 12, color = "black"),   
+    plot.title = element_text(size = 16, color = "black"),   
+    legend.title = element_text(size = 14, color = "black"), 
+    legend.text = element_text(size = 12, color = "black"), 
+   strip.text = element_text(size = 14, color = "black"), 
+     strip.text.x = element_blank(), 
     legend.position = "bottom",
      legend.box = "horizontal",
     plot.background = element_rect(fill = "white"))  +
@@ -1806,6 +1957,16 @@ nitrogen %>%
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines")) +
     facet_grid(vars(), vars(site),scales = "fixed")
+
+C
+
+
+# Stack the plots vertically
+stacked_plots <- NH4 / N / C
+
+# Display the stacked plots
+stacked_plots
+
 
 ```
 
@@ -2145,7 +2306,6 @@ pitfalls_data <- pitfalls_long %>%
   summarize(mean_count = mean(Count), 
             std_error = sd(Count) / sqrt(n()))
 
-
 pitfall_count <- ggplot(pitfalls_data) +
   aes(x = Trip, y = mean_count, shape = Taxa) + 
   geom_jitter(position = position_dodge(width = 0.5), size = 2, alpha = 0.7) +   
@@ -2156,7 +2316,7 @@ pitfall_count <- ggplot(pitfalls_data) +
     limits = c("1", "2", "3"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
   theme_classic() +
-theme(
+  theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
     text = element_text(size = 14),
@@ -2170,7 +2330,7 @@ theme(
   ) +
   xlab("") +
   ylab("Crawling arthropod abundance") +
-  facet_grid(vars(Treatment), vars(Site), scales = "fixed", space = "fixed", 
+  facet_grid(vars(Site), vars(Treatment), scales = "free_y", 
              labeller = labeller(Treatment = c(Control = "Control", Sargassum = "Sargassum"),
                                  Site = c(Dune = "Beach", Jungle = "Forest"))) +
   theme(strip.text = element_text(size = 16)) +
@@ -2180,6 +2340,7 @@ theme(
   theme(plot.title = element_text(size = 16))
 
 print(pitfall_count)
+
 
 
 
@@ -2256,7 +2417,7 @@ stickies_prc_cover <- ggplot(stickies_data) +
     limits = c("1", "2", "3"),
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
   theme_classic() +
-theme(
+  theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
     text = element_text(size = 14),
@@ -2270,7 +2431,7 @@ theme(
   ) +
   xlab("") +
   ylab("Flying arthropod abundance") +
-  facet_grid(vars(Treatment), vars(Site), scales = "fixed", space = "fixed", 
+  facet_grid(vars(Site), vars(Treatment), scales = "free_y", 
              labeller = labeller(Treatment = c(Control = "Control", Sargassum = "Sargassum"),
                                  Site = c(Dune = "Beach", Jungle = "Forest"))) +
   theme(strip.text = element_text(size = 16)) +
@@ -2278,8 +2439,8 @@ theme(
   labs(subtitle = "") +
   labs(caption = "") +
   theme(plot.title = element_text(size = 16))
-print(stickies_prc_cover)
 
+print(stickies_prc_cover)
 
 
 #####Effect sizes Graph#####
@@ -2330,6 +2491,52 @@ print(combined_sticky_graphs)
 ```
 
 #Supplementary graphs
+##pile vol
+```{r}
+
+
+####################may need to cut this graph for publication due to too many figures
+#####################################pile volumes#####################################
+
+piles <-read.csv("Sargassum_piles.csv",header=T)
+piles2<-subset(piles, Treatment== "Sargassum")
+piles2$Trip<-as.factor(piles2$Trip)
+piles2$Block<-as.factor(piles2$Block)
+# Calculate the means by month and location
+
+mean_data <- piles2 %>%
+  group_by(Trip, Location) %>%
+  summarize(mean_ellipsoid_vol = mean(Ellipsoid_prc_D))
+
+
+# Create the scatter plot with mean points connected by a line
+scatterplot <- ggplot(data = piles2, aes(x = Trip, y = Ellipsoid_prc_D, fill = Location)) +
+  geom_point(size = 2, shape = 21, aes(fill = Location)) +
+  geom_line(data = mean_data, aes(x = Trip, y = mean_ellipsoid_vol, group = Location), color = "gray")
+
+# Customize the plot appearance
+vol_x_time <- scatterplot +
+  labs(x = "", y = "Pile volume (%)") +
+  scale_color_manual(values = c("black", "white")) +
+  scale_fill_manual(values = c("black", "white")) +
+  scale_x_discrete(
+    limits = c("1", "2", "3", "4"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar.23", "4" = "Aug.23")
+  ) +
+  theme_classic() +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    axis.title = element_text(size = 16, color = "black"),    
+    axis.text = element_text(size = 14, color = "black"),     
+    axis.text.x = element_text(size = 14, color = "black"),   
+    plot.title = element_text(size = 18, color = "black"),    
+    legend.title = element_text(size = 16, color = "black"),  
+    legend.text = element_text(size = 14, color = "black")  )
+
+vol_x_time
+```
+
 ## full ladder survey
 ```{r}
 ladder_survey_full <-read.csv("ladder.csv",header=T)  
@@ -2479,6 +2686,8 @@ print(ladder_control_graph)
 
 combined_ladder_graphs <- grid.arrange(ladder_sargasso_graph, ladder_control_graph, ncol = 1)
   
+
+#make graphs for percent cov
 
 ```
 
