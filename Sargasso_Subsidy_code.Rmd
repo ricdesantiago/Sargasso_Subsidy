@@ -204,15 +204,21 @@ percent_difference <- ((total_amphipods - (total_arachnids + total_hymenopterans
 # Print the results
 cat("percent_difference:", percent_difference, "%\n")
 
+#now the Forest
+ecomp_inverts_aug_F<- subset(decomp_inverts_aug, Site == "Forest")
+
+Ftotal_amphipods <- sum(ecomp_inverts_aug_F$Amphipoda, na.rm = TRUE)
+Ftotal_arachnids <- sum(ecomp_inverts_aug_F$Arachnida, na.rm = TRUE)
+Ftotal_hymenopterans <- sum(ecomp_inverts_aug_F$Hymenoptera, na.rm = TRUE)
+
 
 
 # Fit linear mixed-effects model
-decomp_inverts_model<- lm(count ~  inverts + Site * Trip + inverts, data = decomp_inverts2)
+decomp_inverts_model<- lm(count ~  inverts + Site * Trip , data = decomp_inverts2)
 
 
 # Print model summary
 summary(decomp_inverts_model)
-
 
 
 # Obtain estimated marginal means
@@ -269,12 +275,27 @@ decomp_bags %>%
 view(decomp_bags)
 
 
-# Fit linear mixed-effects model
-decomp_model<- lmer(prc_Delta ~ Site * Treatment * Trip + (1|Bag_ID), data = decomp_bags, na.action = na.exclude)
 
 
-# Print model summary
+#in our linear model, we want to see how percent decomposition differed by treatment at each site over time. Thus, we will remove Trip one as this is T0 and there would be no decomposition. Further, including it in the model would create a convergence and likely drop it anyway but just to be on the safe side, we will subset it out.
+
+decomp_bags_model_data<- subset(decomp_bags, !Trip == "1")
+
+# Fit 
+decomp_model<- lmer(prc_Delta ~  Treatment * Site * Trip + (1|Bag_ID), data = decomp_bags_model_data, na.action = na.exclude)
+
+
 summary(decomp_model)
+
+# now lets do some pairwise comparisons 
+emm_decomp<- emmeans(decomp_model, ~ Treatment:Site:Trip)
+
+
+contrasts_decomp <- pairs(emm_decomp, reverse = TRUE)
+
+# Print the results
+print(contrasts_decomp)
+
 
 
 ```
@@ -1531,35 +1552,17 @@ pile_chem %>%
 
 ##nitrogen
 ```{r}
-nitrogen<-read.csv("sargasso_nitrates.csv",header=T)
+chemistry<-read.csv("sargasso_nitrates.csv",header=T)
 
-nitrogen$block<-as.factor(nitrogen$block)
-nitrogen$trip<-as.factor(nitrogen$trip)
+chemistry$block<-as.factor(chemistry$block)
+chemistry$trip<-as.factor(chemistry$trip)
 
-nitrogen %>%
- filter(!(site %in% "")) %>%
- filter(!(treatment %in% "")) %>%
-  group_by(trip, site, treatment) %>%
-  summarize(mean_N = mean(N), N_se = sd(N) / sqrt(n())) %>%
-  ggplot() +
-  aes(x =trip, y = mean_N, fill = treatment) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_errorbar(aes(ymin = mean_N - N_se, ymax = mean_N + N_se), 
-                position = position_dodge(width = 0.9), width = 0.25) +
-  scale_fill_hue(direction = 1) +
-    scale_x_discrete(
-    limits = c("1", "2", "3", "4"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2024") ) +
-  labs(
-    x = " ",
-    y = "Nitrogen in sediment (ugN/g)",
-    title = ""
-  ) +
-  theme_classic()  +
-  theme(
-    panel.border = element_rect(color = "black", fill = NA, size = 1),
-    panel.spacing = unit(0.2, "lines")) +
-    facet_grid(vars(), vars(site),scales = "fixed")
+view(chemistry)
+
+#ammonium
+ammonium<-lm(NH4 ~ treatment + site * trip, data = chemistry)
+summary(ammonium)
+
 
 ```
 
@@ -1838,7 +1841,7 @@ NH4<-ammonium %>%
    scale_fill_manual(values = c("lightgray", "dark gray")) +
     scale_x_discrete(
     limits = c("1", "2", "3", "4"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2024") ) +
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2023") ) +
   labs(
     x = " ",
     y = expression("Ammonium (mg) sediment (kg"^{-1} * ")"),
@@ -1884,7 +1887,7 @@ N <- nitrogen %>%
   scale_fill_manual(values = c("lightgray", "dark gray")) +
   scale_x_discrete(
     limits = c("1", "2", "3", "4"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2024")) +
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2023")) +
   labs(
     x = " ",
     y = expression("Nitrate (mg) sediment (kg"^{-1} * ")"),
@@ -1932,7 +1935,7 @@ C<-carbon %>%
    scale_fill_manual(values = c("lightgray", "dark gray")) +
     scale_x_discrete(
     limits = c("1", "2", "3", "4"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2024") ) +
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2023") ) +
   labs(
     x = " ",
     y = expression("DOC (mg) sediment (kg"^{-1} * ")"),
