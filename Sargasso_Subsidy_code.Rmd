@@ -1550,7 +1550,7 @@ pile_chem %>%
 
 ```
 
-##nitrogen
+##full chem
 ```{r}
 chemistry<-read.csv("sargasso_nitrates.csv",header=T)
 
@@ -1559,9 +1559,94 @@ chemistry$trip<-as.factor(chemistry$trip)
 
 view(chemistry)
 
-#ammonium
-ammonium<-lm(NH4 ~ treatment + site * trip, data = chemistry)
+hist(chemistry$NH4, 
+     main = "Histogram of Variable", 
+     xlab = "Variable Values",
+     breaks = seq(min(chemistry$NH4), max(chemistry$NH4) + 1, by = 1))
+
+# Create a Q-Q plot to assess normality
+qqnorm(chemistry$NH4_transformed )
+qqline(chemistry$NH4_transformed )
+
+#data are positively skewed, lets log transform
+chemistry$NH4_transformed <- log(chemistry$NH4)
+
+hist(chemistry$NH4_transformed , 
+     main = "Histogram of Variable", 
+     xlab = "Variable Values",
+     breaks = seq(min(chemistry$NH4_transformed ), max(chemistry$NH4_transformed ) + 1, by = 1))
+
+
+#################ammonium
+ammonium<-lm(NH4_transformed ~ treatment + site * trip, data = chemistry)
 summary(ammonium)
+
+#look at residuals 
+plot(ammonium, which = c(1, 3)) 
+#looks fine
+
+# Create emmeans object
+emmeans_NH4 <- emmeans(ammonium, ~treatment + site*trip)
+
+# Display pairwise comparisons
+pairwise_NH4 <- pairs(emmeans_NH4)
+print(pairwise_NH4)
+
+
+
+##########################3nitrate
+
+hist(chemistry$N, 
+     main = "Histogram of Variable", 
+     xlab = "Variable Values",
+     breaks = seq(min(chemistry$N), max(chemistry$N) + 1, by = 1))
+
+# Create a Q-Q plot to assess normality
+qqnorm(chemistry$N)
+qqline(chemistry$N)
+#data look normal enough 
+
+
+N<-lm(N ~ treatment + site * trip, data = chemistry)
+summary(N)
+
+#look at residuals 
+plot(N, which = c(1, 3)) 
+#looks fine
+
+# Create emmeans object
+emmeans_N <- emmeans(N, ~treatment + site*trip)
+
+# Display pairwise comparisons
+pairwise_N <- pairs(emmeans_N)
+print(pairwise_N)
+
+
+#########################################DOC
+
+hist(chemistry$C, 
+     main = "Histogram of Variable", 
+     xlab = "Variable Values",
+     breaks = seq(min(chemistry$C), max(chemistry$C) + 1, by = 1))
+
+# Create a Q-Q plot to assess normality
+qqnorm(chemistry$N)
+qqline(chemistry$N)
+
+#data look normal enough 
+C<-lm(C ~ treatment + site * trip, data = chemistry)
+summary(C)
+
+#look at residuals 
+plot(C, which = c(1, 3)) 
+#looks fine
+
+# Create emmeans object
+emmeans_C <- emmeans(C, ~treatment + site*trip)
+
+# Display pairwise comparisons
+pairwise_C <- pairs(emmeans_C)
+print(pairwise_C)
 
 
 ```
@@ -2545,153 +2630,101 @@ vol_x_time
 ladder_survey_full <-read.csv("ladder.csv",header=T)  
 
 ladder_survey_long<- ladder_survey_full %>%
-  gather(key = "cover_type", value = "percent_cover", c(9,10))
+  gather(key = "cover_type", value = "percent_cover", c(10,11))
 ladder_survey_long$Trip<-as.factor(ladder_survey_long$Trip)
 ladder_survey_long$Quadrat<-as.factor(ladder_survey_long$Quadrat)
 
-ladder_survey_short1 <- subset(ladder_survey_long, !(Trip %in% c("1", "2")))
-ladder_survey_short2 <- subset(ladder_survey_short1,!(Quadrat %in% c("0")))
+#remove zero points since there is overlap witht he actual plot
+ladder_survey_short2 <- subset(ladder_survey_long, !Quadrat == "0")
 
-
+#sumarize data for the graph
 ladder_survey_summed <- ladder_survey_short2 %>%
-  group_by(Site, Trip, Quadrat, Treatment, cover_type) %>%
+  group_by(Site, Trip, Dist_from_edge, Treatment, cover_type) %>%
   summarize(mean_cover = mean(percent_cover),
             mean_se = sd(percent_cover) / sqrt(n()))
 
+#subset grass to make graph
+ladder_survey_grass<-subset(ladder_survey_summed, cover_type == "Bermuda")
 
-ladder_sargasso_graph <- ggplot(ladder_survey_summed) +
-  aes(x = cover_type, y = mean_cover, fill = Treatment) +  
+#grass graph
+ladder_sargasso_graph <- ggplot(ladder_survey_grass) +
+  aes(x = Trip, y = mean_cover, fill = Treatment) +  
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
   geom_errorbar(aes(ymin = mean_cover - mean_se, ymax = mean_cover + mean_se), 
                 position = position_dodge(width = 0.7), width = 0.2) +
   scale_fill_manual(values = c("lightgray", "darkgray"),
-                    labels = c("Control", "Sargasso")) +
+                    labels = c("Control", "Sargassum")) +
   labs(
     x = "",
-    y = "Percent cover",
-    fill = "Treatment",
-  ) +
+    y = "Grass percent cover",
+    fill = "Treatment",  ) +
+
+  scale_x_discrete(
+    limits = c("1", "2", "3"),
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
   theme_minimal() +
   theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
-    text = element_text(size = 12),
-    axis.title = element_text(size = 12),
-    axis.text = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
-    plot.title = element_text(size = 12),
-    legend.title = element_text(size = 12),
-    legend.text = element_text(size = 10),
-    strip.text = element_text(size = 10),
-    legend.position = "bottom"
-  ) +
-  facet_grid(vars(Quadrat), vars(Site))
+    text = element_text(size = 14, color = "black"),
+    axis.title = element_text(size = 16, color = "black"),
+    axis.text = element_text(size = 14, color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),
+    plot.title = element_text(size = 12, color = "black"),
+    legend.title = element_text(size = 16, color = "black"),
+    legend.text = element_text(size = 14, color = "black"),
+    strip.text = element_text(size = 14, color = "black")) +
+  facet_grid(vars(Dist_from_edge), vars(Site))
 
 print(ladder_sargasso_graph)
 
+#now lets repeat this for other plants
 
+#subset other plants for second graph
+ladder_survey_others<-subset(ladder_survey_summed, cover_type == "Other_pants")
 
+#graph it
 
-
-
-#make graphs for sargasso plots
-
-ladder_long_sarg<-subset(ladder_survey_long, Treatment == "Sargassum")
-
-
-ladder_sargasso <- ladder_long_sarg %>%
-  group_by(Site, Trip, Quadrat, cover_type) %>%
-  summarize(mean_cover = mean(percent_cover),
-            mean_se = sd(percent_cover) / sqrt(n()))
-
-ladder_sargasso_graph <- ggplot(ladder_sargasso) +
-  aes(x = Trip, y = mean_cover, fill = cover_type) +
+ladder_sargasso_graph2 <- ggplot(ladder_survey_others) +
+  aes(x = Trip, y = mean_cover, fill = Treatment) +  
   geom_bar(stat = "identity", position = "dodge", width = 0.7) +
   geom_errorbar(aes(ymin = mean_cover - mean_se, ymax = mean_cover + mean_se), 
                 position = position_dodge(width = 0.7), width = 0.2) +
   scale_fill_manual(values = c("lightgray", "darkgray"),
-                    labels = c("grass", "other plants")) +
+                    labels = c("Control", "Sargassum")) +
   labs(
     x = "",
-    y = "Percent cover",
-    fill = "Cover type",
-    title = "Sargasso plots"
-  ) +
+    y = "Other plant percent cover",
+    fill = "Treatment",  ) +
+
   scale_x_discrete(
     limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
-  ) +
-  theme_minimal() +
- theme(
-    panel.border = element_rect(color = "black", fill = NA, size = 1),
-    panel.spacing = unit(0.2, "lines"),
-    text = element_text(size = 12),
-    axis.title = element_text(size = 12),
-    axis.text = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
-    plot.title = element_text(size = 12),
-    legend.title = element_text(size = 12),
-    legend.text = element_text(size = 10),
-    strip.text = element_text(size = 10),  
-    legend.position = "bottom"
-  ) +
-  facet_grid(vars(Quadrat), vars(Site))
-
-print(ladder_sargasso_graph)
-
-
-#make graphs for control plots
-
-ladder_long_con<-subset(ladder_survey_long, Treatment == "Control")
-
-
-ladder_control <- ladder_long_con %>%
-  group_by(Site, Trip, Quadrat, cover_type) %>%
-  summarize(mean_cover = mean(percent_cover),
-            mean_se = sd(percent_cover) / sqrt(n()))
-
-ladder_control_graph <- ggplot(ladder_control) +
-  aes(x = Trip, y = mean_cover, fill = cover_type) +
-  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
-  geom_errorbar(aes(ymin = mean_cover - mean_se, ymax = mean_cover + mean_se), 
-                position = position_dodge(width = 0.7), width = 0.2) +
-  scale_fill_manual(values = c("lightgray", "darkgray"),
-                    labels = c("grass", "other plants")) +
-  labs(
-    x = "",
-    y = "Percent cover",
-    fill = "Cover type",
-    title = "Control plots"
-  ) +
-  scale_x_discrete(
-    limits = c("1", "2", "3"),
-    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")
-  ) +
+    labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23")) +
   theme_minimal() +
   theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
-    text = element_text(size = 12),
-    axis.title = element_text(size = 12),
-    axis.text = element_text(size = 12),
-    axis.text.x = element_text(size = 12),
-    plot.title = element_text(size = 12),
-    legend.title = element_text(size = 12),
-    legend.text = element_text(size = 10),
-    strip.text = element_text(size = 10),  
-    legend.position = "bottom"
-  ) +
-  facet_grid(vars(Quadrat), vars(Site))
-
-print(ladder_control_graph)
-  
+    text = element_text(size = 14, color = "black"),
+    axis.title = element_text(size = 16, color = "black"),
+    axis.text = element_text(size = 14, color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),
+    plot.title = element_text(size = 12, color = "black"),
+    legend.title = element_text(size = 16, color = "black"),
+    legend.text = element_text(size = 14, color = "black"),
+    strip.text = element_text(size = 14, color = "black")) +
+  facet_grid(vars(Dist_from_edge), vars(Site))
 
 
-combined_ladder_graphs <- grid.arrange(ladder_sargasso_graph, ladder_control_graph, ncol = 1)
-  
+print(ladder_sargasso_graph2)
 
-#make graphs for percent cov
+#combine graphs
+combined_ladder_graphs <- grid.arrange(
+  ladder_sargasso_graph,
+  ladder_sargasso_graph2,
+  ncol = 1,
+  heights = c(4, 4))
 
+print(combined_ladder_graphs)
 ```
 
 ##full perimeter percent cover
