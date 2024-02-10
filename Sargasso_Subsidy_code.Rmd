@@ -1826,7 +1826,7 @@ ggplot(decomp_bags) +
 #subset out trip 1 since its only going to show initial mass which is 100%
 
 
-decomp_bags %>%
+decomp_bags<- decomp_bags %>%
   filter(!(Trip %in% "1")) %>%
   ggplot() +
   scale_fill_manual(name = "Mesh size", 
@@ -1852,8 +1852,11 @@ decomp_bags %>%
     legend.text = element_text(size = 14, color = "black"),
     legend.position = "bottom",
     strip.text = element_text(size = 16, color = "black"),  
-    plot.background = element_rect(fill = "white"))  
+    plot.background = element_rect(fill = "white")) 
 
+print(decomp_bags)
+
+ggsave("Figure 1.jpg", plot = decomp_bags, width = 8, height = 6, units = "in", dpi = 600)
 
 
 ```
@@ -1896,9 +1899,11 @@ invert_plot <- ggplot(data = decomp_inverts2,
     legend.title = element_text(size = 16, color = "black"),
     legend.text = element_text(size = 14, color = "black"),
     strip.text = element_text(size = 14, color = "black")) +  
-  labs(y = "Arthroopod counts", x = "", title = "Mesh bag inverts")
+  labs(y = "Arthroopod counts", x = "", title = "")
 
 invert_plot
+
+ggsave("Figure 2.jpg", plot = invert_plot, width = 8, height = 7, units = "in", dpi = 600)
 
 ```
 
@@ -2055,6 +2060,7 @@ stacked_plots <- NH4 / N / C
 # Display the stacked plots
 stacked_plots
 
+ggsave("Figure 3.jpg", plot = stacked_plots, width = 8, height = 12, dpi = 600)
 
 ```
 
@@ -2466,13 +2472,15 @@ pitfall_eff_plot <- ggplot(pitfalleffsize, aes(x = Trip, y = Effect_size, shape 
 
 pitfall_eff_plot
 
-combined_sticky_graphs <- grid.arrange(
+combined_pit_graphs <- grid.arrange(
   pitfall_count,
   pitfall_eff_plot,
   ncol = 1,
   heights = c(4, 2))
 
 print(combined_sticky_graphs)
+
+ggsave("Figure 7.jpg", plot = combined_sticky_graphs, width = 8, height = 9, dpi = 600)
 
 ```
 
@@ -2575,6 +2583,8 @@ combined_sticky_graphs <- grid.arrange(
 
  
 print(combined_sticky_graphs)
+
+ggsave("Figure 8.jpg", plot = combined_sticky_graphs, width = 8, height = 9, dpi = 600)
 
 ```
 
