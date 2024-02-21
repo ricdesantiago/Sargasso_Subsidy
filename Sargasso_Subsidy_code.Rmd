@@ -297,6 +297,12 @@ contrasts_decomp <- pairs(emm_decomp, reverse = TRUE)
 print(contrasts_decomp)
 
 
+#lets just look at november
+nov_mesh<- subset(decomp_bags, Trip == "2")
+nov_mesh_L<- subset(decomp_bags, Treatment == "large")
+
+t.test(nov_mesh_L$prc_Delta~nov_mesh_L$Site)
+
 
 ```
 
@@ -1024,6 +1030,7 @@ ladder_anova_result <- anova(ladder_lm)
 # Print the ANOVA table
 print(ladder_anova_result)
 
+view(laddersurvey_dist)
    
 ```
 
