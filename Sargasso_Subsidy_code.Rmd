@@ -85,22 +85,38 @@ t.test(ellipsoid_vol~Location, piles3)
 
 #Pile volume as the response, site as the main between-subjects factor, sampling date as the repeated within-subject 
 
-# Perform the repeated measures ANOVA with original_vol as a covariate
-
 piles_model <- lmer(Ellipsoid_prc_D ~ Trip * Location  + (1|Block), data = piles2)
 
 summary(piles_model)
 
-anova(piles_rm_anova)
+#assumptions
+plot(piles_model)
 
-#  post hoc pairwise comparisons 
-lsmeans_results <- lsmeans(piles_rm_anova, pairwise ~ Trip:Location)
+hist(resid(piles_model))
+qqnorm(resid(piles_model))
+qqline(resid(piles_model))
+#data look normal enough
 
-print(lsmeans_results)
+# Check for autocorrelation
+acf(resid(piles_model))
 
+# Extract residuals n fitted values
+residuals <- resid(piles_model)
+fitted_values <- fitted(piles_model)
 
+# residuals vs fitted values
+plot(fitted_values, residuals, 
+     xlab = "Fitted values", ylab = "Residuals",
+     main = "Residuals vs Fitted Values")
 
-view(piles2)
+# Add line
+abline(h = 0, col = "red")
+
+#smooth
+lines(stats::lowess(fitted_values, residuals), col = "blue")
+
+#no obvious patterns, variance is fine. we accept the model.
+
 
 ```
 
@@ -1674,7 +1690,7 @@ hist(chemistry$NH4_transformed ,
 
 
 #################ammonium
-ammonium<-lm(NH4_transformed ~ treatment + site * trip, data = chemistry)
+ammonium<-lm(NH4 ~ treatment + site * trip, data = chemistry)
 summary(ammonium)
 
 #look at residuals 
@@ -1751,58 +1767,10 @@ print(pairwise_C)
 ##gasses
 ```{r}
 CO2<-read.csv("gas_readings.csv",header=T)
-
-#subset experiment
-gas_CO2<-subset(CO2, !Treatment == "na")
-gas_CO2$CO2<-as.numeric(gas_CO2$CO2)
-gas_CO2$Trip<-is.factor(gas_CO2$CO2)
-
-#gas collectors
-gas_CO2 %>%
-  filter(Experiment %in% "collectors") %>%
-  filter(Time %in% "T1") %>%
-  ggplot() +
-  aes(x = Treatment, y = CO2, fill = Time) +
-  stat_summary(
-    fun = "mean",
-    geom = "bar",
-    position = "dodge",
-    width = 0.7
-  ) +
-  stat_summary(
-    fun.data = mean_se,
-    geom = "errorbar",
-    position = position_dodge(width = 0.7),
-    width = 0.25
-  ) +
-  scale_fill_hue(direction = 1) +
-  labs(
-    x = " ",
-    y = "Units",
-    title = "Gas collector",
-    fill = "Time point"
-  ) +
-    theme_minimal() +
-  theme(
-    panel.border = element_rect(color = "black", fill = NA, size = 1),
-    panel.spacing = unit(0.2, "lines"),
-    axis.title = element_text(size = 16),   # axis titles
-    axis.text = element_text(size = 14),    # axis labels
-    axis.text.x = element_text(size = 14),  # x-axis labels
-    plot.title = element_text(size = 18),   # plot title (if needed)
-    legend.title = element_text(size = 16), # legend title
-    legend.text = element_text(size = 14)   # legend labels
-  ) +
-  facet_grid(vars(), vars(Site), scales = "free_y")
-
-
-co2_data <- gas_CO2 %>%
-  group_by(Site, Treatment, Time) %>%
-  summarize(mean_CO2 = mean(CO2), se = sd(CO2) / sqrt(n()))
-co2_data
+view(CO2)
 
 # two-way ANOVA
-CO2_anova <- aov(CO2 ~ Treatment * Site, data = gas_CO2)
+CO2_anova <- aov(CO2 ~ treatment * site, data = gas_CO2)
 
 summary(CO2_anova)
 
@@ -2167,45 +2135,38 @@ ggsave("Figure 3.jpg", plot = stacked_plots, width = 8, height = 12, dpi = 600)
 
 CO2<-read.csv("gas_readings.csv",header=T)
 
-#subset experiment
-collectors<-subset(CO2, Experiment == "collectors") 
-collectors<-subset(collectors, !Site == "Calibrate")
-collectors<-subset(collectors, !Time == "T0")
+# Convert trip labels
+CO2$trip <- factor(CO2$trip, levels = c("2", "3", "4"), labels = c("Nov. 22", "Mar. 23", "Aug. 23"))
 
-
-CO2plot1 <- collectors %>%
-  group_by(Site, Treatment, Time) %>%
-  summarize(mean_CO2 = mean(CO2), se = sd(CO2) / sqrt(n())) %>%
-  ggplot() +
-  aes(x = Treatment, y = mean_CO2) +  
-  geom_bar(stat = "identity", position = "dodge", color = "black") +
-  geom_errorbar(aes(ymin = mean_CO2 - se, ymax = mean_CO2 + se), 
-                position = position_dodge(width = 0.9), width = 0.25) +
+CO2graph<-ggplot(CO2, aes(x = treatment, y = co2)) +
+  stat_summary(fun = "mean", geom = "bar", fill = "#848890") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
+  theme_minimal() +
+  facet_grid(vars(trip), vars(site)) +
   labs(
     x = " ",
     y = expression("gCO"[2]*"/m"^2*"/h"),
-    title = "Gas collectors",
-    fill = "Sample"
+    title = ""
   ) +
   theme_classic() +
   theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
-   axis.title = element_text(size = 16, color = "black"),   
+    axis.title = element_text(size = 16, color = "black"),   
     axis.text = element_text(size = 14, color = "black"),     
     axis.text.x = element_text(size = 14, color = "black"),   
     plot.title = element_text(size = 18, color = "black"),   
     legend.title = element_text(size = 16, color = "black"), 
     legend.text = element_text(size = 14, color = "black"), 
-   strip.text = element_text(size = 16, color = "black"),  
-    plot.background = element_rect(fill = "white"))  +
+    strip.text = element_text(size = 16, color = "black"),  
+    plot.background = element_rect(fill = "white")
+  )  +
   scale_x_discrete(labels = c("Control", "Sargassum")) +
-  facet_grid(vars(), vars(Site), scales = "fixed")
+  facet_grid(vars(trip), vars(site), scales = "fixed")
 
+CO2graph
 
-CO2plot1
-
-ggsave("Figure 4.jpg", plot = CO2plot1, width = 6, height = 4, dpi = 600)
+ggsave("Figure CO2.jpg", plot = CO2graph, width = 8, height = 9, dpi = 600)
 
 
 
