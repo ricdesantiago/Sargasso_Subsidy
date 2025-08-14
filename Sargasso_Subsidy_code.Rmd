@@ -75,13 +75,15 @@ levene_test <- leveneTest(ellipsoid_vol ~ Location, data = piles2)
 print(levene_test)
 
 
-#test if starting size of piles were different
+#test if starting size of piles were different initially
 #subset trip 1
 
 view(piles3)
 piles3<-subset(piles2, Trip == "1")
 
 t.test(ellipsoid_vol~Location, piles3)
+
+#since piles differed in size between sites and we are interested in their decomposition at each site, we will analyze our data as a percent of their respective initial volumes rather than total volume comparison. Thus initial starting volumes will be 100% across sites and need not be discussed further.
 
 #Pile volume as the response, site as the main between-subjects factor, sampling date as the repeated within-subject 
 
@@ -292,32 +294,79 @@ view(decomp_bags)
 
 
 
+#in our linear model, we want to see how percent decomposition differed by treatment at each site.  Thus, we will remove Trip one as this is T0 and there would be no decomposition and trip 3 because there are data missing. 
 
-#in our linear model, we want to see how percent decomposition differed by treatment at each site over time. Thus, we will remove Trip one as this is T0 and there would be no decomposition. Further, including it in the model would create a convergence and likely drop it anyway but just to be on the safe side, we will subset it out.
+# subset 2
+decomp_bags_model_data<- subset(decomp_bags, Trip == "2")
 
-decomp_bags_model_data<- subset(decomp_bags, !Trip == "1")
+# Fit a model of percent decomposition by treatment x site, and add a random factor to account for variability between bags.
 
-# Fit 
-decomp_model<- lmer(prc_Delta ~  Treatment * Site * Trip + (1|Bag_ID), data = decomp_bags_model_data, na.action = na.exclude)
+decomp_model<- lmer(prc_Delta ~  Treatment * Site + (1|Bag_ID), data = decomp_bags_model_data, na.action = na.exclude)
 
+isSingular(decomp_model)
+#the test suggests the random factor is Necessary, we will not remove.
 
 summary(decomp_model)
 
-# now lets do some pairwise comparisons 
-emm_decomp<- emmeans(decomp_model, ~ Treatment:Site:Trip)
+# Check residuals
+plot(decomp_model)
+qqnorm(resid(decomp_model)); qqline(resid(decomp_model))
+
+# Get the estimated marginal means
+emm_results <- emmeans(decomp_model, pairwise ~ Treatment | Site)
+
+# View the results
+emm_results
+
+# Full model (already fitted)
+decomp_model_full <- lmer(prc_Delta ~ Treatment * Site + (1|Bag_ID), data = decomp_bags, na.action = na.exclude)
+
+# Perform a fully crossed post-hoc test for Treatment and Site
+emmeans_results <- emmeans(decomp_model_full, pairwise ~ Treatment * Site)
+
+# View the results
+emmeans_results
 
 
-contrasts_decomp <- pairs(emm_decomp, reverse = TRUE)
+#to simplify this anaylysis and explore the interaction more, we weill break down the analysis by site.
 
-# Print the results
-print(contrasts_decomp)
+# beach
+decomp_bags_sub_beach<- subset(decomp_bags_model_data, Site == "Beach")
+view(decomp_bags_sub_beach)
+
+#two-sample t-test
+
+t_test_result <- t.test(prc_Delta ~ Treatment, data = decomp_bags_sub_beach)
+
+print(t_test_result)
 
 
-#lets just look at november
-nov_mesh<- subset(decomp_bags, Trip == "2")
-nov_mesh_L<- subset(decomp_bags, Treatment == "large")
+#forest
+decomp_bags_sub_forest <- subset(decomp_bags_model_data, Site == "Forest")
+view(decomp_bags_sub_forest)
 
-t.test(nov_mesh_L$prc_Delta~nov_mesh_L$Site)
+#two-sample t-test
+
+t_test_result_f <- t.test(prc_Delta ~ Treatment, data = decomp_bags_sub_forest)
+
+print(t_test_result_f)
+
+
+# the other analysis that I'd like here is to compare Large Beach to Large Forest to compare overall decomposition
+
+#large bags sub
+decomp_bags_sub_large <- subset(decomp_bags_model_data, Treatment == "large")
+view(decomp_bags_sub_large)
+
+#two-sample t-test
+
+t_test_result_large <- t.test(prc_Delta ~ Site, data = decomp_bags_sub_large)
+
+print(t_test_result_large)
+
+
+
+
 
 
 ```
@@ -1690,8 +1739,10 @@ hist(chemistry$NH4_transformed ,
 
 
 #################ammonium
-ammonium<-lm(NH4 ~ treatment + site * trip, data = chemistry)
+ammonium<-lm(NH4 ~ treatment * site * trip, data = chemistry)
+
 summary(ammonium)
+anova(ammonium)
 
 #look at residuals 
 plot(ammonium, which = c(1, 3)) 
@@ -1719,8 +1770,9 @@ qqline(chemistry$N)
 #data look normal enough 
 
 
-N<-lm(N ~ treatment + site * trip, data = chemistry)
+N<-lm(N ~ treatment * site * trip, data = chemistry)
 summary(N)
+anova(N)
 
 #look at residuals 
 plot(N, which = c(1, 3)) 
@@ -1767,12 +1819,89 @@ print(pairwise_C)
 ##gasses
 ```{r}
 CO2<-read.csv("gas_readings.csv",header=T)
+CO2<-na.omit(CO2)
+CO2$trip<-as.factor(CO2$trip)
+CO2$rep<-as.factor(CO2$rep)
 view(CO2)
 
-# two-way ANOVA
-CO2_anova <- aov(CO2 ~ treatment * site, data = gas_CO2)
+#lets look at the data 
+hist(CO2$co2)
+# data are zero inflated, not normal
 
-summary(CO2_anova)
+#let’s find out if theres the overall treatment effect (sargassum addition) on soil respiration. Here we will look to see if there is an interaction between our 3 factors, thus, we will make a three way interaction. There is no great way to look at these data with uneven  sample sizes so we will use a LMEM since its more robust and include a random factor for replicate # to account for this unevenness. 
+
+#model
+co2model <- lmer(co2 ~ treatment * site * trip + (1|rep), data = CO2)
+
+# lets run a type 3 anova to test for overall treatment effects and interactions.
+anova(co2model)
+# Extract residuals from the model
+residuals <- residuals(co2model)
+
+plot(predict(co2model), residuals)
+abline(h = 0, col = "red")  # red line
+
+# narmality of residuals. 
+qqnorm(residuals)
+qqline(residuals)
+# not great but expected for ecological data
+
+
+co2model2 <- lmer(co2 ~ treatment * site * trip + (1 + trip | rep), data = CO2)
+anova(co2model2)
+
+
+
+
+#all factors show significance. J. Long is specifically interested in the treatment effect and that is significant P<0.01. There is no 3 way interaction but site and trip interact. So let’s look at them separately
+
+
+##################beach####################################################
+
+CO2_B <- subset(CO2, site == "Beach")
+
+# Subset the data for each time point
+trip2_data <- subset(CO2_B, trip == "2")
+trip3_data <- subset(CO2_B, trip == 3)
+trip4_data <- subset(CO2_B, trip == 4)
+
+
+# Mixed-effects model for trip 2
+model_trip2 <- lmer(co2 ~ treatment  + (1|rep), data = trip2_data)
+
+# Mixed-effects model for trip 2
+model_trip3 <- lmer(co2 ~ treatment + (1|rep), data = trip3_data)
+
+# Mixed-effects model for trip 3
+model_trip4 <- lmer(co2 ~ treatment + (1|rep), data = trip4_data)
+
+summary(model_trip2)
+summary(model_trip3)
+summary(model_trip4)
+
+##################forest####################################################
+
+CO2_F <- subset(CO2, site == "Forest")
+
+# Subset the data for each time point
+trip2_data_F <- subset(CO2_F, trip == "2")
+trip3_data_F <- subset(CO2_F, trip == 3)
+trip4_data_F <- subset(CO2_F, trip == 4)
+
+
+# Mixed-effects model for trip 2
+F_model_trip2 <- lmer(co2 ~ treatment  + (1|rep), data = trip2_data_F)
+
+# Mixed-effects model for trip 2
+F_model_trip3 <- lmer(co2 ~ treatment + (1|rep), data = trip3_data_F)
+
+# Mixed-effects model for trip 3
+F_model_trip4 <- lmer(co2 ~ treatment + (1|rep), data = trip4_data_F)
+
+summary(F_model_trip2)
+summary(F_model_trip3)
+summary(F_model_trip4)
+
 
 
 #################################################respirometer##################################3##
@@ -1921,6 +2050,54 @@ decomp_bags<- decomp_bags %>%
 print(decomp_bags)
 
 ggsave("Figure 1.jpg", plot = decomp_bags, width = 8, height = 6, units = "in", dpi = 600)
+
+
+
+decomp_bags %>%
+  filter(!(Trip %in% "1")) %>%
+  ggplot() +
+  scale_fill_manual(
+    name = "Mesh size",
+    values = c("large" = "light gray", "small" = "white"),
+    labels = c("large" = "Large mesh", "small" = "Small mesh")
+  ) +
+  scale_color_manual(
+    name = "Mesh size",
+    values = c("large" = "black", "small" = "black"),
+    labels = c("large" = "Large mesh", "small" = "Small mesh")
+  ) +
+  aes(x = Site, fill = Treatment, weight = prc_means) +
+  geom_bar(position = "dodge", color = "black") +
+  geom_errorbar(
+    aes(ymin = prc_means - prc_SE, ymax = prc_means + prc_SE),
+    position = position_dodge(width = 0.9),
+    width = 0.25
+  ) +
+  labs(y = "Decomposition (% of initial dry biomass)", x = "") +
+  theme_classic() +
+  facet_grid(
+    Trip ~ .,
+    labeller = labeller(Trip = function(x) ifelse(x == "2", "Nov. 22", ifelse(x == "3", "Mar. 23", x)))
+  ) +
+  theme(
+    panel.border = element_rect(color = "black", fill = NA, size = 1),
+    panel.spacing = unit(0.2, "lines"),
+    axis.title = element_text(size = 16, color = "black"),
+    axis.text = element_text(size = 14, color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),
+    plot.title = element_text(size = 18, color = "black"),
+    legend.title = element_text(size = 16, color = "black"),
+    legend.text = element_text(size = 14, color = "black"),
+    legend.position = "bottom",
+    strip.text = element_text(size = 16, color = "black"),
+    plot.background = element_rect(fill = "white")
+  )
+
+
+
+
+
+
 
 
 ```
@@ -2124,7 +2301,7 @@ stacked_plots <- NH4 / N / C
 # Display the stacked plots
 stacked_plots
 
-ggsave("Figure 3.jpg", plot = stacked_plots, width = 8, height = 12, dpi = 600)
+ggsave("Figure 3.jpg", plot = stacked_plots, width = 8, height = 10, dpi = 600)
 
 ```
 
@@ -2145,7 +2322,7 @@ CO2graph<-ggplot(CO2, aes(x = treatment, y = co2)) +
   facet_grid(vars(trip), vars(site)) +
   labs(
     x = " ",
-    y = expression("gCO"[2]*"/m"^2*"/h"),
+    y = expression("Soil respiration (gCO"[2]*"/m"^2*"/h)"),
     title = ""
   ) +
   theme_classic() +
@@ -2169,56 +2346,6 @@ CO2graph
 ggsave("Figure CO2.jpg", plot = CO2graph, width = 8, height = 9, dpi = 600)
 
 
-
-#################################3respirometer##########################3
-
-CO2<-read.csv("gas_readings.csv",header=T)
-
-
-#subset experiment
-respirometer<-subset(CO2, Experiment == "respirometer") 
-
-CO2plot2 <- respirometer %>%
-  group_by(Site, Treatment, Position) %>%
-  summarize(mean_CO2 = mean(Carbon_dioxide), se = sd(Carbon_dioxide) / sqrt(n())) %>%
-  ggplot() +
-  aes(x = Treatment, y = mean_CO2, fill = Position) +
-  geom_bar(stat = "identity", position = "dodge", color = "black") +
-  geom_errorbar(aes(ymin = mean_CO2 - se, ymax = mean_CO2 + se), 
-                position = position_dodge(width = 0.9), width = 0.25) +
-  scale_fill_manual(values = c("lightgray", "white")) +
-  labs(
-    x = " ",
-    y = "CO2 UNITS",
-    title = "Respirometer",
-    fill = "Position"
-  ) +
-  theme_classic() +
-  theme(
-    panel.border = element_rect(color = "black", fill = NA, size = 1),
-    panel.spacing = unit(0.2, "lines"),
-    axis.title = element_text(size = 16, color = "black"),   
-    axis.text = element_text(size = 14, color = "black"),     
-    axis.text.x = element_text(size = 14, color = "black"),   
-    plot.title = element_text(size = 18, color = "black"),   
-    legend.title = element_text(size = 16, color = "black"), 
-    legend.text = element_text(size = 14, color = "black"),
-    legend.position = "bottom",
-     legend.box = "horizontal",
-    strip.text = element_text(size = 16, color = "black"),  
-    plot.background = element_rect(fill = "white"))  +
-  facet_grid(vars(), vars(Site), scales = "fixed") +
-  scale_x_discrete(labels = c("control", "sargasso"))  
-
-
-CO2plot2 <- CO2plot2 +
-  theme(
-    axis.title.y = element_text(margin = margin(r = )), )
-
-CO2plot2
-
-
-combined_CO2 <- grid.arrange(CO2plot1, CO2plot2)
 
 ```
 
