@@ -1,4 +1,4 @@
-plot,plotnum,site,trt,month,gCO2_m2_h,gCO2_m2_h_Z
+﻿plot,plotnum,site,trt,month,gCO2_m2_h,gCO2_m2_h_Z
 D1C,1,D,C,Nov,-0.0019,0
 D2C,2,D,C,Nov,0.0022,0.002236983
 D3C,3,D,C,Nov,-0.0020,0
