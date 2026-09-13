@@ -90,6 +90,7 @@ t.test(ellipsoid_vol~Location, piles3)
 piles_model <- lmer(Ellipsoid_prc_D ~ Trip * Location  + (1|Block), data = piles2)
 
 summary(piles_model)
+anova(piles_model)
 
 #assumptions
 plot(piles_model)
@@ -232,18 +233,25 @@ Ftotal_hymenopterans <- sum(ecomp_inverts_aug_F$Hymenoptera, na.rm = TRUE)
 
 
 # Fit linear mixed-effects model
-decomp_inverts_model<- lm(count ~  inverts + Site * Trip , data = decomp_inverts2)
+#make a pair variable for site and replicate number for the random factor
+
+decomp_inverts2$pair<-paste(sep = "",decomp_inverts2$Site,decomp_inverts2$Rep_no.)
+view(decomp_inverts2)
+
+decomp_inverts_model<- lm(count ~  inverts * Site * Trip , data = decomp_inverts2)
 
 
 # Print model summary
 summary(decomp_inverts_model)
-
+anova(decomp_inverts_model)
 
 # Obtain estimated marginal means
 means <- emmeans(decomp_inverts_model, ~ inverts + Site * Trip)
 
-# Perform pairwise comparisons for November 22
+
+# Perform pairwise comparisons
 pairwise_comparisons <- pairs(means, by = "Site:Trip", infer = c(TRUE, TRUE))
+
 
 # Print the comparisons
 print(pairwise_comparisons)
@@ -299,14 +307,14 @@ view(decomp_bags)
 # subset 2
 decomp_bags_model_data<- subset(decomp_bags, Trip == "2")
 
-# Fit a model of percent decomposition by treatment x site, and add a random factor to account for variability between bags.
+# Fit a model of percent decomposition by treatment x site, 
 
-decomp_model<- lmer(prc_Delta ~  Treatment * Site + (1|Bag_ID), data = decomp_bags_model_data, na.action = na.exclude)
+decomp_model<- lm(prc_Delta ~  Treatment * Site , data = decomp_bags_model_data, na.action = na.exclude)
 
-isSingular(decomp_model)
 #the test suggests the random factor is Necessary, we will not remove.
 
 summary(decomp_model)
+anova(decomp_model)
 
 # Check residuals
 plot(decomp_model)
@@ -317,15 +325,6 @@ emm_results <- emmeans(decomp_model, pairwise ~ Treatment | Site)
 
 # View the results
 emm_results
-
-# Full model (already fitted)
-decomp_model_full <- lmer(prc_Delta ~ Treatment * Site + (1|Bag_ID), data = decomp_bags, na.action = na.exclude)
-
-# Perform a fully crossed post-hoc test for Treatment and Site
-emmeans_results <- emmeans(decomp_model_full, pairwise ~ Treatment * Site)
-
-# View the results
-emmeans_results
 
 
 #to simplify this anaylysis and explore the interaction more, we weill break down the analysis by site.
@@ -363,10 +362,6 @@ view(decomp_bags_sub_large)
 t_test_result_large <- t.test(prc_Delta ~ Site, data = decomp_bags_sub_large)
 
 print(t_test_result_large)
-
-
-
-
 
 
 ```
@@ -619,7 +614,7 @@ print(t_test_result)
 ```
 
 ###effect sizes
-````{r}
+```{r}
 
 interioreffsize1 <-read.csv("interior_graphs.csv",header=T)
 interioreffsize <-subset(interioreffsize1, Data == "eff_size")
@@ -656,7 +651,6 @@ int_eff_plot <- ggplot(interioreffsize, aes(x = Trip, y = Effect_size, shape = C
     panel.spacing = unit(0.2, "lines"))
 
 int_eff_plot
-
 
 ```
 
@@ -858,7 +852,7 @@ perimeter_pc_cover
 
 
 ###effect sizes
-````{r}
+```{r}
 
 perimetereffsize1 <-read.csv("perimeter_graphs.csv",header=T)
 perimetereffsize <-subset(perimetereffsize1, Data == "eff_size")
@@ -899,181 +893,7 @@ per_eff_plot
 
 ```
 
-
-
-###Plant community nMDS 
-
-```{r}
-#upload and subset data for interior surveys 
-#import dataset
-plants<-read.csv("plantcommunity_NMDS.csv", header = TRUE)
-
-#subset out only the "random" and "interior"  since those are comparable (3 quads each pile interior)
-noladder<-subset(plants, !Survey == "Ladder" )
-interiorsurvey<-subset(noladder, !Survey == "HiLo")
-is.factor(interiorsurvey$Treatment)
-interiorsurvey$Treatment<-as.factor(interiorsurvey$Treatment)
-is.factor(interiorsurvey$Block)
-interiorsurvey$Block<-as.factor(interiorsurvey$Block)
-#compare communities differences using NMDS
-#use only the data we are interested in
-##plants first
-nm <- (interiorsurvey[,c(8:60)])
-#make matrix
-matrix = as.matrix(nm)
-nmds_result = metaMDS(matrix, distance = "bray")
-plot(nmds_result)
-
-
-# Create a new data frame with NMDS coordinates, grouping, and additional descriptor information
-nmds_data <- data.frame(nmds_result$points, Site = interiorsurvey$Site, Treatment = interiorsurvey$Treatment)
-
-
-plot1 <- ggplot(nmds_data, aes(x = MDS1, y = MDS2)) + 
-    geom_point(size = 3, aes( shape = Site, colour = Treatment))+ 
-    theme(axis.text.y = element_text(colour = "black", size = 12, face = "bold"), 
-    axis.text.x = element_text(colour = "black", face = "bold", size = 20), 
-    legend.text = element_text(size = 12, face ="bold", colour ="black"), 
-    legend.position = "right", axis.title.y = element_text(face = "bold", size = 20), 
-    axis.title.x = element_text(face = "bold", size = 12, colour = "black"), 
-    legend.title = element_text(size = 12, colour = "black", face = "bold"), 
-    panel.background = element_blank(), panel.border = element_rect(colour = "black", fill = NA, size = 1.2),
-    legend.key=element_blank()) + 
-    labs(x = "nmds_result", colour = "Treatment", y = "NMDS2", shape = "Site")  + 
-    scale_colour_manual(values = c("#009E73", "#E69F00")) 
-
-plot1
-
-
-#plot2
-co=c("red","black") 
-shape=c(18,17,16) 
-plot(nmds_result$points, col=interiorsurvey$Treatment, pch = interiorsurvey$Site, cex = 0.5, main = "Percent cover per treatment per site", xlab = "axis 1", ylab = "axis 2") 
-  Site <- c("Jungle","Dunes") 
-  legend('bottomright', Site, pch = c(), cex = 0.5, bty = "y" ) 
-  Treatment <- c("Sargassum", "Control") 
-  legend('bottomleft', Treatment, col=c("red","black"), pch = c(16), cex = 0.5, bty = "y" )
-
-
-
-###diversity index
-
-
-
-
-survey <- (interiorsurvey[,c(1,3,4,5,6,8:60)])
-survey$Block<-as.factor(survey$Block)
-survey$Quadrat<-as.factor(survey$Quadrat)
-survey$Trip<-as.factor(survey$Trip)
-
-
-
-###dune index
-
-
-
-survey <- (interiorsurvey[,c(1,3,4,5,6,8:60)])
-survey$Block<-as.factor(survey$Block)
-survey$Quadrat<-as.factor(survey$Quadrat)
-survey$Trip<-as.factor(survey$Trip)
-
-Dunes_survey_data<-subset(survey, Site == "Dunes")
-#merge litter and dead since litter was supposed to be categorized as dead
-
-Dunes_survey_data$Dead_Lit <- paste(Dunes_survey_data$Dead + Dunes_survey_data$Litter)
-
-# Remove the original columns if needed
-Dunes_survey_data <- Dunes_survey_data[, !(names(Dunes_survey_data) %in% c("Dead", "Litter"))]
-
-
-# Get the column names from the 6th column onwards
-Dunes_species_columns <- names(Dunes_survey_data)[6:ncol(Dunes_survey_data)]
-
-# Filter out columns with only zeros
-Dunes_non_zero_columns <- Dunes_species_columns[!apply(Dunes_survey_data[Dunes_species_columns], 2, function(x) all(x == 0))]
-
-# Create a new data frame with the non-zero columns
-Dunes_filtered_df <- Dunes_survey_data[c('Trip', 'Site', 'Block', 'Treatment', 'Quadrat', Dunes_non_zero_columns)]
-view(Dunes_filtered_df)
-
-
-# Convert the columns to numeric if they are not already
-Dunes_filtered_df[, Dunes_non_zero_columns] <- lapply(Dunes_filtered_df[, Dunes_non_zero_columns], as.numeric)
-
-# Convert numbers to percent cover for each row independently
-for (row in 1:nrow(Dunes_filtered_df)) {
-  row_sum <- sum(Dunes_filtered_df[row, Dunes_non_zero_columns])
-  if (row_sum != 0) {
-    Dunes_filtered_df[row, Dunes_non_zero_columns] <- (Dunes_filtered_df[row, Dunes_non_zero_columns] / row_sum) * 100
-  }
-}
-
-# Calculate Bray-Curtis dissimilarity matrix
-Dunes_bray_curtis_dist <- vegdist(Dunes_filtered_df[, Dunes_non_zero_columns], method = "bray")
-
-# Calculate beta diversity (average dissimilarity) using Bray-Curtis
-Dunes_beta_diversity <- mean(Dunes_bray_curtis_dist)
-
-# View the calculated beta diversity
-Dunes_beta_diversity
-
-# Assuming your dissimilarity matrix is named 'bray_curtis_dist' and you have the corresponding factors in 'Trip', and 'Treatment'
-
-# Perform PERMANOVA to compare beta diversity
-Dunes_permanova_result <- adonis2(Dunes_bray_curtis_dist ~ Treatment/Trip, data = Dunes_filtered_df)
-
-
-# View the PERMANOVA results
-Dunes_permanova_result
-
-
-###jungles index
-
-
-survey <- (interiorsurvey[,c(1,3,4,5,6,8:60)])
-survey$Block<-as.factor(survey$Block)
-survey$Quadrat<-as.factor(survey$Quadrat)
-survey$Trip<-as.factor(survey$Trip)
-Jungle_survey_data <- subset(survey, Site == "Jungle")
-
-#merge litter and dead since litter was supposed ot be categorized as dead
-Jungle_survey_data$Dead_Lit <- paste(Jungle_survey_data$Dead + Jungle_survey_data$Litter)
-# Remove the original columns if needed
-Jungle_survey_data <- Jungle_survey_data[, !(names(Jungle_survey_data) %in% c("Dead", "Litter"))]
-# Get the column names from the 6th column onwards
-Jungle_species_columns <- names(Jungle_survey_data)[6:ncol(Jungle_survey_data)]
-view(Jungle_species_columns)
-# Filter out columns with only zeros
-Jungle_non_zero_columns <- Jungle_species_columns[!apply(Jungle_survey_data[Jungle_species_columns], 2, function(x) all(x == 0))]
-# Create a new data frame with the non-zero columns
-Jungle_filtered_df <- Jungle_survey_data[c('Trip', 'Site', 'Block', 'Treatment', 'Quadrat', Jungle_non_zero_columns)]
-view(Jungle_filtered_df)
-# Convert the columns to numeric if they are not already
-Jungle_filtered_df[, Jungle_non_zero_columns] <- lapply(Jungle_filtered_df[, Jungle_non_zero_columns], as.numeric)
-# Convert numbers to percent cover for each row independently
-for (row in 1:nrow(Jungle_filtered_df)) {
-  row_sum <- sum(Jungle_filtered_df[row, Jungle_non_zero_columns])
-  if (row_sum != 0) {
-    Jungle_filtered_df[row, Jungle_non_zero_columns] <- (Jungle_filtered_df[row, Jungle_non_zero_columns] / row_sum) * 100
-  }
-}
-# Calculate Bray-Curtis dissimilarity matrix
-Jungle_bray_curtis_dist <- vegdist(Jungle_filtered_df[, Jungle_non_zero_columns], method = "bray")
-# Calculate beta diversity (average dissimilarity) using Bray-Curtis
-Jungle_beta_diversity <- mean(Jungle_bray_curtis_dist)
-# View the calculated beta diversity
-Jungle_beta_diversity
-# Assuming your dissimilarity matrix is named 'bray_curtis_dist' and you have the corresponding factors in 'Trip', and 'Treatment'
-# Perform PERMANOVA to compare beta diversity
-Jungle_permanova_result <- adonis2(Jungle_bray_curtis_dist ~ Treatment/Trip, data = Jungle_filtered_df)
-# View the PERMANOVA results
-Jungle_permanova_result
-#all significant but we should focus on seeing if there is a treatment effect within each site rather than by between
-
-```
-
 ##Ladder
-
 ```{r}
 ladder<-read.csv("ladder.csv", header = TRUE)
 ladder$Trip<-as.factor(ladder$Trip)
@@ -1179,22 +999,13 @@ cohen.d(ladder_beach_3_D1_sarg$Other_pants,ladder_beach_3_D1_con$Other_pants)
 
 ladder_forest<-subset(laddersurvey_dist, Site == "Forest")
 
-
-
-
-
-
-
-
 ```
 
-
-
 #Arthropods
-
 ##pitfalls
 
 ```{r}
+
 #load data
 pitfalls <-read.csv("Pitfalls.csv",header=T)
 pitfalls_long<- pitfalls %>%
@@ -1296,231 +1107,12 @@ kbl(pit_wide_data4) %>%
 
 
 
-
-
 ```
+
 ####pitfalls analysis
 
-```{r}
-
-pitfallsmod1 <-read.csv("Pitfalls.csv",header=T)
-
-############################################dunes############################################
-#subset out the dunes
-piteff_sub_dune<-subset(pitfallsmod1, Site == "Dune")
-
-#subset trip 1
-piteff_sub_dune_1<-subset(piteff_sub_dune, Trip == "1")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitdune_df_sargassum <- piteff_sub_dune_1[piteff_sub_dune_1$Treatment == "Sargassum", ]
-pitdune_df_control <- piteff_sub_dune_1[piteff_sub_dune_1$Treatment == "Control", ]
-
-### effect sizes for trip 1
-cohen.d(pitdune_df_sargassum$Amphipods,pitdune_df_control$Amphipods)
-cohen.d(pitdune_df_sargassum$Arachnid,pitdune_df_control$Arachnid)
-cohen.d(pitdune_df_sargassum$Hymenoptera,pitdune_df_control$Hymenoptera)
-
-
-#subset trip 2
-piteff_sub_dune_2<-subset(piteff_sub_dune, Trip == "2")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitdune_df_sargassum2 <- piteff_sub_dune_2[piteff_sub_dune_2$Treatment == "Sargassum", ]
-pitdune_df_control2 <- piteff_sub_dune_2[piteff_sub_dune_2$Treatment == "Control", ]
-
-### effect sizes for trip 2
-cohen.d(pitdune_df_sargassum2$Amphipods,pitdune_df_control2$Amphipods)
-cohen.d(pitdune_df_sargassum2$Arachnid,pitdune_df_control2$Arachnid)
-cohen.d(pitdune_df_sargassum2$Hymenoptera,pitdune_df_control2$Hymenoptera)
-
-#subset trip 3
-piteff_sub_dune_3<-subset(piteff_sub_dune, Trip == "3")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitdune_df_sargassum3 <- piteff_sub_dune_3[piteff_sub_dune_3$Treatment == "Sargassum", ]
-pitdune_df_control3 <- piteff_sub_dune_3[piteff_sub_dune_3$Treatment == "Control", ]
-
-### effect sizes for trip 3
-cohen.d(pitdune_df_sargassum3$Amphipods,pitdune_df_control3$Amphipods)
-cohen.d(pitdune_df_sargassum3$Arachnid,pitdune_df_control3$Arachnid)
-cohen.d(pitdune_df_sargassum3$Hymenoptera,pitdune_df_control3$Hymenoptera)
-
-
-############################################jungle############################################
-#subset out the dunes
-piteff_sub_jungle<-subset(pitfallsmod1, Site == "Jungle")
-
-#subset trip 1
-piteff_sub_jungle_1<-subset(piteff_sub_jungle, Trip == "1")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitjungle_df_sargassum <- piteff_sub_jungle_1[piteff_sub_jungle_1$Treatment == "Sargassum", ]
-pitjungle_df_control <- piteff_sub_jungle_1[piteff_sub_jungle_1$Treatment == "Control", ]
-
-### effect sizes for trip 1
-cohen.d(pitjungle_df_sargassum$Amphipods,pitjungle_df_control$Amphipods)
-cohen.d(pitjungle_df_sargassum$Arachnid,pitjungle_df_control$Arachnid)
-cohen.d(pitjungle_df_sargassum$Hymenoptera,pitjungle_df_control$Hymenoptera)
-
-#subset trip 2
-piteff_sub_jungle_2<-subset(piteff_sub_jungle, Trip == "2")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitjungle_df_sargassum2 <- piteff_sub_jungle_2[piteff_sub_jungle_2$Treatment == "Sargassum", ]
-pitjungle_df_control2 <- piteff_sub_jungle_2[piteff_sub_jungle_2$Treatment == "Control", ]
-
-### effect sizes for trip 2
-cohen.d(pitjungle_df_sargassum2$Amphipods,pitjungle_df_control2$Amphipods)
-cohen.d(pitjungle_df_sargassum2$Arachnid,pitjungle_df_control2$Arachnid)
-cohen.d(pitjungle_df_sargassum2$Hymenoptera,pitjungle_df_control2$Hymenoptera)
-
-#subset trip 3
-piteff_sub_jungle_3<-subset(piteff_sub_jungle, Trip == "3")
-
-# Subset the data for 'Sargassum' and 'Control' treatments
-pitjungle_df_sargassum3 <- piteff_sub_jungle_3[piteff_sub_jungle_3$Treatment == "Sargassum", ]
-pitjungle_df_control3 <- piteff_sub_jungle_3[piteff_sub_jungle_3$Treatment == "Control", ]
-
-### effect sizes for trip 3
-cohen.d(pitjungle_df_sargassum3$Amphipods,pitjungle_df_control3$Amphipods)
-cohen.d(pitjungle_df_sargassum3$Arachnid,pitjungle_df_control3$Arachnid)
-cohen.d(pitjungle_df_sargassum3$Hymenoptera,pitjungle_df_control3$Hymenoptera)
-
-
-
-#####Effect sizes#####
-#I manually input the effect sizes, lower and upper limits to a file called pitfalls_effsize.csv
-pitfallseffsize <-read.csv("pitfalls_effsize.csv",header=T)
-
-
-sticky_eff_plot <- ggplot(pitfallseffsize) +
-  aes(x = Trip, y = Effect_size, shape = Order) +
-  geom_jitter(size = 1.2) +
-  labs(y = "Effect size ", shape = "Taxa") +
-  theme_bw() +
-  facet_wrap(vars(Site), ncol = 2L)
-
-sticky_eff_plot
-
-
-
-
-```
-
-##sticky traps
 
 ```{r}
-
-stickies <-read.csv("stickies.csv",header=T)
-#load data
-stickies <-read.csv("Stickies.csv",header=T)
-stickies_long<- stickies %>%
-  gather(key = "Taxa", value = "Count", c(9,16,15))
-stickies_long$Trip<-as.factor(stickies_long$Trip)
-
-#fix names and calculate Mean and SE
-
-stickies_data <- stickies_long %>%
-  mutate(
-    Site = ifelse(Site == "Dune", "Beach", ifelse(Site == "Jungle", "Forest", Site)),
-    Trip = case_when(
-      Trip == 1 ~ "Aug. 22",
-      Trip == 2 ~ "Nov. 22",
-      Trip == 3 ~ "Mar. 23",
-      TRUE ~ as.character(Trip)  
-    ),
-    Treatment = case_when(
-      Treatment == "Control" ~ "control",
-      Treatment == "Sargassum" ~ "sargasso",
-      TRUE ~ as.character(Treatment)  
-    )
-  ) %>%
-  group_by(Site, Trip, Treatment, Taxa) %>%
-  summarize(
-    Mean = round(mean(Count), digits = 2), 
-    SE = round(sd(Count) / sqrt(n()), digits = 2)  
-  )
-
-view(stickies_data)
-
-#make data wide by "Site"
-stic_wide_data <- stickies_data %>%
-  pivot_wider(
-    id_cols = c("Trip", "Treatment", "Taxa"),
-    names_from = Site,
-    values_from = c(Mean, SE),
-    names_glue = "{Site}_{.value}")
-
-View(stic_wide_data)
-
-
-#make wider by Trip
-stic_wide_data2 <- stic_wide_data %>%
-  pivot_wider(
-    id_cols = c( "Treatment", "Taxa"),
-    names_from = Trip,
-    values_from = c(Beach_Mean, Beach_SE,
-    Forest_Mean, Forest_SE),
-    names_glue = "{Trip}_{.value}" )
-
-view(stic_wide_data2)
-
-#make sure Means are next to related SEs
-stic_wide_data3 <- stic_wide_data2 %>%
-  select(
-    # List the columns in order
-    "Taxa", "Treatment",
-    "Aug. 22_Beach_Mean", "Aug. 22_Beach_SE",
-    "Nov. 22_Beach_Mean", "Nov. 22_Beach_SE",
-    "Mar. 23_Beach_Mean", "Mar. 23_Beach_SE",
-    "Aug. 22_Forest_Mean", "Aug. 22_Forest_SE",
-    "Nov. 22_Forest_Mean", "Nov. 22_Forest_SE",
-    "Mar. 23_Forest_Mean", "Mar. 23_Forest_SE",)
-
-View(stic_wide_data3)
-
-# Rename the orders in Taxa
-stic_wide_data3 <- stic_wide_data3 %>%
-  mutate(
-    Taxa = case_when(
-      Taxa == "Amphipods" ~ "Amphipoda",
-      Taxa == "Diptera" ~ "Diptera",
-      Taxa == "Hymenoptera" ~ "Hymenoptera",
-      TRUE ~ Taxa  
-    )
-  )
-#order by Taxa
-stic_wide_data3 <- stic_wide_data3 %>%
-  arrange(Taxa)
-
-#Rename columns to just show Mean and SE
-### !!!!important!!!! notice i staggered spaces in the name so that i can use the same column names for all Means and SEs
-stic_wide_data4 <- stic_wide_data3 %>%
-  rename(
-     "Mean" = "Aug. 22_Beach_Mean", "SE   " = "Aug. 22_Beach_SE",
-     " Mean" = "Nov. 22_Beach_Mean", "SE  " = "Nov. 22_Beach_SE",
-     "  Mean" = "Mar. 23_Beach_Mean", "SE " = "Mar. 23_Beach_SE",
-     "Mean " = "Aug. 22_Forest_Mean", "  SE"  = "Aug. 22_Forest_SE",
-     "Mean  " = "Nov. 22_Forest_Mean", " SE" = "Nov. 22_Forest_SE",
-     "Mean   " = "Mar. 23_Forest_Mean", "SE" = "Mar. 23_Forest_SE")
-
-
-kbl(stic_wide_data4) %>%
-  kable_classic("striped", full_width = T)%>%
-  add_header_above(c(" " = 2, "Aug. 22" = 2, "Nov. 22" = 2, "Mar. 23" = 2, "Aug. 22" = 2, "Nov. 22" = 2, "Mar. 23" = 2)) %>%
-  add_header_above(c(" " = 2, "Beach" = 6, "Forest" = 6)) 
-
-
-
-
-```
-
-
-### sticky trap analysis
-
-```{r}
-
 
 stickiesmod1 <-read.csv("stickies.csv",header=T)
 
@@ -1717,6 +1309,7 @@ chemistry<-read.csv("sargasso_nitrates.csv",header=T)
 
 chemistry$block<-as.factor(chemistry$block)
 chemistry$trip<-as.factor(chemistry$trip)
+chemistry$pair<-paste(sep = "",chemistry$site,chemistry$block)
 
 view(chemistry)
 
@@ -1725,21 +1318,22 @@ hist(chemistry$NH4,
      xlab = "Variable Values",
      breaks = seq(min(chemistry$NH4), max(chemistry$NH4) + 1, by = 1))
 
-# Create a Q-Q plot to assess normality
-qqnorm(chemistry$NH4_transformed )
-qqline(chemistry$NH4_transformed )
+
 
 #data are positively skewed, lets log transform
-chemistry$NH4_transformed <- log(chemistry$NH4)
+chemistry$NH4_transformed <- log1p(chemistry$NH4)
 
 hist(chemistry$NH4_transformed , 
      main = "Histogram of Variable", 
      xlab = "Variable Values",
      breaks = seq(min(chemistry$NH4_transformed ), max(chemistry$NH4_transformed ) + 1, by = 1))
-
+# Create a Q-Q plot to assess normality
+qqnorm(chemistry$NH4_transformed )
+qqline(chemistry$NH4_transformed )
 
 #################ammonium
-ammonium<-lm(NH4 ~ treatment * site * trip, data = chemistry)
+#make pairs column
+ammonium<-lmer(rank(NH4_transformed) ~ treatment * site * trip + (1|pair), data = chemistry)
 
 summary(ammonium)
 anova(ammonium)
@@ -1769,8 +1363,8 @@ qqnorm(chemistry$N)
 qqline(chemistry$N)
 #data look normal enough 
 
+N<-lmer(rank(N) ~ treatment * site * trip + (1|pair), data = chemistry)
 
-N<-lm(N ~ treatment * site * trip, data = chemistry)
 summary(N)
 anova(N)
 
@@ -1786,6 +1380,7 @@ pairwise_N <- pairs(emmeans_N)
 print(pairwise_N)
 
 
+
 #########################################DOC
 
 hist(chemistry$C, 
@@ -1794,12 +1389,13 @@ hist(chemistry$C,
      breaks = seq(min(chemistry$C), max(chemistry$C) + 1, by = 1))
 
 # Create a Q-Q plot to assess normality
-qqnorm(chemistry$N)
-qqline(chemistry$N)
+qqnorm(chemistry$C)
+qqline(chemistry$C)
 
 #data look normal enough 
 C<-lm(C ~ treatment + site * trip, data = chemistry)
 summary(C)
+anova(C)
 
 #look at residuals 
 plot(C, which = c(1, 3)) 
@@ -1819,22 +1415,24 @@ print(pairwise_C)
 ##gasses
 ```{r}
 CO2<-read.csv("gas_readings.csv",header=T)
-CO2<-na.omit(CO2)
-CO2$trip<-as.factor(CO2$trip)
-CO2$rep<-as.factor(CO2$rep)
+
+CO2$plotnum<-as.factor(CO2$plotnum)
+is.factor(CO2$plotnum)
+
 view(CO2)
 
 #lets look at the data 
-hist(CO2$co2)
-# data are zero inflated, not normal
+hist(CO2$gCO2_m2_h)
 
-#let’s find out if theres the overall treatment effect (sargassum addition) on soil respiration. Here we will look to see if there is an interaction between our 3 factors, thus, we will make a three way interaction. There is no great way to look at these data with uneven  sample sizes so we will use a LMEM since its more robust and include a random factor for replicate # to account for this unevenness. 
+
+#let’s find out if theres the overall treatment effect (sargassum addition) on soil respiration. Here we will look to see if there is an interaction between our 3 factors, thus, we will make a three way anova
 
 #model
-co2model <- lmer(co2 ~ treatment * site * trip + (1|rep), data = CO2)
-
-# lets run a type 3 anova to test for overall treatment effects and interactions.
+co2model <- lmer(rank(gCO2_m2_h) ~ site*trt*month + (1|plot) , data = CO2)
 anova(co2model)
+anova (lmer(rank(gCO2_m2_h) ~ site*trt*month + (1|plotnum), CO2))
+
+summary(co2model)
 # Extract residuals from the model
 residuals <- residuals(co2model)
 
@@ -1846,10 +1444,12 @@ qqnorm(residuals)
 qqline(residuals)
 # not great but expected for ecological data
 
+# Create emmeans object
+emmeans_Co2 <- emmeans(co2model, ~treatment* site*trip)
 
-co2model2 <- lmer(co2 ~ treatment * site * trip + (1 + trip | rep), data = CO2)
-anova(co2model2)
-
+# Display pairwise comparisons
+pairwise_Co2 <- pairs(emmeans_Co2)
+print(pairwise_Co2)
 
 
 
@@ -1867,13 +1467,13 @@ trip4_data <- subset(CO2_B, trip == 4)
 
 
 # Mixed-effects model for trip 2
-model_trip2 <- lmer(co2 ~ treatment  + (1|rep), data = trip2_data)
+model_trip2 <- lm(co2 ~ treatment  , data = trip2_data)
 
 # Mixed-effects model for trip 2
-model_trip3 <- lmer(co2 ~ treatment + (1|rep), data = trip3_data)
+model_trip3 <- lm(co2 ~ treatment , data = trip3_data)
 
 # Mixed-effects model for trip 3
-model_trip4 <- lmer(co2 ~ treatment + (1|rep), data = trip4_data)
+model_trip4 <- lm(co2 ~ treatment , data = trip4_data)
 
 summary(model_trip2)
 summary(model_trip3)
@@ -1904,102 +1504,13 @@ summary(F_model_trip4)
 
 
 
-#################################################respirometer##################################3##
-
-CO2<-read.csv("gas_readings.csv",header=T)
-
-#subset experiment
-respirometer<-subset(CO2, Experiment == "respirometer") 
-
-
-# hree-way ANOVA
-CO2_resp_anova <- aov(Carbon_dioxide ~ Treatment * Position * Site, data = respirometer)
-
-summary(CO2_resp_anova)
-
-#analyze separately by site
-##first look at beach
-resp_beach<- subset(respirometer, Site == "Beach")
-# Perform the three-way ANOVA
-CO2_resp_anova_Beach <- aov(Carbon_dioxide ~ Treatment * Position, data = resp_beach)
-
-summary(CO2_resp_anova_Beach)
-
-CO2_resp_anova_Beach_tukeys<- HSD.test(CO2_resp_anova_Beach, "Treatment")
-print(CO2_resp_anova_Beach_tukeys)
-plot(CO2_resp_anova_Beach_tukeys)
-
-#lets see the means and SE
-co2_data_resp <- resp_beach %>%
-  group_by(Treatment, Position) %>%
-  summarize(mean_CO2 = mean(Carbon_dioxide), se = sd(Carbon_dioxide) / sqrt(n()))
-co2_data_resp
-
-
-#now lets do it for the the forest
-resp_forest<- subset(respirometer, Site == "Forest")
-# Perform the three-way ANOVA
-CO2_resp_anova_forest <- aov(Carbon_dioxide ~ Treatment * Position, data = resp_forest)
-
-summary(CO2_resp_anova_forest)
-
-CO2_resp_anova_forest_tukeys<- HSD.test(CO2_resp_anova_forest, "Treatment")
-print(CO2_resp_anova_forest_tukeys)
-plot(CO2_resp_anova_forest_tukeys)
-
-#lets see the means and SE
-co2_data_resp2 <- resp_forest %>%
-  group_by(Treatment, Position) %>%
-  summarize(mean_CO2 = mean(Carbon_dioxide), se = sd(Carbon_dioxide) / sqrt(n()))
-co2_data_resp2
-
-
-#graph it
-gas_CO2 %>%
-  filter(Experiment %in% "respirometer") %>%
-  ggplot() +
-  aes(x = Treatment, y = Carbon_dioxide, fill = Position) +
-  stat_summary(
-    fun = "mean",
-    geom = "bar",
-    position = "dodge",
-    width = 0.7
-  ) +
-  stat_summary(
-    fun.data = mean_se,
-    geom = "errorbar",
-    position = position_dodge(width = 0.7),
-    width = 0.25
-  ) +
-  scale_fill_hue(direction = 1) +
-  labs(
-    x = " ",
-    y = "Units",
-    title = "Respirometer",
-    fill = "Reader position"
-  ) +
-  theme_minimal() +
-  theme(
-    panel.border = element_rect(color = "black", fill = NA, size = 1),
-    panel.spacing = unit(0.2, "lines"),
-    axis.title = element_text(size = 16),   # axis titles
-    axis.text = element_text(size = 14),    # axis labels
-    axis.text.x = element_text(size = 14),  # x-axis labels
-    plot.title = element_text(size = 18),   
-    legend.title = element_text(size = 16), 
-    legend.text = element_text(size = 14)   
-  ) +
-  facet_grid(vars(), vars(Site))
-
 
 
 ```
-
-
 #Manuscript figures
 
 ##decomp bags
-```{r}
+````{r}
 decomp_bags<-read.csv("mesh_bag_exp.csv",header = T )
 decomp_bags$Rep_no.<-as.factor(decomp_bags$Rep_no.)
 decomp_bags$Trip<-as.factor(decomp_bags$Trip)
@@ -2031,7 +1542,7 @@ decomp_bags<- decomp_bags %>%
   geom_errorbar(aes(ymin = prc_means - prc_SE, ymax = prc_means + prc_SE), 
                 position = position_dodge(width = 0.9), 
                 width = 0.25) +  
-  labs(y = "Decomposition (% of initial dry biomass)", x = "") +
+  labs(y = "Percent of initial dry biomass", x = "") +
   theme_classic() +
   facet_grid(Trip ~ ., labeller = labeller(Trip = function(x) ifelse(x == "2", "Nov. 22", ifelse(x == "3", "Mar. 23", x)))) + 
   theme(
@@ -2093,15 +1604,7 @@ decomp_bags %>%
     plot.background = element_rect(fill = "white")
   )
 
-
-
-
-
-
-
-
-```
-
+````
 
 ##decomp inverts
 ```{r}
@@ -2312,34 +1815,39 @@ ggsave("Figure 3.jpg", plot = stacked_plots, width = 8, height = 10, dpi = 600)
 
 CO2<-read.csv("gas_readings.csv",header=T)
 
-# Convert trip labels
-CO2$trip <- factor(CO2$trip, levels = c("2", "3", "4"), labels = c("Nov. 22", "Mar. 23", "Aug. 23"))
+# Recode site labels
+CO2$site <- factor(CO2$site,
+                   levels = c("D", "J"),
+                   labels = c("Beach", "Forest"))
 
-CO2graph<-ggplot(CO2, aes(x = treatment, y = co2)) +
+# Convert trip labels
+CO2$trip <- factor(CO2$month,
+                   levels = c("Nov", "Mar", "Aug"),
+                   labels = c("Nov. 22", "Mar. 23", "Aug. 23"))
+
+CO2graph <- ggplot(CO2, aes(x = trt, y = gCO2_m2_h)) +
   stat_summary(fun = "mean", geom = "bar", fill = "#848890") +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
   theme_minimal() +
   facet_grid(vars(trip), vars(site)) +
   labs(
     x = " ",
-    y = expression("Soil respiration (gCO"[2]*"/m"^2*"/h)"),
-    title = ""
+    y = expression("Soil respiration (gCO"[2]*"/m"^2*"/h)")
   ) +
   theme_classic() +
   theme(
     panel.border = element_rect(color = "black", fill = NA, size = 1),
     panel.spacing = unit(0.2, "lines"),
-    axis.title = element_text(size = 16, color = "black"),   
-    axis.text = element_text(size = 14, color = "black"),     
-    axis.text.x = element_text(size = 14, color = "black"),   
-    plot.title = element_text(size = 18, color = "black"),   
-    legend.title = element_text(size = 16, color = "black"), 
-    legend.text = element_text(size = 14, color = "black"), 
-    strip.text = element_text(size = 16, color = "black"),  
+    axis.title = element_text(size = 16, color = "black"),
+    axis.text = element_text(size = 14, color = "black"),
+    axis.text.x = element_text(size = 14, color = "black"),
+    plot.title = element_text(size = 18, color = "black"),
+    legend.title = element_text(size = 16, color = "black"),
+    legend.text = element_text(size = 14, color = "black"),
+    strip.text = element_text(size = 16, color = "black"),
     plot.background = element_rect(fill = "white")
-  )  +
-  scale_x_discrete(labels = c("Control", "Sargassum")) +
-  facet_grid(vars(trip), vars(site), scales = "fixed")
+  ) +
+  scale_x_discrete(labels = c("Control", "Sargassum"))
 
 CO2graph
 
@@ -2770,9 +2278,8 @@ ggsave("Figure 8.jpg", plot = combined_sticky_graphs, width = 8, height = 9, dpi
 
 #Supplementary graphs
 ##pile vol
+
 ```{r}
-
-
 ####################may need to cut this graph for publication due to too many figures
 #####################################pile volumes#####################################
 
