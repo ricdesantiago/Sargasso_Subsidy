@@ -78,7 +78,6 @@ print(levene_test)
 #test if starting size of piles were different initially
 #subset trip 1
 
-view(piles3)
 piles3<-subset(piles2, Trip == "1")
 
 t.test(ellipsoid_vol~Location, piles3)
@@ -1678,7 +1677,7 @@ NH4<-ammonium %>%
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2023") ) +
   labs(
     x = " ",
-    y = expression("Ammonium (mg) sediment (kg"^{-1} * ")"),
+    y = expression("Ammonium content in sediment (mg kg"^{-1} * ")"),
     title = "",
     fill = "Treatment") +
   theme_classic()  +
@@ -1724,7 +1723,7 @@ N <- nitrogen %>%
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2023")) +
   labs(
     x = " ",
-    y = expression("Nitrate (mg) sediment (kg"^{-1} * ")"),
+    y = expression("Nitrate content in sediment (mg kg"^{-1} * ")"),
     title = "",
     fill = "Treatment") +
   theme_classic() +
@@ -1772,7 +1771,7 @@ C<-carbon %>%
     labels = c("1" = "Aug. 22", "2" = "Nov. 22", "3" = "Mar. 23", "4" = "Aug. 2023") ) +
   labs(
     x = " ",
-    y = expression("DOC (mg) sediment (kg"^{-1} * ")"),
+    y = expression("DOC content in sediment (mg kg"^{-1} * ")"),
     title = "",
     fill = "Treatment") +
   theme_classic()  +
