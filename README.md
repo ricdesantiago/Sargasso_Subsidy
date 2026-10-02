@@ -29,8 +29,8 @@ The study monitored decomposition, soil nutrients, soil respiration, plant commu
 
 
 ## IMPORTANT DATA-PROVENANCE NOTES
+<a href="https://handle.test.datacite.org/10.5072/zenodo.612805"><img src="https://sandbox.zenodo.org/badge/447768452.svg" alt="DOI"></a>
 
-[TODO: Add the final repository/DOI URL once the dataset has been permanently archived.]**********************
 
 GitHub repository referenced in the manuscript:
 https://github.com/ricdesantiago/Sargasso_Subsidy
@@ -886,10 +886,6 @@ Cohen's d was used to quantify treatment differences in crawling and flying arth
 
 All analyses and figures were conducted in R.
 
-[TODO: Add the exact R version used to run the final analyses.]
-[TODO: Add package versions if reproducibility requirements call for them.]
-[TODO: Identify the exact code chunk/file used to generate each manuscript figure.]
-
 ## R SOFTWARE AND PACKAGES
 
 R studio version Version 2025.09.2+418 (2025.09.2+418)
@@ -956,7 +952,6 @@ The R Markdown script expects the data files to be located in the project workin
 
 ~/Documents/GitHub/Sargasso_Subsidy
 
-[TODO: Replace this local path with a repository-relative description.]
 
 Recommended project structure:
 
@@ -985,7 +980,6 @@ Sargasso_Subsidy/
 |   |-- nmec.csv
 |
 |-- figures/
-|-- [TODO: supplementary files]
 
 
 ## CITATION
