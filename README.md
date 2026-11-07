@@ -32,7 +32,7 @@ The study monitored decomposition, soil nutrients, soil respiration, plant commu
 
 GitHub repository referenced in the manuscript:
 https://github.com/ricdesantiago/Sargasso_Subsidy
-<a href="https://doi.org/10.5281/zenodo.14533607"><img src="https://zenodo.org/badge/762141336.svg" alt="DOI"></a>
+<a href="https://doi.org/10.5281/zenodo.24028965"><img src="https://zenodo.org/badge/447768452.svg" alt="DOI"></a>
 
 
 SHARING/ACCESS INFORMATION
